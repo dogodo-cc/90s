@@ -1,0 +1,18 @@
+language: node_js
+node_js:
+  - "10"
+
+install:
+  npm install
+
+script: 
+  npm run build  
+
+# 部署到 github pages
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: cc5a3bbc1f3ddab35f0917880df834217f430009
+  keep_history: true
+  on:
+    branch: master
