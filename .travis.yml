@@ -1,26 +1,17 @@
 language: node_js
-node_js:
-  "10"
-
-# safelist  
+node_js: '10'
 branches:
-  only:
-    master
-
-install:
-  npm install
-
-script: 
-  npm run build  
-
-# 部署到 github pages
+  only: master
+install: npm install
+script: npm run build
 deploy:
   provider: pages
   skip_cleanup: true
-  github_token: $GITHUB_TOKEN
+  github_token: "$GITHUB_TOKEN"
   keep_history: true
-  local_dir: './dist'
+  local_dir: "./dist"
   on:
     branch: master
-
-# 34bc71263851cf290a509804df1091cb354323a4
+env:
+  global:
+  - secure: K7T2UGGxLsAezvn/HwGIRk35GXOFWdLNO2RPTFa4siKzzx8NjxZhu8qX5n8Iya7OkM6w60nCPsNWsOkKIbkIBVOECmiKi/+DzTKhie6Zsl7Zj/08jnw535Es8m7n4lMdBeOgC3SQd3DDU9oO750IWFD6aJ0LmkaCnuZiIT0Jx7pQO3yRNT6QYb/RVTHIqs/g5m8t7kJQBXB6jLxZqNR2OQGrxunBQQFHfPHC+gs05O4BFIV52rUEcaT1W9H9OdwPKRbumWycsmhQsSgjtfbLrcTZefDX3BLp6I6CTRtEpzuaoWAQ7F5mx4Z4d+czCMVgzOjIrMQDMcipPs4Pvbh4inXRX5MHbm/bkvAdNkLp5oFTYzui+PKBSdrf/Q37FiEhH74UzCgL52XzgDd0CIM+UscLieXSju7zMjC60XKF68gquov2g7OID+CnpFiu2bSYQrkffmR5QfRRUQLFZlFbRXYb/mvcMe+V9+u8wxVPymylkhCv5FTwHsEWaWXC/u2qqMi1GsEf82bqRe38SEqZUm5ALcMJg6NLeyxfp+YN3GJQGFaCmkI02MALMH1tHJjEMy5BEKon1uEbCnekxNjixbOLBVnw2SwKeDbRppN45isfEVP8VFDl3HXBRk0R6BJfRl8oGhPIsIYHYhNZhwoH7mfdpoQOqVsk4Cc49vLeCHQ=
