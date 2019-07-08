@@ -22,3 +22,5 @@ deploy:
   local_dir: './dist'
   on:
     branch: master
+
+# 34bc71263851cf290a509804df1091cb354323a4
