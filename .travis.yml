@@ -1,6 +1,11 @@
 language: node_js
 node_js:
-  - "10"
+  "10"
+
+# safelist  
+branches:
+  only:
+    master
 
 install:
   npm install
@@ -12,7 +17,8 @@ script:
 deploy:
   provider: pages
   skip_cleanup: true
-  github_token: cc5a3bbc1f3ddab35f0917880df834217f430009
+  github_token: 34bc71263851cf290a509804df1091cb354323a4
   keep_history: true
+  local_dir: './dist'
   on:
     branch: master

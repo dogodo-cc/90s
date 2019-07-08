@@ -162,6 +162,7 @@ export default {
       height: 30px;
       cursor: pointer;
       position: relative;
+      // 为了扩大鼠标触发区域
       &::before {
          display: block;
          content: '';

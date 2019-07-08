@@ -9,6 +9,7 @@ import '@/styles/layout.scss';
 
 Vue.config.productionTip = false;
 
+// eslint-disable-next-line 
 const app = new Vue({
   router,
   render: h => h(App),
