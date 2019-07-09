@@ -1,6 +1,6 @@
 <template>
   <div>
-    <header class="alan-header">前端路上</header>
+    <header class="alan-header"><a href="/">前端路上</a></header>
     <div class="alan-body">
       <nav class="alan-nav">
         <ul>
