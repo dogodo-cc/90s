@@ -18,7 +18,7 @@ script: npm run build
 deploy:
   provider: pages
   skip_cleanup: true
-  github_token: $gh\-token
+  github_token: $aaa
   keep_history: true
   local_dir: "./dist"
   on:
