@@ -11,4 +11,4 @@ travis encrypt 'GITHUB_TOKEN=<YOUR_GITHUB_TOKEN>' --add     # 加密 github toke
 
   c223042f03316d8d0da63d4718b9262f643634e3
 
-  a06f2db160ae321ee50b2d8053d79de016f12a49
+  feaee9801e3fe2bae01c27a42f6fb57bebc79b2a

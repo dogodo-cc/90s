@@ -1,25 +1,20 @@
 language: node_js
 node_js: '10'
-
 branches:
   only: master
-
-before_install:
-
+before_install: 
 cache:
-  directories:
-    node_modules
-
-
+  directories: node_modules
 install: npm install
-
 script: npm run build
-
 deploy:
   provider: pages
   skip_cleanup: true
-  github_token: $aaa
+  github_token: "$aaa"
   keep_history: true
   local_dir: "./dist"
   on:
     branch: master
+env:
+  global:
+    secure: RjYt/9vUZuKvMOATUUZ1N7HFVK9Vl43BD7CIwCtLK7/NfHygkWkmz54CgyiDgLQvQlQuItuVPaHLkxFb7KPw8yALcpZjK78uiWpZcuP3bahtu02+DxROsMkoAYvamOwwbZfmdawmq9VdjgoN1ZtjPmkiyO449h6YCJDfq3Tq8FoDktK4mN1QKmExpQiQPs7cgErjav8EoLd7Wvz/YFSclocJL9XCetTBQ0FvTP5TVegkhRN47ikfprCI6dweAlaqGpc5YuLu4pi1ZFDq/munm4hX2kNctF+agSuPnwkHXbD29ZA61VXmjhhetWaC0oosjXJST9RB1Yw84oNvoNO97aPotUlf8+dw8X8U1zGiq0+tLRYMxe6bnpWEUnnB1B6daTKnQLXCpL4344EY2CPX4+cJvqst4vnh81tPv0jtW4QW6fSdcknaFKDJW1nTNM0Wh0iOeElVK6CCCPW3d2mNJd5qnfcPlql4Lbc5PrTW4ik6U1qqEi2GOIgn/U0ukCMUnWWCCTpFV6FljcUme0pY5WCwyN5TOm7wFbmFNAZF2YIqL/o870xrm4UTpl5P5d5k0duAhLrBfdcNN8qRKRQFTCVjumcUsrkASjL3zYtMsVTFLMY/R9NX8OqNRsUZCzki2VfSK/OyxRy/6MQ5DUdpD3yuV4T8xtDdc0OJKbghs0s=
