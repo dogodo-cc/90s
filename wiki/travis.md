@@ -10,4 +10,4 @@ travis encrypt 'GITHUB_TOKEN=<YOUR_GITHUB_TOKEN>' --add     # 加密 github toke
   登录 travis 在设置里面把 一系列东西都打勾，我目前不知道意思，但是打勾就登录成功了。大概是授权之类的巴啦啦。
 
 
-  feaee9801e3fe2bae01c27a42f6fb57bebc79b2a
+  0f0d7317e3ce9864fb679be9a2b77ba031ea2597
