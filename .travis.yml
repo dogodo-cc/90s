@@ -2,7 +2,6 @@ language: node_js
 node_js: '10'
 branches:
   only: master
-before_install: 
 cache:
   directories: node_modules
 install: npm install
@@ -10,11 +9,9 @@ script: npm run build
 deploy:
   provider: pages
   skip_cleanup: true
-  github_token: "$aaa"
+  github_token: $GITHUB_PAGES
   keep_history: true
+  target_branch: gh-pages
   local_dir: "./dist"
   on:
     branch: master
-env:
-  matrix:
-    secure: tqyGYT1lQL8LIZlS/Qk31zP35zLiiOFeTmCH1Sv15k63/aMHMEP2X1B7nyB1SZAiX8vzLBS3dU1AA1uy2begX89rfSiUMaA4QTSf5WRQW3fW9j1gCrm2sBZahYvM63nLVQQOlYURJdN7hnvMV5rKrfEedkHJvoc4bLVVInPDYSS33REVNNaexwxNQasHjA3WxVHcMlF7xvwN6dgOnI0VMcfghIyzRNbDbxhnYbtk5fE+6f2SjEMpAzxfLU9ox9vVTIvviR5WQAMwLtVbMWFyHKjYxcu598siRoG3ey2qppVMr4ap8BV22mOAV4et0Ivk+ounASxKLY4NWIHwN7acrPjQphlCl5sPmuRZ75mBRCpDpv4vNqKaUDE+CeSKQI2wm0FQ6XTKlEVaAzZ3Nj1L8XXsLf4pQXoq9FN6wKebDL1V6xacF7BanYb7rWbePBIxHOnTKrNuKFvDt4fBew1D4k8uu5XFe0EQHavM7U7T0T/tRyhWFDXsEOLMWuRc+EoY2eEEoI/8qyZaE0BKCCNQPvDSSAWXjU3aR3mehYbuuFgW8d9rA//jZtP/iwVMZTsTytibs36qGmfVxsTCGA0Oldkl9R/RYGlmLGzLnPxyei+VPDOwaTLV8fzUd2TXmKFPbEDL+7yfu8RPt1Ltg2ZrEVqkol0IhXTYgAm32vP3ZmU=
