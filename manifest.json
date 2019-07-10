@@ -1,12 +1,13 @@
 {
-  "404.js": "404.c8e1ff2efdcd453d8d37.js",
-  "app.js": "app.c8e1ff2efdcd453d8d37.js",
-  "china-map.js": "china-map.c8e1ff2efdcd453d8d37.js",
-  "commons-app-vue-router.esm.js.js": "commons-app-vue-router.esm.js.c8e1ff2efdcd453d8d37.js",
-  "commons-app-vue.runtime.esm.js.js": "commons-app-vue.runtime.esm.js.c8e1ff2efdcd453d8d37.js",
-  "commons-svg-animals-anime.es.js.js": "commons-svg-animals-anime.es.js.c8e1ff2efdcd453d8d37.js",
-  "home.js": "home.c8e1ff2efdcd453d8d37.js",
-  "loading.js": "loading.c8e1ff2efdcd453d8d37.js",
-  "svg-animals.js": "svg-animals.c8e1ff2efdcd453d8d37.js",
+  "404.js": "404.dd5a9fa9977b6973e54a.js",
+  "app.js": "app.dd5a9fa9977b6973e54a.js",
+  "china-map.js": "china-map.dd5a9fa9977b6973e54a.js",
+  "commons-app-vue-router.esm.js.js": "commons-app-vue-router.esm.js.dd5a9fa9977b6973e54a.js",
+  "commons-app-vue.runtime.esm.js.js": "commons-app-vue.runtime.esm.js.dd5a9fa9977b6973e54a.js",
+  "commons-svg-animals-anime.es.js.js": "commons-svg-animals-anime.es.js.dd5a9fa9977b6973e54a.js",
+  "home.js": "home.dd5a9fa9977b6973e54a.js",
+  "loading.js": "loading.dd5a9fa9977b6973e54a.js",
+  "mouse.js": "mouse.dd5a9fa9977b6973e54a.js",
+  "svg-animals.js": "svg-animals.dd5a9fa9977b6973e54a.js",
   "index.html": "index.html"
 }
