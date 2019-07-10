@@ -22,5 +22,5 @@ deploy:
 notifications:
   email:
     recipients: 741484865@qq.com
-    on_success: change
+    on_success: always
     on_failure: always
