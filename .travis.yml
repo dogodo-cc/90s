@@ -8,7 +8,8 @@ install: npm install
 script: npm run build
 
 after_success:
-  cp ./CNAME ./dist 
+  cp ./CNAME ./dist
+  cp ./public/favicon.ico ./dist 
 deploy:
   provider: pages
   skip_cleanup: true
