@@ -18,3 +18,9 @@ deploy:
   local_dir: "./dist"
   on:
     branch: master
+
+notifications:
+  email:
+    recipients: 741484865@qq.com
+    on_success: change
+    on_failure: always
