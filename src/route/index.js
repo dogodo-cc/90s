@@ -55,6 +55,13 @@ const router = new VueRouter({
           meta: {
             title: '加载动画'
           }
+        },
+        {
+          path: '/mouse',
+          component:() => import(/* webpackChunkName: "mouse" */ '@/views/effects/mouse/index.vue'),
+          meta: {
+            title: '鼠标效果'
+          }
         }
       ]
     },
