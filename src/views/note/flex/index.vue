@@ -78,7 +78,7 @@
                             <el-input v-model="flexContainerValue['height']"><template slot="append">height</template></el-input>
                             <el-button type="primary" @click="add">增加</el-button>
                         </li>
-                        <li v-for="(item,index) in items">
+                        <li v-for="(item,index) in items" :key="index">
                             <span>方块{{index + 1}}:</span>
                             <el-input v-model="item.w"><template slot="append">width</template></el-input>
                             <el-input v-model="item.h"><template slot="append">height</template></el-input>
