@@ -6,7 +6,6 @@ cache:
   directories: node_modules
 install: npm install
 script: npm run build
-
 after_success:
   cp ./CNAME ./dist
   cp ./public/favicon.ico ./dist 
@@ -19,7 +18,6 @@ deploy:
   local_dir: "./dist"
   on:
     branch: master
-
 notifications:
   email:
     recipients: 741484865@qq.com

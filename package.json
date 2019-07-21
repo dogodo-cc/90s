@@ -1,29 +1,33 @@
 {
   "name": "on-the-way",
   "version": "1.0.0",
+  "private": true,
   "description": "走在前端的大道上",
+  "author": "alan",
   "scripts": {
     "build": "webpack --config ./build/webpack.prod.js",
-    "start": "webpack-dev-server --config ./build/webpack.dev.js",
-    "lint": "eslint --ext .js,.vue src"
+    "lint": "eslint --ext .js,.vue src",
+    "start": "webpack-dev-server --config ./build/webpack.dev.js"
   },
-  "private": true,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dogodo-cc/on-the-way.git"
+  "dependencies": {
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
+    "@babel/polyfill": "^7.4.4",
+    "@babel/runtime-corejs2": "^7.4.5",
+    "animejs": "^3.0.1",
+    "core-js": "^3.1.4",
+    "element-ui": "^2.10.1",
+    "jquery": "^3.4.1",
+    "lodash": "^4.17.15",
+    "normalize.css": "^8.0.1",
+    "vue": "^2.6.10",
+    "vue-router": "^3.0.7"
   },
-  "keywords": [],
-  "author": "alan",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/dogodo-cc/on-the-way/issues"
-  },
-  "homepage": "https://github.com/dogodo-cc/on-the-way#readme",
   "devDependencies": {
     "@babel/core": "^7.4.5",
     "@babel/plugin-transform-runtime": "^7.4.4",
     "@babel/preset-env": "^7.4.5",
     "babel-loader": "^8.0.6",
+    "babel-plugin-component": "^1.1.1",
     "clean-webpack-plugin": "^3.0.0",
     "css-loader": "^3.0.0",
     "cssnano": "^4.1.10",
@@ -48,16 +52,14 @@
     "webpack-manifest-plugin": "^2.0.4",
     "webpack-merge": "^4.2.1"
   },
-  "dependencies": {
-    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
-    "@babel/polyfill": "^7.4.4",
-    "@babel/runtime-corejs2": "^7.4.5",
-    "animejs": "^3.0.1",
-    "core-js": "^3.1.4",
-    "jquery": "^3.4.1",
-    "lodash": "^4.17.11",
-    "normalize.css": "^8.0.1",
-    "vue": "^2.6.10",
-    "vue-router": "^3.0.7"
+  "bugs": {
+    "url": "https://github.com/dogodo-cc/on-the-way/issues"
+  },
+  "homepage": "https://www.90s.co",
+  "keywords": [],
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dogodo-cc/on-the-way.git"
   }
 }

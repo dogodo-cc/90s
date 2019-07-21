@@ -66,6 +66,20 @@ const router = new VueRouter({
       ]
     },
     {
+      path: '/note',
+      component: Layout,
+      meta: {
+        title: '笔记',
+      },
+      children: [{
+        path: '/flex',
+        component:() => import(/* webpackChunkName: "flex" */ '@/views/note/flex/index.vue'),
+        meta: {
+          title: 'flex 布局'
+        }
+      }]
+    },
+    {
       path: '*',
       // redirect: '404',
       name: 'not-found',
