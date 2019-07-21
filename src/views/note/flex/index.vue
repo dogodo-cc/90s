@@ -86,7 +86,7 @@
                         </li>
                     </ul>
                 </div>
-                <img src="http://www.ruanyifeng.com/blogimg/asset/2015/bg2015071004.png" alt="picture">
+                <img src="https://www.ruanyifeng.com/blogimg/asset/2015/bg2015071004.png" alt="picture">
             </div>
         </div>
   </div>

@@ -5,7 +5,7 @@
   "description": "走在前端的大道上",
   "author": "alan",
   "scripts": {
-    "build": "webpack --config ./build/webpack.prod.js",
+    "build": "NODE_ENV=production webpack --config ./build/webpack.prod.js",
     "lint": "eslint --ext .js,.vue src",
     "start": "webpack-dev-server --config ./build/webpack.dev.js"
   },

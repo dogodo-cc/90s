@@ -1,6 +1,6 @@
 <template>
   <div class="page page-home">
-    相信我，等我有时间了，会把这个网站弄好看的。
+    嗯哼，这是一个个人博客，没有UI设计，后面慢慢优化
   </div>
 </template>
 <script>
