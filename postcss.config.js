@@ -5,7 +5,8 @@ module.exports = ctx => {
     plugins: {
       'postcss-import': {},
       'postcss-cssnext': {},
-      'cssnano': {}
+      'cssnano': {},
+      'postcss-inline-svg': {}
     }
   }
 }

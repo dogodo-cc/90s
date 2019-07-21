@@ -149,3 +149,17 @@ export function uuid(len = 8, radix = 16) {
 
   return uuid.join('');
 }
+
+
+/***
+ * 获得元素在页面上的位置相当于 jQuery 的 $(el).offset()
+ * @param el
+ * @returns {{top: number, left: number}}
+ */
+export function getOffset(el) {
+  var rect = el.getBoundingClientRect();
+  return {
+      top: rect.top + document.body.scrollTop,
+      left: rect.left + document.body.scrollLeft
+  }
+}

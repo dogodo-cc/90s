@@ -100,16 +100,23 @@ const router = new VueRouter({
           component:() => import(/* webpackChunkName: "study-index" */ '@/views/study/index.vue'),
         },
         {
-        path: '/lesson01',
+        path: '/svg-lesson-01',
         component:() => import(/* webpackChunkName: "svg-lesson-01" */ '@/views/study/svg/lesson-01/index.vue'),
         meta: {
           title: 'svg 第一节'
         }
-      }]
+        },
+        {
+          path: '/canvas-lesson-01',
+          component:() => import(/* webpackChunkName: "canvas-lesson-01" */ '@/views/study/canvas/lesson-01/index.vue'),
+          meta: {
+            title: 'canvas 第一节'
+          }
+        }
+      ]
     },
     {
       path: '*',
-      // redirect: '404',
       name: 'not-found',
       component:() => import(/* webpackChunkName: "404" */ '@/views/404/index.vue'),
     }
