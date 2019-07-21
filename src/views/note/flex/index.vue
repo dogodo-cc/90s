@@ -273,12 +273,12 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .wrap {
             display: flex;
         }
         .control {
-            width: 600px;
+            width: 500px;
             border: 1px solid #ccc;
             padding: 0 15px;
         }
@@ -287,7 +287,7 @@ export default {
             margin-bottom: 15px;
         }
         .control .attr .name{
-            width: 130px;
+            width: 100px;
         }
         .control .value-box {
             display: flex;

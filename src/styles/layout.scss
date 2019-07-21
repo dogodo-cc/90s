@@ -34,4 +34,7 @@
 
 .alan-contain {
   flex: 1;
+  height: calc(100vh -60px);
+  overflow-y: scroll;
+  overflow-x: hidden;
 }

@@ -4,12 +4,15 @@ import {
   Button,
   Input,
   Radio,
+  Checkbox,
   Popover,
   Tooltip
 } from 'element-ui'
 
+Vue.prototype.$ELEMENT = { size: 'small'};
 Vue.use(Button)
 Vue.use(Input)
 Vue.use(Radio)
+Vue.use(Checkbox)
 Vue.use(Popover)
 Vue.use(Tooltip)

@@ -17,14 +17,14 @@ const router = new VueRouter({
     {
       path: '/',
       component: Layout,
+      meta: {
+        title: '首页'
+      },
       children: [
         {
           path: '/',
           name: 'home',
           component:() => import(/* webpackChunkName: "home" */ '@/views/home/index.vue'),
-          meta: {
-            title: '首页'
-          }
         }
       ]
     },
@@ -35,6 +35,10 @@ const router = new VueRouter({
         title: '动效'
       },
       children: [
+        {
+          path: '/',
+          component:() => import(/* webpackChunkName: "effect-index" */ '@/views/effects/index.vue'),
+        },
         {
           path: '/china-map',
           component:() => import(/* webpackChunkName: "china-map" */ '@/views/effects/china-map/index.vue'),
@@ -71,7 +75,12 @@ const router = new VueRouter({
       meta: {
         title: '笔记',
       },
-      children: [{
+      children: [
+        {
+          path: '/',
+          component:() => import(/* webpackChunkName: "note-index" */ '@/views/note/index.vue'),
+        },
+        {
         path: '/flex',
         component:() => import(/* webpackChunkName: "flex" */ '@/views/note/flex/index.vue'),
         meta: {
@@ -83,13 +92,18 @@ const router = new VueRouter({
       path: '/study',
       component: Layout,
       meta: {
-        title: '学习 SVG',
+        title: '学习笔记',
       },
-      children: [{
+      children: [
+        {
+          path: '/',
+          component:() => import(/* webpackChunkName: "study-index" */ '@/views/study/index.vue'),
+        },
+        {
         path: '/lesson01',
         component:() => import(/* webpackChunkName: "svg-lesson-01" */ '@/views/study/svg/lesson-01/index.vue'),
         meta: {
-          title: '第一节'
+          title: 'svg 第一节'
         }
       }]
     },

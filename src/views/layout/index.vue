@@ -1,6 +1,6 @@
 <template>
   <div>
-    <header class="alan-header"><a href="/"><img src="~@/assets/logo.png" alt=""></a></header>
+    <header class="alan-header"> <router-link to="/"><img src="~@/assets/logo.png" alt="logo"></router-link></header>
     <div class="alan-body">
       <nav class="alan-nav">
         <ul>
