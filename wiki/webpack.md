@@ -25,3 +25,10 @@ module.exports = ctx => {
 ```bash
 npm install @babel/plugin-syntax-dynamic-import
 ```
+
+```javascript
+this.iconList = require.context('@/icons/svg/',false,/\.svg$/).keys().map(v => {
+  v = v.replace('./','').replace('.svg','').trim();
+  return v;
+});
+```
