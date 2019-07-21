@@ -1,1 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[6],{166:function(e,t,i){"use strict";i.r(t);var n=function(){var e=this.$createElement;return(this._self._c||e)("div",[this._v("动画效果会收集在这里")])};n._withStripped=!0;var s=i(12),r=Object(s.a)({},n,[],!1,null,null,null);r.options.__file="src/views/effects/index.vue";t.default=r.exports}}]);
