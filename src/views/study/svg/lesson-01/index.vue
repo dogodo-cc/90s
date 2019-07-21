@@ -107,7 +107,7 @@
 
 <svg width="300" height="200" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" >
     <title>路径运动</title>
-    <rect x="0" y="=0" width="30" height="30" style="fill: #ccc;"><animateMotion form="0,0" to="60,30" dur="4s" fill="freeze" /></rect>
+    <rect x="0" y="0" width="30" height="30" style="fill: #ccc;"><animateMotion form="0,0" to="60,30" dur="4s" fill="freeze" /></rect>
     <circle cx="30" cy="30" r="15" style="fill:#cfc;stroke: green;"><animateMotion form="0,0" to="60,30" dur="4s" fill="freeze" /></circle>
 
     <!--要移动的三角形路径-->
