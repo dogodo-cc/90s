@@ -80,6 +80,20 @@ const router = new VueRouter({
       }]
     },
     {
+      path: '/study',
+      component: Layout,
+      meta: {
+        title: '学习 SVG',
+      },
+      children: [{
+        path: '/lesson01',
+        component:() => import(/* webpackChunkName: "svg-lesson-01" */ '@/views/study/svg/lesson-01/index.vue'),
+        meta: {
+          title: '第一节'
+        }
+      }]
+    },
+    {
       path: '*',
       // redirect: '404',
       name: 'not-found',
