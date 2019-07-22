@@ -119,7 +119,8 @@ const router = new VueRouter({
       path: '/sharon',
       component:() => import(/* webpackChunkName: "sharon" */ '@/views/sharon/photos/index.vue'),
       meta: {
-        title: '照片墙'
+        title: '照片墙',
+        pageTitle: '我们结婚啦^_^'
       }
     },
     {
@@ -132,6 +133,11 @@ const router = new VueRouter({
 
 
 
+router.afterEach(to => {
+  if (to.meta && to.meta.pageTitle) {
+    document.title = to.meta.pageTitle;
+  }
+});
 
 
 export default router;
