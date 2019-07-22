@@ -66,7 +66,7 @@ const router = new VueRouter({
           meta: {
             title: '鼠标效果'
           }
-        }
+        },
       ]
     },
     {
@@ -114,6 +114,13 @@ const router = new VueRouter({
           }
         }
       ]
+    },
+    {
+      path: '/sharon',
+      component:() => import(/* webpackChunkName: "sharon" */ '@/views/sharon/photos/index.vue'),
+      meta: {
+        title: '照片墙'
+      }
     },
     {
       path: '*',
