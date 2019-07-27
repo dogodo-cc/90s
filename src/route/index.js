@@ -67,6 +67,13 @@ const router = new VueRouter({
             title: '鼠标效果'
           }
         },
+        {
+          path: '/danmuke',
+          component:() => import(/* webpackChunkName: "danmuke" */ '@/views/effects/danmuke/index.vue'),
+          meta: {
+            title: '弹幕系统'
+          }
+        },
       ]
     },
     {
