@@ -131,6 +131,14 @@ const router = new VueRouter({
       }
     },
     {
+      path: '/love',
+      component:() => import(/* webpackChunkName: "love" */ '@/views/sharon/love/index.vue'),
+      meta: {
+        title: '爱心表白',
+        pageTitle: '我们结婚啦^_^'
+      }
+    },
+    {
       path: '*',
       name: 'not-found',
       component:() => import(/* webpackChunkName: "404" */ '@/views/404/index.vue'),
