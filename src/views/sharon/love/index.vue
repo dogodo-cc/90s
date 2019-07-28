@@ -16,7 +16,8 @@
         <span class="keyword">Mr</span> YUAN
         <br />Girl name =
         <span class="keyword">Mrs</span> SHU
-        <br /><br />
+        <br />
+        <br />
         <span class="comments">// Fall in love river.</span>
         <br />The boy love the girl;
         <br />
@@ -69,23 +70,26 @@
         </div>
       </div>
     </div>
+    <Orientation></Orientation>
   </div>
 </template>
 
 <script>
 import $ from "jquery";
 import { Garden } from "./utils/garden";
+import Orientation from '@/components/orientation/index.vue'
 export default {
   name: "sharon-love",
+  components: {Orientation},
   mounted() {
     const $window = $(window);
     var clientWidth = $window.width();
     var clientHeight = $window.height();
-    
-    const gardenCanvas = document.getElementById('garden');
+
+    const gardenCanvas = document.getElementById("garden");
     const gardenCtx = gardenCanvas.getContext("2d");
     const garden = new Garden(gardenCtx, gardenCanvas);
-    
+
     var $loveHeart = $("#loveHeart");
     var offsetX = $loveHeart.width() / 2;
     var offsetY = $loveHeart.height() / 2 - 55;
@@ -155,10 +159,12 @@ export default {
     (function($) {
       $.fn.typewriter = function() {
         this.each(function() {
+          if($(this).hasClass('typing')) return;
           var $ele = $(this),
             str = $ele.html(),
             progress = 0;
           $ele.html("");
+          $ele.addClass('typing');
           var timer = setInterval(function() {
             var current = str.substr(progress, 1);
             if (current == "<") {
@@ -169,6 +175,7 @@ export default {
             $ele.html(str.substring(0, progress) + (progress & 1 ? "_" : ""));
             if (progress >= str.length) {
               clearInterval(timer);
+              $ele.removeClass('typing');
             }
           }, 75);
         });
@@ -194,8 +201,7 @@ export default {
       if (seconds < 10) {
         seconds = "0" + seconds;
       }
-      var result =
-        `<span class="digit">${days}</span> days 
+      var result = `<span class="digit">${days}</span> days 
          <span class="digit">${hours}</span> hours 
          <span class="digit">${minutes}</span> minutes 
          <span class="digit">${seconds}</span> seconds`;
@@ -215,16 +221,32 @@ export default {
     together.setSeconds(0);
     together.setMilliseconds(0);
 
-    setTimeout(function() {
-      startHeartAnimation();
-    }, 1000);
-
     timeElapse(together);
     setInterval(function() {
       timeElapse(together);
     }, 500);
 
-    $("#code").typewriter();
+    if(window.orientation === 90) {
+      $("#code").typewriter();
+
+      setTimeout(function() {
+        startHeartAnimation();
+      }, 5000);
+    }
+
+    window.addEventListener('orientationchange',() => {
+      if (window.orientation === 90) {
+        $("#code").typewriter();
+
+        setTimeout(function() {
+          startHeartAnimation();
+        }, 5000);
+
+      }
+    },false);
+  },
+  beforeDestroy() {
+    window.removeEventListener('orientationchange');
   }
 };
 </script>
@@ -270,9 +292,9 @@ export default {
   font-size: 24px;
   color: #666;
   position: absolute;
-  top:50%;
+  top: 50%;
   left: 50%;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
 }
 #messages {
   display: none;
@@ -284,7 +306,7 @@ export default {
   margin-right: 40px;
   text-align: right;
   opacity: 0;
-  transition: opacity .3s;
+  transition: opacity 0.3s;
   .signature {
     margin-top: 10px;
     font-size: 20px;
@@ -315,10 +337,13 @@ export default {
   }
 }
 
-@media screen and (max-width: 768px){
+@media screen and (max-width: 768px) {
   .content {
-    transform: scale(.5);
+    transform: scale(0.5);
     transform-origin: 50%;
+  }
+  #code {
+    font-size: 18px;
   }
 }
 </style>
