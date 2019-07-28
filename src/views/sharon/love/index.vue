@@ -77,6 +77,7 @@
 <script>
 import $ from "jquery";
 import { Garden } from "./utils/garden";
+import {isPhone} from '@/utils/tool.js';
 import Orientation from '@/components/orientation/index.vue'
 export default {
   name: "sharon-love",
@@ -226,7 +227,7 @@ export default {
       timeElapse(together);
     }, 500);
 
-    if(window.orientation === 90) {
+    function begin() {
       $("#code").typewriter();
 
       setTimeout(function() {
@@ -234,16 +235,20 @@ export default {
       }, 5000);
     }
 
-    window.addEventListener('orientationchange',() => {
+    if (isPhone()) {
       if (window.orientation === 90) {
-        $("#code").typewriter();
-
-        setTimeout(function() {
-          startHeartAnimation();
-        }, 5000);
-
+        begin();
       }
-    },false);
+      window.addEventListener('orientationchange',() => {
+        if (window.orientation === 90) {
+          begin();
+        }
+      },false);
+
+    } else {
+      begin();
+    }
+    
   },
   beforeDestroy() {
     window.removeEventListener('orientationchange');
