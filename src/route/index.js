@@ -151,6 +151,8 @@ const router = new VueRouter({
 router.afterEach(to => {
   if (to.meta && to.meta.pageTitle) {
     document.title = to.meta.pageTitle;
+  } else {
+    document.title = '前端路上';
   }
 });
 

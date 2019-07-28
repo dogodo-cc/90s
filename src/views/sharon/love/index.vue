@@ -64,7 +64,7 @@
           <div id="loveu">
             爱你直到永永远远
             <br />
-            <div class="signature">- 爱你老袁</div>
+            <div class="signature">- 爱你的老袁</div>
           </div>
         </div>
       </div>
@@ -203,20 +203,9 @@ export default {
     }
 
     function showMessages() {
-      adjustWordsPosition();
       $("#messages").fadeIn(5000, function() {
-        showLoveU();
+        $("#loveu").css("opacity", 1);
       });
-    }
-
-    function adjustWordsPosition() {
-      $("#words").css("position", "absolute");
-      $("#words").css("top", $("#garden").position().top + 195);
-      $("#words").css("left", $("#garden").position().left + 70);
-    }
-
-    function showLoveU() {
-      $("#loveu").fadeIn(3000);
     }
 
     var together = new Date();
@@ -228,7 +217,7 @@ export default {
 
     setTimeout(function() {
       startHeartAnimation();
-    }, 5000);
+    }, 1000);
 
     timeElapse(together);
     setInterval(function() {
@@ -259,6 +248,7 @@ export default {
 #loveHeart {
   width: 670px;
   height: 625px;
+  position: relative;
 }
 #garden {
   width: 100%;
@@ -276,9 +266,13 @@ export default {
 }
 #words {
   font-family: "sans-serif";
-  width: 500px;
+  white-space: nowrap;
   font-size: 24px;
   color: #666;
+  position: absolute;
+  top:50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
 }
 #messages {
   display: none;
@@ -287,9 +281,10 @@ export default {
   padding: 5px;
   font-size: 22px;
   margin-top: 80px;
-  margin-right: 120px;
+  margin-right: 40px;
   text-align: right;
-  display: none;
+  opacity: 0;
+  transition: opacity .3s;
   .signature {
     margin-top: 10px;
     font-size: 20px;
@@ -298,7 +293,6 @@ export default {
 }
 #code {
   width: 440px;
-  height: 400px;
   color: #333;
   font-family: "Consolas", "Monaco", "Bitstream Vera Sans Mono", "Courier New",
     "sans-serif";
@@ -318,6 +312,13 @@ export default {
   }
   .comments {
     color: #3f7f5f;
+  }
+}
+
+@media screen and (max-width: 768px){
+  .content {
+    transform: scale(.5);
+    transform-origin: 50%;
   }
 }
 </style>
