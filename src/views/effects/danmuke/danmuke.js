@@ -11,12 +11,12 @@ const a = Array(20).fill({
   "msg": "博饼状元是我的！！！"
 });
 const b = Array(20).fill({
-  "avatar": "https://st-gdx.dancf.com/templets/105817/shots/20190724-205406-EprBW.png?x-oss-process=image/resize,w_100/interlace,1,image/format,webp",
+  "avatar": "https://st-gdx.dancf.com/templets/105817/shots/20190724-205406-EprBW.png?x-oss-process=image/resize,w_100/interlace,1,image/format,jpg",
   "userName": "蛋丁",
   "msg": "别废话盘他!!"
 })
 const c = Array(20).fill({
-  "avatar": "https://st-gdx.dancf.com/templets/63097/shots/20181101-101538-_h8T3.png?x-oss-process=image/resize,w_100/interlace,1,image/format,webp",
+  "avatar": "https://st-gdx.dancf.com/templets/63097/shots/20181101-101538-_h8T3.png?x-oss-process=image/resize,w_100/interlace,1,image/format,jpg",
   "userName": "肉泥",
   "msg": "今天又是愉快的一天！！"
 })
