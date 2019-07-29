@@ -199,7 +199,9 @@ export default {
 
         if (newDanmuke) {
           let freeSeatIndex = freeWay.seat.findIndex(v => !v.biu);
-          freeWay.seat.splice(freeSeatIndex, 1, {biu: true,...newDanmuke})
+          // freeWay.seat.splice(freeSeatIndex, 1, {biu: true,...newDanmuke})
+          // freeWay.seat[freeSeatIndex] = {biu: true,...newDanmuke};
+          Object.assign(freeWay.seat[freeSeatIndex], {biu: true, ...newDanmuke});
           freeWay.isFree = false;
           window.setTimeout(() => {
             freeWay.isFree = true;
