@@ -29,6 +29,20 @@ const router = new VueRouter({
       ]
     },
     {
+      path: '/css',
+      component: Layout,
+      meta: {title: 'CSS 笔记'},
+      children: [
+        {
+          path: '/animate',
+          component:() => import(/* webpackChunkName: "animate" */ '@/views/css-note/animate/index.vue'),
+          meta: {
+            title: '动画'
+          }
+        },
+      ]
+    },
+    {
       path: '/effects',
       component: Layout,
       meta: {
