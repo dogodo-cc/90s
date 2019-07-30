@@ -34,6 +34,10 @@ const router = new VueRouter({
       meta: {title: 'CSS 笔记'},
       children: [
         {
+          path: '/',
+          component:() => import(/* webpackChunkName: "css" */ '@/views/css-note/index.vue'),
+        },
+        {
           path: '/animate',
           component:() => import(/* webpackChunkName: "animate" */ '@/views/css-note/animate/index.vue'),
           meta: {
