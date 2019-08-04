@@ -2,8 +2,6 @@
 
 作者：[元帅](http://www.90s.co)
 
-公司：[dogodo.cc](http://www.dogodo.cc)
-
 ## 目录
 1. [前言](#README)
 1. [git](#docs/git)
@@ -20,5 +18,5 @@
 
 
 ## 其他
-- [就职公司](https://dianshang.gaoding.com/)
+- [就职公司](https://www.gaoding.com/)
 - [GITHUB](https://github.com/dogodo-cc)
