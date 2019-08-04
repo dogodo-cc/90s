@@ -27,6 +27,7 @@ export default {
 <style lang="scss" scoped>
 .case-list {
   display: flex;
+  flex-wrap: wrap;
   a {
     display: block;
     width: 160px;
