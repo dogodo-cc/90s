@@ -7,7 +7,8 @@
   "scripts": {
     "build": "NODE_ENV=production webpack --config ./build/webpack.prod.js",
     "lint": "eslint --ext .js,.vue src",
-    "start": "webpack-dev-server --config ./build/webpack.dev.js"
+    "start": "webpack-dev-server --config ./build/webpack.dev.js",
+    "createCaseList": "node create-case-list.js"
   },
   "dependencies": {
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",

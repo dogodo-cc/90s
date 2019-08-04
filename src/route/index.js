@@ -161,20 +161,7 @@ const router = new VueRouter({
       component:() => import(/* webpackChunkName: "case" */ '@/views/case/index.vue'),
       meta: {
         title: '优秀网页'
-      },
-      children: [
-        {
-          path: '/',
-          component:() => import(/* webpackChunkName: "case" */ '@/views/case/hongkong20/index.vue'),
-        },
-        {
-          path: '/hongkong20',
-          component:() => import(/* webpackChunkName: "case" */ '@/views/case/hongkong20/index.vue'),
-          meta: {
-            title: '香港回归20周年'
-          }
-        }
-      ]
+      }
     },
     {
       path: '*',
