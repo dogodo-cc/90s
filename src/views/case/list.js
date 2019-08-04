@@ -1,1 +1,1 @@
-export const list = ["HongKong20","屏幕转场"]
+export const list = ["HongKong20","屏幕转场","晋江青商会"]
