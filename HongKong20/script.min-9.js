@@ -18,7 +18,7 @@ if (platform) {
 } else {
     document.querySelector("#main").className = "PCView";
     var img = new Image();
-    img.src = "http://n.sinaimg.cn/news/hongkong20/img/pccover.png";
+    img.src = "https://n.sinaimg.cn/news/hongkong20/img/pccover.png";
     img.className = "pccover";
     document.querySelector("body").appendChild(img);
     document.querySelector(".pccover").style.display = "block";
@@ -96,7 +96,7 @@ function preLoad() {
     container.addChild(c);
     c.x = 0;
     c.y = 0;
-    var b = new createjs.Bitmap("http://n.sinaimg.cn/news/hongkong20/img/fbg.jpg");
+    var b = new createjs.Bitmap("https://n.sinaimg.cn/news/hongkong20/img/fbg.jpg");
     b.x = 0;
     b.y = 0;
     b.height = 1136;
@@ -109,7 +109,7 @@ function preLoad() {
     }, 10000).to({
         x: 0
     }, 10000);
-    var a = new createjs.Bitmap("http://n.sinaimg.cn/news/hongkong20/img/fimg.png");
+    var a = new createjs.Bitmap("https://n.sinaimg.cn/news/hongkong20/img/fimg.png");
     a.x = 0;
     a.y = 0;
     a.alpha = 1;
@@ -125,28 +125,28 @@ function preLoad() {
 }
 function setupManifest() {
     manifest = [{
-        src: "http://n.sinaimg.cn/news/hongkong20/img/fbg.jpg",
+        src: "https://n.sinaimg.cn/news/hongkong20/img/fbg.jpg",
         id: "fBg",
         x: 0,
         s_x: 0,
         y: 0,
         s_y: 0,
     }, {
-        src: "http://n.sinaimg.cn/news/hongkong20/img/fimg.png",
+        src: "https://n.sinaimg.cn/news/hongkong20/img/fimg.png",
         id: "fImg",
         x: 0,
         s_x: 0,
         y: 0,
         s_y: 0,
     }, {
-        src: "http://n.sinaimg.cn/news/hongkong20/img/ftxt.png",
+        src: "https://n.sinaimg.cn/news/hongkong20/img/ftxt.png",
         id: "fTxt",
         x: 75,
         s_x: 75,
         y: 810,
         s_y: 810,
     }, {
-        src: "http://n.sinaimg.cn/news/hongkong20/img/share.png",
+        src: "https://n.sinaimg.cn/news/hongkong20/img/share.png",
         id: "share",
     }];
     // 把需要预加载的图片push到manifest数组去
@@ -169,7 +169,7 @@ function handleFileProgress(b) {
     progressTxt.x = stageWidth / 2 - progressTxt.getMeasuredWidth() / 2;
     if (preload.progress === 1) {
         var c = "ftxt";
-        imgs[c] = new createjs.Bitmap("http://n.sinaimg.cn/news/hongkong20/img/ftxt.png");
+        imgs[c] = new createjs.Bitmap("https://n.sinaimg.cn/news/hongkong20/img/ftxt.png");
         imgs[c].x = 75;
         imgs[c].y = 810;
         imgs[c].alpha = 0;
@@ -340,7 +340,7 @@ function changeBgm(a) {
     // 如果当前已经在播放 传入的音乐，则不执行，避免重复播放
     if (!(bgmIndex === a)) {
         bgmIndex = a;
-        bgmObj.src = "http://n.sinaimg.cn/news/hongkong20/media/bgm-" + bgmIndex + ".mp3";
+        bgmObj.src = "https://n.sinaimg.cn/news/hongkong20/media/bgm-" + bgmIndex + ".mp3";
         bgmObj.play();
     }
 }
