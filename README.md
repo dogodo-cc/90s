@@ -10,4 +10,4 @@
 
 ## git 提交规范
 
-本项目使用了 [Husky](https://github.com/typicode/husky) 插件来辅助提交流程，使用 [commitizen](https://github.com/commitizen/cz-cli) 来规范git commit。
+本项目使用了 [Husky](https://github.com/typicode/husky) 插件来辅助提交流程，使用 [commitizen](https://github.com/commitizen/cz-cli) 来规范git commit。使用[commitlint](https://github.com/conventional-changelog/commitlint) 来验证提交是否符合规则。
