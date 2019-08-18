@@ -6,7 +6,7 @@ module.exports = {
     },
     "extends": [
         "eslint:recommended",
-        "plugin:vue/essential"
+        "plugin:vue/essential" // recommended 太严格，受不了
     ],
     "globals": {
         "Atomics": "readonly",
@@ -14,7 +14,8 @@ module.exports = {
     },
     "parserOptions": {
         "ecmaVersion": 2018,
-        "sourceType": "module"
+        "sourceType": "module",
+        "parser": 'babel-eslint',
     },
     "plugins": [
         "vue"

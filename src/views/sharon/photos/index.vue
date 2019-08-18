@@ -148,7 +148,6 @@ export default {
 			}
 			var camera, scene, renderer;
 			var controls;
-			console.log(table.length / 5, table2.length)
 			var objects = [];
 			var targets = { table: [], sphere: [], helix: [], grid: [] };
 
@@ -179,7 +178,7 @@ export default {
 
 					objects.push( object );
 
-					var object = new THREE.Object3D();
+					object = new THREE.Object3D();
 					object.position.x = ( table2[i].x * 140 ) - 1330;
 					object.position.y = - ( table2[i].y * 180 ) + 990;
 
@@ -228,12 +227,12 @@ export default {
 
 				var vector = new THREE.Vector3();
 
-				for ( var i = 0, l = objects.length; i < l; i ++ ) {
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
 
 					var phi = Math.acos( - 1 + ( 2 * i ) / l );
 					var theta = Math.sqrt( l * Math.PI ) * phi;
 
-					var object = new THREE.Object3D();
+					let object = new THREE.Object3D();
 
 					object.position.setFromSphericalCoords( 800, phi, theta );
 
@@ -247,14 +246,14 @@ export default {
 
 				// helix
 
-				var vector = new THREE.Vector3();
+				vector = new THREE.Vector3();
 
-				for ( var i = 0, l = objects.length; i < l; i ++ ) {
+				for ( let i = 0, l = objects.length; i < l; i ++ ) {
 
-					var theta = i * 0.175 + Math.PI;
+					let theta = i * 0.175 + Math.PI;
 					var y = - ( i * 8 ) + 450;
 
-					var object = new THREE.Object3D();
+					let object = new THREE.Object3D();
 
 					object.position.setFromCylindricalCoords( 900, theta, y );
 
@@ -270,9 +269,9 @@ export default {
 
 				// grid
 
-				for ( var i = 0; i < objects.length; i ++ ) {
+				for ( let i = 0; i < objects.length; i ++ ) {
 
-					var object = new THREE.Object3D();
+					let object = new THREE.Object3D();
 
 					object.position.x = ( ( i % 5 ) * 400 ) - 800;
 					object.position.y = ( - ( Math.floor( i / 5 ) % 5 ) * 400 ) + 800;
@@ -302,21 +301,21 @@ export default {
 
 				}, false );
 
-				var button = document.getElementById( 'sphere' );
+				button = document.getElementById( 'sphere' );
 				button.addEventListener( 'click', function () {
 
 					transform( targets.sphere, 2000 );
 
 				}, false );
 
-				var button = document.getElementById( 'helix' );
+				button = document.getElementById( 'helix' );
 				button.addEventListener( 'click', function () {
 
 					transform( targets.helix, 2000 );
 
 				}, false );
 
-				var button = document.getElementById( 'grid' );
+				button = document.getElementById( 'grid' );
 				button.addEventListener( 'click', function () {
 
 					transform( targets.grid, 2000 );

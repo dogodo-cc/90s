@@ -4,3 +4,4 @@ postcss.config.js
 /node_modules/*
 .idea
 dist
+/www-case

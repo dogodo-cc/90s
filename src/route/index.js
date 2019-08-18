@@ -7,7 +7,7 @@ Vue.use(VueRouter)
 const router = new VueRouter({
   mode: 'hash',
   base: '/',
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior() {
     return {
         x: 0,
         y: 0,

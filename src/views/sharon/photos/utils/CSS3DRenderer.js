@@ -7,7 +7,6 @@
 import {
 	Matrix4,
 	Object3D,
-	REVISION,
 	Vector3
 } from "three";
 
