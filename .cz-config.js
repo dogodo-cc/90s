@@ -6,7 +6,7 @@ module.exports = {
     {
       value: 'style',
       name:
-        'style:    你只是做了一些格式优化的操作            (white-space, formatting, missing semi-colons, etc)',
+        'style:    你只是做了一些代码格式优化的操作',
     },
     {
       value: 'refactor',
@@ -14,16 +14,16 @@ module.exports = {
     },
     {
       value: 'perf',
-      name: 'perf:     A code change that improves performance',
+      name: 'perf:     提高代码性能的优化',
     },
     { value: 'test', name: 'test:     你添加了测试文件' },
     {
       value: 'chore',
       name:
-        'chore:    你优化了构建流程\n            and libraries such as documentation generation',
+        'chore:    你优化了构建流程',
     },
-    { value: 'revert', name: 'revert:   Revert to a commit' },
-    { value: 'WIP', name: 'WIP:      Work in progress' },
+    { value: 'revert', name: 'revert:   撤销上一个提交记录' },
+    // { value: 'WIP', name: 'WIP:      Work in progress' },
   ],
 
   scopes: [{ name: '学习' }, { name: '案例' }, { name: '构建' }, { name: '工具' }],
@@ -34,16 +34,17 @@ module.exports = {
   ticketNumberRegExp: '\\d{1,5}',
 
   // it needs to match the value for field type. Eg.: 'fix'
-  /*
+
   scopeOverrides: {
-    fix: [
-      {name: 'merge'},
-      {name: 'style'},
-      {name: 'e2eTest'},
-      {name: 'unitTest'}
+    feat: [
+      {name: '学习笔记'},
+      {name: '代码收集'},
+      {name: '案例收集'},
+      {name: '工程构建'},
+      {name: '动画效果'},
     ]
   },
-  */
+
   // override the messages, defaults are as follows
   messages: {
     type: "Select the type of change that you're committing:",
@@ -60,7 +61,7 @@ module.exports = {
   allowCustomScopes: true,
   allowBreakingChanges: ['feat', 'fix'],
   // skip any questions you want
-  skipQuestions: ['body'],
+  skipQuestions: ['body','footer'],
 
   // limit subject length
   subjectLimit: 100,
