@@ -1,3 +1,5 @@
+// 如果不想自己配置，可以直接使用 cz-conventional-changelog 插件
+
 module.exports = {
   types: [
     { value: 'feat', name: 'feat:     你做完成了一个新功能' },
