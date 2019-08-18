@@ -2,26 +2,34 @@ module.exports = function(api) {
   api.cache();
   const presets = [
     [
-      '@babel/preset-env',
+      "@babel/preset-env",
       {
-        "useBuiltIns": 'usage',
+        "useBuiltIns": "usage",
         "corejs": 3,
         "targets": {
-          "browsers": ['last 2 versions', 'not ie < 11']
+          "browsers": ["last 2 versions", "not ie < 11", "safari > 11"]
         }
       }
     ]
   ];
 
-  const plugins =  [
+  const plugins  = [
     [
       "@babel/plugin-transform-runtime",
       {
         "corejs": 2
       }
+    ],
+    ["@babel/plugin-syntax-dynamic-import"],
+    [
+      "component",
+      {
+        "libraryName": "element-ui",
+        "styleLibraryName": "theme-chalk"
+      }
     ]
   ];
-
+  
   return {
     presets,
     plugins
