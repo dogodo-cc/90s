@@ -47,21 +47,21 @@ module.exports = {
 
   // override the messages, defaults are as follows
   messages: {
-    type: "Select the type of change that you're committing:",
-    scope: '\nDenote the SCOPE of this change (optional):',
+    type: "请选择你的提交类型:",
+    scope: '选择影响范围 (可选):',
     // used if allowCustomScopes is true
-    customScope: 'Denote the SCOPE of this change:',
-    subject: 'Write a SHORT, IMPERATIVE tense description of the change:\n',
-    body: 'Provide a LONGER description of the change (optional). Use "|" to break new line:\n',
+    customScope: '选择影响范围:',
+    subject: '请紧要说明这次提交的修改内容:\n',
+    body: '详细说明修改原因以及影响 (optional). Use "|" to break new line:\n',
     breaking: 'List any BREAKING CHANGES (optional):\n',
     footer: 'List any ISSUES CLOSED by this change (optional). E.g.: #31, #34:\n',
-    confirmCommit: 'Are you sure you want to proceed with the commit above?',
+    confirmCommit: '确定提交吗?',
   },
 
   allowCustomScopes: true,
   allowBreakingChanges: ['feat', 'fix'],
   // skip any questions you want
-  skipQuestions: ['body','footer'],
+  skipQuestions: ['body','footer','breaking'],
 
   // limit subject length
   subjectLimit: 100,
