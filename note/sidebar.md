@@ -5,6 +5,7 @@
 ## 目录
 1. [前言](#README)
 1. [git](#docs/git)
+1. [git commit 规范](#docs/git-commit)
 1. [gulp](#docs/gulp)
 1. [macbook](#docs/macbook)
 1. [markdown](#docs/markdown)
