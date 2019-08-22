@@ -16,6 +16,12 @@ const router = new VueRouter({
   routes: [
     {
       path: '/',
+      redirect: {
+        name: 'home'
+      }
+    },
+    {
+      path: '/home',
       component: Layout,
       meta: {
         title: '首页'
@@ -24,7 +30,7 @@ const router = new VueRouter({
         {
           path: '/',
           name: 'home',
-          component:() => import(/* webpackChunkName: "home" */ '@/views/home/index.vue'),
+          component:() => import('@/views/home/index.vue'),
         }
       ]
     },
@@ -35,11 +41,11 @@ const router = new VueRouter({
       children: [
         {
           path: '/',
-          component:() => import(/* webpackChunkName: "css" */ '@/views/css-note/index.vue'),
+          component:() => import('@/views/css-note/index.vue'),
         },
         {
-          path: '/animate',
-          component:() => import(/* webpackChunkName: "animate" */ '@/views/css-note/animate/index.vue'),
+          path: '/css/animate',
+          component:() => import('@/views/css-note/animate/index.vue'),
           meta: {
             title: '动画'
           }
@@ -55,39 +61,39 @@ const router = new VueRouter({
       children: [
         {
           path: '/',
-          component:() => import(/* webpackChunkName: "effect-index" */ '@/views/effects/index.vue'),
+          component:() => import('@/views/effects/index.vue'),
         },
         {
-          path: '/china-map',
-          component:() => import(/* webpackChunkName: "china-map" */ '@/views/effects/china-map/index.vue'),
+          path: '/effects/china-map',
+          component:() => import('@/views/effects/china-map/index.vue'),
           meta: {
             title: '中国地图'
           }
         },
         {
-          path: '/svg-animals',
-          component:() => import(/* webpackChunkName: "svg-animals" */ '@/views/effects/svg-animals/index.vue'),
+          path: '/effects/svg-animals',
+          component:() => import('@/views/effects/svg-animals/index.vue'),
           meta: {
             title: 'SVG - 动物动画'
           }
         },
         {
-          path: '/loading',
-          component:() => import(/* webpackChunkName: "loading" */ '@/views/effects/loading/index.vue'),
+          path: '/effects/loading',
+          component:() => import('@/views/effects/loading/index.vue'),
           meta: {
             title: '加载动画'
           }
         },
         {
-          path: '/mouse',
-          component:() => import(/* webpackChunkName: "mouse" */ '@/views/effects/mouse/index.vue'),
+          path: '/effects/mouse',
+          component:() => import('@/views/effects/mouse/index.vue'),
           meta: {
             title: '鼠标效果'
           }
         },
         {
-          path: '/danmuke',
-          component:() => import(/* webpackChunkName: "danmuke" */ '@/views/effects/danmuke/index.vue'),
+          path: '/effects/danmuke',
+          component:() => import('@/views/effects/danmuke/index.vue'),
           meta: {
             title: '弹幕系统'
           }
@@ -103,11 +109,11 @@ const router = new VueRouter({
       children: [
         {
           path: '/',
-          component:() => import(/* webpackChunkName: "note-index" */ '@/views/note/index.vue'),
+          component:() => import('@/views/note/index.vue'),
         },
         {
-        path: '/flex',
-        component:() => import(/* webpackChunkName: "flex" */ '@/views/note/flex/index.vue'),
+        path: '/note/flex',
+        component:() => import('@/views/note/flex/index.vue'),
         meta: {
           title: 'flex 布局'
         }
@@ -122,18 +128,18 @@ const router = new VueRouter({
       children: [
         {
           path: '/',
-          component:() => import(/* webpackChunkName: "study-index" */ '@/views/study/index.vue'),
+          component:() => import('@/views/study/index.vue'),
         },
         {
-        path: '/svg-lesson-01',
-        component:() => import(/* webpackChunkName: "svg-lesson-01" */ '@/views/study/svg/lesson-01/index.vue'),
+        path: '/study/svg-lesson-01',
+        component:() => import('@/views/study/svg/lesson-01/index.vue'),
         meta: {
           title: 'svg 第一节'
         }
         },
         {
-          path: '/canvas-lesson-01',
-          component:() => import(/* webpackChunkName: "canvas-lesson-01" */ '@/views/study/canvas/lesson-01/index.vue'),
+          path: '/study/canvas-lesson-01',
+          component:() => import('@/views/study/canvas/lesson-01/index.vue'),
           meta: {
             title: 'canvas 第一节'
           }
@@ -142,7 +148,7 @@ const router = new VueRouter({
     },
     {
       path: '/sharon',
-      component:() => import(/* webpackChunkName: "sharon" */ '@/views/sharon/photos/index.vue'),
+      component:() => import('@/views/sharon/photos/index.vue'),
       meta: {
         title: '照片墙',
         pageTitle: '我们结婚啦^_^'
@@ -150,7 +156,7 @@ const router = new VueRouter({
     },
     {
       path: '/love',
-      component:() => import(/* webpackChunkName: "love" */ '@/views/sharon/love/index.vue'),
+      component:() => import('@/views/sharon/love/index.vue'),
       meta: {
         title: '爱心表白',
         pageTitle: '我们结婚啦^_^'
@@ -158,7 +164,7 @@ const router = new VueRouter({
     },
     {
       path: '/case',
-      component:() => import(/* webpackChunkName: "case" */ '@/views/case/index.vue'),
+      component:() => import('@/views/case/index.vue'),
       meta: {
         title: '优秀网页'
       }
@@ -166,7 +172,7 @@ const router = new VueRouter({
     {
       path: '*',
       name: 'not-found',
-      component:() => import(/* webpackChunkName: "404" */ '@/views/404/index.vue'),
+      component:() => import(/* webpackChunkName: "not-found" */ '@/views/not-found/index.vue'),
     }
   ]
 })

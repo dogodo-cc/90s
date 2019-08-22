@@ -1,10 +1,7 @@
 <template>
   <div class="page-404">
-    <div>
-      <div class="pic"></div>
-      <p><router-link to="/">返回首页</router-link></p>
-    </div>
-    
+    <div class="pic"></div>
+    <p><router-link to="/">返回首页</router-link></p>
   </div>
 </template>
 
@@ -19,6 +16,7 @@ export default {
   width: 100vw;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   
