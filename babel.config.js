@@ -4,9 +4,11 @@ const presets = [
     {
       "useBuiltIns": "usage",
       "corejs": 3,
-      "targets": {
-        "browsers": ["last 2 versions", "not ie < 11", "safari > 11"]
-      }
+      targets: {
+        firefox: "65",
+        chrome: "70",
+        safari: "12",
+      },
     }
   ]
 ];
