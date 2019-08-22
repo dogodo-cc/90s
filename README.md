@@ -14,4 +14,3 @@
 - [commitizen](https://github.com/commitizen/cz-cli) 规范git commit
 - [cz-customizable](https://github.com/leonardoanalista/cz-customizable) 配置自定义交互提示
 - [commitlint](https://github.com/conventional-changelog/commitlint) 来验证提交是否符合规则
-
