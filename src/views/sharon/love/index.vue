@@ -251,7 +251,7 @@ export default {
     
   },
   beforeDestroy() {
-    window.removeEventListener('orientationchange');
+    window.removeEventListener = null;
   }
 };
 </script>

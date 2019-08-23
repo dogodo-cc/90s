@@ -1,6 +1,11 @@
 <template>
   <div>
-    <header class="alan-header"> <router-link to="/"><img src="~@/assets/logo.png" alt="logo"></router-link></header>
+    <header class="alan-header"> 
+      <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
+      <div class="quick-link">
+        <a  target="_blank" href="https://www.90s.co/note">学习笔记</a>
+      </div>
+    </header>
     <div class="alan-body">
       <nav class="alan-nav">
         <ul>
@@ -29,12 +34,12 @@ export default {
        return this.$router.options.routes.filter(item => {
          if(item.children) {
            item.children= item.children.filter(o => {
-             return o.meta && o.meta.title;
+             return o.meta && o.meta.title && !o.meta.hidden;
            })
          } else {
            item.children = [];
          } 
-         return item.meta && item.meta.title;
+         return item.meta && item.meta.title && !item.meta.hidden;
        });
        
     }
