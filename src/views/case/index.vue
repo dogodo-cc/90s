@@ -15,10 +15,7 @@ export default {
           }
       });
     return {
-      list: [{
-        title: '首页',
-        href: '/'
-      },...nav]
+      list: nav
     }
   }
 }

@@ -63,7 +63,7 @@ export default {
     background-color: aliceblue;
   }
   .control {
-    padding-left: 10px;
+    padding:10px 0 0 10px;
   }
 }
 </style>
