@@ -17,6 +17,12 @@ export default {
     return {
       list: nav
     }
+  },
+  beforeRouteEnter(to, from, next) {
+    console.log({to, from}); // eslint-disable-line
+    next(vm=>{
+      console.log(vm.list); // eslint-disable-line
+    })
   }
 }
 </script>
