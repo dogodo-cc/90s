@@ -160,7 +160,8 @@ const router = new VueRouter({
       component:() => import('@/views/sharon/love/index.vue'),
       meta: {
         title: '爱心表白',
-        pageTitle: '我们结婚啦^_^'
+        pageTitle: '我们结婚啦^_^',
+        hidden: true
       }
     },
     {
