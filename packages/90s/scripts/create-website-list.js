@@ -5,10 +5,10 @@ const path = require('path');
 
 let list = [];
 
-fs.readdirSync('../www-case').forEach(folder => {
+fs.readdirSync('../website').forEach(folder => {
   if (folder === ".DS_Store") return;
 
-  const filePath = path.join(__dirname, '../www-case', folder);
+  const filePath = path.join(__dirname, '../website', folder);
   const isDir = fs.lstatSync(filePath);
   if (isDir.isDirectory()) {
     list.push(folder);
