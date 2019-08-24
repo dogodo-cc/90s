@@ -1,7 +1,7 @@
 language: node_js
 node_js: '10'
 branches:
-  only: master
+  only: lerna
 cache:
   directories: node_modules
 install: cd packages/90s && npm install
