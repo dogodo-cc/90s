@@ -5,3 +5,4 @@ postcss.config.js
 .idea
 dist
 website/
+node_modules/
