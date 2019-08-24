@@ -6,6 +6,9 @@
   "author": "alan",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "website": "cd scripts && node create-website-list.js"
+  },
   "dependencies": {
     "@90s/tools": "1.0.0",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0"

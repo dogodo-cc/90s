@@ -10,8 +10,7 @@
   "scripts": {
     "build:90s": "cd packages/90s && NODE_ENV=production webpack --config ./build/webpack.prod.js",
     "lint": "eslint --ext .js,.vue packages",
-    "start:90s": "cd packages/90s && webpack-dev-server --config ./build/webpack.dev.js",
-    "case": "cd scripts && node create-case-list.js"
+    "start:90s": "cd packages/90s && webpack-dev-server --config ./build/webpack.dev.js"
   },
   "dependencies": {
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",

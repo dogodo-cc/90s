@@ -9,7 +9,7 @@ script: npm run build
 after_success:
   cp ./CNAME ./dist
   cp ./public/favicon.ico ./dist
-  cp -R ./www-case/* ./dist
+  cp -R ./website/* ./dist
 deploy:
   provider: pages
   skip_cleanup: true

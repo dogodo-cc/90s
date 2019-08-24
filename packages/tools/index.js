@@ -1,3 +1,3 @@
-export function hi(name = "我来自 @90s/tool 模块") {
-  return name;
+export function hi() {
+  return '我来自 @90s/tool 模块'
 }

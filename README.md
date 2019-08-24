@@ -14,3 +14,12 @@
 - [commitizen](https://github.com/commitizen/cz-cli) 规范git commit
 - [cz-customizable](https://github.com/leonardoanalista/cz-customizable) 配置自定义交互提示
 - [commitlint](https://github.com/conventional-changelog/commitlint) 来验证提交是否符合规则
+
+## 安装依赖
+```base
+lerna add vue --scope=@90s/web
+lerna add @90s/tools --scope=@90s/web
+
+yarn workspace @90s/web add vue
+yarn workspace @90s/web add vue -D
+```
