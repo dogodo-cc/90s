@@ -1,6 +1,6 @@
 <template>
   <div class="china-map">
-    <div class="map">
+    <div class="map" ref="map">
       <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 500 420" xml:space="preserve" id="viewBorder">
           <polygon points="371.028,363.635 374.03,364.318 377.084,362.056 378.558,366.107 375.294,367.688 371.188,367.371 370.451,364.318 " data-title="香港"></polygon>
           <polygon points="448.564,330.21 445.724,347.159 444.25,352.527 444.25,357.056 442.987,358.316 439.933,353.791 436.669,351.262 433.827,343.685 434.143,336.842 438.881,324.418 444.46,319.682 448.039,321.365 " data-title="台湾省"></polygon>
@@ -79,29 +79,23 @@
   </div>
 </template>
 <script>
-import $ from 'jquery';
 export default {
   name: 'china-map',
   data() {
     return {
-      provinces: []
+      provinces: [],
     }
   },
-  mounted() {
-    const that = this;
-    
-    $(function () {
-      let pTop = $('.map').offset().top;
-      let pLeft = $('.map').offset().left;
-
-      $(".map svg circle").each(function(){
-          that.provinces.push({
-            top: $(this).offset().top - pTop,
-            left: $(this).offset().left - pLeft,
-            name: $(this).attr('data-title')
-          })
-      });
-    });
+  mounted() { 
+    this.$nextTick(() => {
+      this.provinces = Array.from(document.querySelectorAll('circle')).map(v => {
+        return {
+            top: v.getAttribute('cy'),
+            left: v.getAttribute('cx'),
+            name: v.dataset.title
+          }
+      })
+    })
   }
 }
 </script>
@@ -136,6 +130,9 @@ export default {
       width: 350px;
       margin: 0 auto;
     }
+  }
+  .province-name {
+    display: none;
   }
 }
 

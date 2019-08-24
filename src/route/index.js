@@ -146,15 +146,15 @@ const router = new VueRouter({
         }
       ]
     },
-    {
-      path: '/sharon',
-      component:() => import('@/views/sharon/photos/index.vue'),
-      meta: {
-        title: '照片墙',
-        pageTitle: '我们结婚啦^_^',
-        hidden: true
-      }
-    },
+    // {
+    //   path: '/sharon',
+    //   component:() => import('@/views/sharon/photos/index.vue'),
+    //   meta: {
+    //     title: '照片墙',
+    //     pageTitle: '我们结婚啦^_^',
+    //     hidden: true
+    //   }
+    // },
     {
       path: '/love',
       component:() => import('@/views/sharon/love/index.vue'),
