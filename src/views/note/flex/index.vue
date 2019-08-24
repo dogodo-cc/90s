@@ -11,7 +11,14 @@
       </div>
       <div class="control">
         <div class="control-attr">
-          <h3>容器的属性</h3>
+          <el-popover
+            placement="bottom-start"
+            width="500"
+            trigger="hover"
+            >
+            <div slot="content"><img src="https://www.ruanyifeng.com/blogimg/asset/2015/bg2015071004.png" alt=""></div>
+            <h3 slot="reference">容器属性</h3>
+          </el-popover>
           <div class="attr" v-for="(attr,i) in flexContainer" :key="i">
             <em class="name">
               <el-tooltip :content="attr.text" placement="top">
@@ -34,7 +41,7 @@
             </div>
           </div>
           <h3>项目的属性</h3>
-          <div class="attr" v-for="attr in flexItem" :key="attr.attribute">
+          <div class="box" v-for="attr in flexItem" :key="attr.attribute">
             <em class="name">
               <el-tooltip :content="attr.text" placement="top">
                 <span>{{attr.attribute}}</span>
@@ -43,7 +50,7 @@
             <div>
               <el-input v-model="attr.value"></el-input>
             </div>
-            <div v-if="attr.info" style="padding: 10px 15px;color:#ccc;font-size:20px;">
+            <div v-if="attr.info" style="padding:0 15px;color:#ccc;font-size:20px;">
               <el-popover
                 placement="top-start"
                 title="介绍"
@@ -55,7 +62,7 @@
               </el-popover>
             </div>
           </div>
-          <div class="attr">
+          <div class="box">
             <em class="name">flex</em>
             <div>{{flex}}</div>
           </div>
@@ -90,23 +97,15 @@
           <ul>
             <li>
               <span>容器</span>
-              <el-input v-model="flexContainerValue.width">
-                <template slot="append">width</template>
-              </el-input>
-              <el-input v-model="flexContainerValue['height']">
-                <template slot="append">height</template>
-              </el-input>
+              <el-input v-model="flexContainerValue.width"></el-input>
+              <el-input v-model="flexContainerValue['height']"></el-input>
               <el-button type="primary" @click="add">增加</el-button>
             </li>
             <li v-for="(item,index) in items" :key="index">
-              <span>方块{{index + 1}}:</span>
-              <el-input v-model="item.w">
-                <template slot="append">width</template>
-              </el-input>
-              <el-input v-model="item.h">
-                <template slot="append">height</template>
-              </el-input>
-              <el-button type="danger" @click="del(index)">删除</el-button>
+              <span style="width:80px;">Item{{index + 1}}</span>
+              <el-input v-model="item.w" size="mini"></el-input>
+              <el-input v-model="item.h" size="mini"></el-input>
+              <el-button type="danger" @click="del(index)" size="mini">删除</el-button>
             </li>
           </ul>
         </div>
@@ -167,8 +166,7 @@ export default {
         },
         {
           attribute: "flex-wrap",
-          text:
-            '默认情况下，项目都排在一条线（又称"轴线"）上。它定义，如果一条轴线排不下，如何换行。',
+          text: '默认情况下，项目都排在一条线（又称"轴线"）上。它定义，如果一条轴线排不下，如何换行。',
           attributeValues: [
             {
               value: "nowrap",
@@ -208,6 +206,10 @@ export default {
               value: "space-around",
               text:
                 "每个项目两侧的间隔相等。所以，项目之间的间隔比项目与边框的间隔大一倍"
+            },
+            {
+              value: "space-evenly",
+              text: "平均分配多余空间"
             }
           ]
         },
@@ -283,14 +285,13 @@ export default {
         {
           attribute: "order",
           text: "定义项目的排列顺序。数值越小，排列越靠前，默认为0",
-          info: "",
+          info: "排序顺序",
           value: 0
         },
         {
           attribute: "flex-grow",
           text: "定义项目的放大比例，默认为0，即如果存在剩余空间，也不放大",
-          info:
-            "如果所有项目的flex-grow属性都为1，则它们将等分剩余空间（如果有的话）。如果一个项目的flex-grow属性为2，其他项目都为1，则前者占据的剩余空间将比其他项多一倍",
+          info: "如果所有项目的flex-grow属性都为1，则它们将等分剩余空间（如果有的话）。如果一个项目的flex-grow属性为2，其他项目都为1，则前者占据的剩余空间将比其他项多一倍",
           value: 0
         },
         {
@@ -302,10 +303,8 @@ export default {
         },
         {
           attribute: "flex-basis",
-          text:
-            "定义了在分配多余空间之前，项目占据的主轴空间（main size）。浏览器根据这个属性，计算主轴是否有多余空间。它的默认值为auto，即项目的本来大小",
-          info:
-            "它可以设为跟width或height属性一样的值（比如350px），则项目将占据固定空间。",
+          text: "定义了在分配多余空间之前，项目占据的主轴空间（main size）。浏览器根据这个属性，计算主轴是否有多余空间。它的默认值为auto，即项目的本来大小",
+          info: "它可以设为跟width或height属性一样的值（比如350px），则项目将占据固定空间。",
           value: "auto"
         }
       ],
@@ -322,7 +321,7 @@ export default {
     },
     testItemStyle: function() {
       let s = {
-        flex: this.flex,
+        // flex: this.flex,
         order: this.flexItem[0].value,
         "align-self": this.alignSelf,
         "background-color": "#ccc",
@@ -349,6 +348,8 @@ export default {
     width: 430px;
     border: 1px solid #ccc;
     padding: 15px;
+    height: calc(100vh - 60px);
+    overflow-y: scroll;
 
     .attr {
         margin-top: 15px;
@@ -356,6 +357,7 @@ export default {
             display: block;
             font-style: normal;
             font-weight: bold;
+            font-size: 14px;
             padding-bottom: 8px;
         }
         .value-box {
@@ -363,14 +365,25 @@ export default {
             flex-wrap: wrap;
         }
     }
+
+    .el-radio {
+      margin: 0 10px 10px 0;
+    }
+    .el-radio + .el-radio {
+      margin-left: 0;
+    }
+
+    .box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      .name {
+        width:80px;
+      }
+    }
   }
 
-  .control .el-radio {
-    margin: 0 10px 10px 0;
-  }
-  .control .el-radio + .el-radio {
-    margin-left: 0;
-  }
   .control .add-del {
     height: 500px;
     margin-top: 30px;
@@ -391,7 +404,7 @@ export default {
 
   .item-box {
     display: flex;
-    background: #f8f8f8 url('https://www.ruanyifeng.com/blogimg/asset/2015/bg2015071004.png') bottom center no-repeat;
+    background: #f8f8f8;
     flex-grow: 1;
   }
   .item {
