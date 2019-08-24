@@ -1,0 +1,13 @@
+{
+  "name": "@90s/web",
+  "version": "1.0.0",
+  "description": "90s web",
+  "main": "src/main.js",
+  "author": "alan",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "@90s/tools": "1.0.0",
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0"
+  }
+}
