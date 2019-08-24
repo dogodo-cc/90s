@@ -102,7 +102,7 @@
               <el-button type="primary" @click="add">增加</el-button>
             </li>
             <li v-for="(item,index) in items" :key="index">
-              <span style="width:80px;">Item{{index + 1}}</span>
+              <span>Item{{index + 1}}</span>
               <el-input v-model="item.w" size="mini"></el-input>
               <el-input v-model="item.h" size="mini"></el-input>
               <el-button type="danger" @click="del(index)" size="mini">删除</el-button>
@@ -385,21 +385,19 @@ export default {
   }
 
   .control .add-del {
-    height: 500px;
     margin-top: 30px;
-    overflow-y: scroll;
-  }
-  .control .add-del li {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .control .add-del li span {
-    width: 70px;
-  }
-  .control .add-del li .el-input {
-    width: 200px;
-    margin-right: 15px;
+    li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      justify-content: space-between;
+      span {
+        width: 40px;
+      }
+      .el-input {
+        width: 70px;
+      }
+    }
   }
 
   .item-box {
