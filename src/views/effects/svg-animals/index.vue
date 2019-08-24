@@ -148,10 +148,6 @@ export default {
   width: 960px;
   margin:auto;
 }
-@media screen and (max-width: 850px){
-  .view-box {width: 100%;}
-  svg {max-width: 100%;min-width: 100%;}
-}
 .control {
   text-align: center;
   padding:30px 0;
@@ -177,6 +173,19 @@ export default {
       &.on::before {
         background-color: #333;
       }
+  }
+}
+
+@media screen and (max-width: 780px){
+  .view-box {
+    width: 100%;
+  }
+  svg {
+    max-width: 100%;
+    min-width: 100%;
+  }
+  .control {
+    padding: 0;
   }
 }
 </style>

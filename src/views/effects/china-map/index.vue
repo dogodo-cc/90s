@@ -70,10 +70,11 @@
               <circle data-title="甘肃省" cx="263.438" cy="217.039" r="1.738"></circle>
           </g>
       </svg>
-      <div class="province-name"
-      v-for="item in provinces"
-      :key="item.name"
-      :style="{top: item.top + 'px',left: item.left + 'px'}">{{item.name}}</div>
+      <div
+        class="province-name"
+        v-for="item in provinces"
+        :key="item.name"
+        :style="{top: item.top + 'px',left: item.left + 'px'}">{{item.name}}</div>
   </div>
   </div>
 </template>
@@ -85,9 +86,6 @@ export default {
     return {
       provinces: []
     }
-  },
-  created() {
-
   },
   mounted() {
     const that = this;
@@ -129,6 +127,15 @@ export default {
     pointer-events: none;
     color: #3c3c3c;
     font-size: 12px;
+  }
+}
+
+@media screen and (max-width:780px) {
+  .china-map {
+    .map {
+      width: 350px;
+      margin: 0 auto;
+    }
   }
 }
 

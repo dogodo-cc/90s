@@ -11,7 +11,11 @@ import {
   Tooltip
 } from 'element-ui'
 
-Vue.prototype.$ELEMENT = { size: 'small'};
+if (window.innerWidth < 780) {
+  Vue.prototype.$ELEMENT = { size: 'mini'};
+} else {
+  Vue.prototype.$ELEMENT = { size: 'small'};
+}
 Vue.use(Button)
 Vue.use(Input)
 Vue.use(Radio)

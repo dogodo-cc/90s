@@ -66,4 +66,13 @@ export default {
     padding:10px 0 0 10px;
   }
 }
+
+@media screen and (max-width:780px) {
+  .page-danmuke {
+    .stage {
+      width: 500px;
+      height: calc(100vh - 50px);
+    }
+  }
+}
 </style>

@@ -82,4 +82,30 @@ export default {
     }
   }
 }
+@media screen and (max-width:780px) {
+  .danmaku-item {
+    transform: translateX(500px);
+    &.biu {
+      transition: transform 6s linear;
+    }
+    .item {
+      padding: 2px;
+      .pic {
+        width: 30px;
+        height: 30px;
+        margin-right: 10px;
+      }
+      .content {
+        padding-right: 10px;
+        h4 {
+          font-size: 12px;
+          margin-bottom: 5px;
+        }
+        p {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
 </style>
