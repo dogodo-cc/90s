@@ -5,7 +5,7 @@ branches:
 cache:
   directories: node_modules
 install: cd ./packages/90s && npm install
-script: cd ./packages/90s npm run build
+script: cd ./packages/90s && npm run build
 after_success:
   cp ./CNAME ./dist
   cp ./public/favicon.ico ./dist
