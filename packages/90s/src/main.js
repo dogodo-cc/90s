@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import App from './App.vue';
 import router from './route'
+import eventBus from "./utils/event-bus";
 
 import "normalize.css"
 import '@/styles/reset.scss';
@@ -11,6 +12,8 @@ import './plugins/element.js'
 
 
 Vue.config.productionTip = false;
+
+Vue.prototype.$eventBus = eventBus;
 
 // eslint-disable-next-line 
 const app = new Vue({

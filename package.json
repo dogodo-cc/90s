@@ -1,5 +1,5 @@
 {
-  "name": "on-the-way",
+  "name": "90s",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
@@ -8,9 +8,8 @@
   "description": "走在前端的大道上",
   "author": "alan",
   "scripts": {
-    "build:90s": "cd packages/90s && NODE_ENV=production webpack --config ./build/webpack.prod.js",
-    "lint": "eslint --ext .js,.vue packages",
-    "start:90s": "cd packages/90s && webpack-dev-server --config ./build/webpack.dev.js"
+    "build:90s": "lerna exec --scope @90s/web -- npm run build",
+    "start:90s": "lerna exec --scope @90s/web -- npm run start"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",
@@ -20,7 +19,8 @@
     "eslint": "^5.0.0",
     "eslint-plugin-vue": "^5.2.3",
     "husky": "^3.0.4",
-    "lerna": "^3.16.4"
+    "lerna": "^3.16.4",
+    "lint-staged": "^9.2.3"
   },
   "bugs": {
     "url": "https://github.com/dogodo-cc/on-the-way/issues"
@@ -33,7 +33,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint",
+      "pre-commit": "lint-staged",
       "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
@@ -46,5 +46,11 @@
     "cz-customizable": {
       "config": "./.cz-config.js"
     }
+  },
+  "lint-staged": {
+    "packages/**/*.{js,vue,ts,tsx}": [
+      "eslint --fix",
+      "git add"
+    ]
   }
 }

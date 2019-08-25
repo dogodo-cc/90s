@@ -17,11 +17,26 @@
 
 ## 安装依赖
 ```base
+// 安装 vue（远程） 到 @90s/web
 lerna add vue --scope=@90s/web
+
+// 安装 @90s/tools（本地） 到 @90s/web
 lerna add @90s/tools --scope=@90s/web
+
+// 安装 eslint 到 @90s/web  在 devDependencies
 lerna add eslint --scope=@90s/web --dev
+
+// 给所有模块安装 babel-core （如果 babel-core 为本地模块，则除了 babel-core）
 lerna add babel-core
+
+// 给所有模块安装 babel-core 到 devDependencies        
 lerna add babel-core --dev
+
+// 移除所有模块的 eslint 依赖，或者手动删除package.json的依赖，然后执行 lerna bootstrap
+lerna exec -- yarn remove eslint
+
+// 在项目根目录安装依赖
+yarn add --dev husky prettier lint-staged -W
 
 yarn workspace @90s/web add vue
 yarn workspace @90s/web add vue -D
