@@ -2,13 +2,12 @@
   "name": "@90s/web",
   "version": "1.0.0",
   "description": "90s web",
-  "main": "src/main.js",
+  "main": "./src/main.js",
   "author": "alan",
   "license": "MIT",
   "private": true,
   "scripts": {
     "build": "NODE_ENV=production webpack --config ./build/webpack.prod.js",
-    "lint": "eslint --ext .js,.vue src",
     "start": "webpack-dev-server --config ./build/webpack.dev.js",
     "website": "cd scripts && node create-website-list.js"
   },

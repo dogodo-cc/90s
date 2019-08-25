@@ -19,6 +19,9 @@
 ```base
 lerna add vue --scope=@90s/web
 lerna add @90s/tools --scope=@90s/web
+lerna add eslint --scope=@90s/web --dev
+lerna add babel-core
+lerna add babel-core --dev
 
 yarn workspace @90s/web add vue
 yarn workspace @90s/web add vue -D
