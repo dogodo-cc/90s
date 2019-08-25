@@ -1,8 +1,10 @@
+/*eslint no-undef: 1*/
+
 /**
  * storage
  */
 
-const storage = {
+const storeLocal = {
   get(key) {
     return JSON.parse(window.localStorage.getItem(key));
   },
@@ -17,9 +19,8 @@ const storage = {
 };
 
 // Debug
-// eslint-disable-next-line
 if (process.env.NODE_ENV === "development") {
-  window._localStorage = storage;
+  window._session = storeLocal;
 }
 
-export default storage;
+export { storeLocal };

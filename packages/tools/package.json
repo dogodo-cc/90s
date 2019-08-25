@@ -6,5 +6,16 @@
   "author": "alan",
   "license": "MIT",
   "private": true,
-  "devDependencies": {}
+  "scripts": {
+    "rollup": "npx rollup -c"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "rollup": "^1.19.4",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.0.2",
+    "rollup-plugin-json": "^4.0.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  }
 }
