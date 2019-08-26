@@ -1,0 +1,12 @@
+@media screen and (min-width:780px) {
+  $headerHieght: 60px;
+  $navBarWidth: 200px;
+  @import './_layout.scss';
+}
+
+
+@media screen and (max-width:780px) {
+  $headerHieght: 50px;
+  $navBarWidth: 180px;
+  @import './_layout.scss';
+}
