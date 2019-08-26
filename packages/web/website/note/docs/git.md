@@ -136,7 +136,7 @@ git push origin --tags
 ```angular2html
 git log  本地仓库的历史记录
 git log --author=alan  只看alan的提交记录
-git log --pretty=oneline  每一条提交记录只占一行的输出
+git log --oneline  每一条提交记录只占一行的输出
 git log --graph --oneline --decorate --all   ASCII 艺术的树形结构来展示所有的分支
 git log --name-status   看看哪些文件改变了
 git log --help  更多的信息
