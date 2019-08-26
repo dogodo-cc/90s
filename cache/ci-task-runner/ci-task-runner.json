@@ -1,0 +1,16 @@
+{
+  "tasks": {
+    "build_web": {
+      "path": "../../../packages/web",
+      "dirty": true
+    },
+    "build_tools": {
+      "path": "../../../packages/tools",
+      "dirty": true
+    }
+  },
+  "revision": {
+    "../../packages/web": "10f4793",
+    "../../packages/tools": "36dc0be"
+  }
+}
