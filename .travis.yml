@@ -1,7 +1,7 @@
 language: node_js
 node_js: '10'
 branches:
-  only: ci_task_runner
+  only: master
 cache:
   directories: node_modules
 install: yarn
@@ -16,7 +16,7 @@ deploy:
   target_branch: gh-pages
   local_dir: "./packages/web/dist"
   on:
-    branch: ci_task_runner
+    branch: master
 notifications:
   email:
     recipients: 741484865@qq.com
