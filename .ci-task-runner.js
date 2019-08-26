@@ -1,7 +1,7 @@
 
 const ciTaskRunnerConfig = {
   "repository": "git",
-  "cache": ".cache/ci-task-runner/ci-task-runner.json",
+  // "cache": ".cache/ci-task-runner/ci-task-runner.json",
   "tasks": []
 }
 
