@@ -6,9 +6,9 @@ cache:
   directories: node_modules
 before_install: npm install lerna -g
 install: lerna bootstrap
-script: npm run build:90s
+script: npm run build:web
 after_success:
-  npm run release:90s
+  npm run release:web
 deploy:
   provider: pages
   skip_cleanup: true
