@@ -9,13 +9,17 @@
   "author": "alan",
   "scripts": {
     "build:web": "lerna exec --scope @90s/web -- npm run build",
+    "build:tool": "lerna exec --scope @90s/tool -- npm run build",
     "start:web": "lerna exec --scope @90s/web -- npm run start",
-    "release:web": "lerna exec --scope @90s/web -- npm run release"
+    "release:web": "lerna exec --scope @90s/web -- npm run release",
+    "predeploy": "if [ ! -x 'node_modules/.bin/ci-task-runner' ]; then echo 'install ci-task-runner...' && learn bootstrap; else echo 'ci-task-runner ready'; fi",
+    "deploy": "npx ci-task-runner --config .ci-task-runner.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",
     "@commitlint/config-conventional": "^8.1.0",
     "child-process-promise": "^2.2.1",
+    "ci-task-runner": "^1.0.4",
     "commitizen": "^4.0.3",
     "cz-customizable": "^6.2.0",
     "eslint": "^5.0.0",

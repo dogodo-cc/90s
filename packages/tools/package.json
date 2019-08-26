@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "rollup": "npx rollup -c"
+    "build": "npx rollup -c"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
