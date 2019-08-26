@@ -14,6 +14,7 @@
   },
   "homepage": "https://www.90s.co",
   "dependencies": {
+    "@90s/tools": "1.0.0",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/polyfill": "^7.4.4",
     "@babel/runtime-corejs2": "^7.4.5",
