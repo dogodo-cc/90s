@@ -6,8 +6,9 @@ cache:
   directories: node_modules
 before_install: npm install lerna -g
 install: lerna bootstrap
-script: cd ./packages/90s && npm run build
+script: npm run build:90s
 after_success:
+  cd ./packages/90s
   cp ./CNAME ./dist
   cp ./public/favicon.ico ./dist
   cp -R ./website/* ./dist

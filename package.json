@@ -9,7 +9,8 @@
   "author": "alan",
   "scripts": {
     "build:90s": "lerna exec --scope @90s/web -- npm run build",
-    "start:90s": "lerna exec --scope @90s/web -- npm run start"
+    "start:90s": "lerna exec --scope @90s/web -- npm run start",
+    "release:90s": "lerna exec --scope @90s/web -- npm run release"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",
