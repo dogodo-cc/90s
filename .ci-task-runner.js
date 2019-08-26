@@ -2,10 +2,7 @@
 const ciTaskRunnerConfig = {
   "repository": "git",
   "cache": ".cache/ci-task-runner/ci-task-runner.json",
-  "tasks": [{
-    "name": "package.json",
-    "program": "npx lerna bootstrap"
-  }]
+  "tasks": []
 }
 
 const buildTasks = [
