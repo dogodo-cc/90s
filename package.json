@@ -8,9 +8,9 @@
   "description": "走在前端的大道上",
   "author": "alan",
   "scripts": {
-    "build:90s": "lerna exec --scope @90s/web -- npm run build",
-    "start:90s": "lerna exec --scope @90s/web -- npm run start",
-    "release:90s": "lerna exec --scope @90s/web -- npm run release"
+    "build:web": "lerna exec --scope @90s/web -- npm run build",
+    "start:web": "lerna exec --scope @90s/web -- npm run start",
+    "release:web": "lerna exec --scope @90s/web -- npm run release"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",
