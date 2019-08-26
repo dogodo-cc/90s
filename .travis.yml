@@ -4,8 +4,7 @@ branches:
   only: ci_task_runner
 cache:
   directories: node_modules
-before_install: npm install lerna -g
-install: lerna bootstrap
+install: npm install lerna -g
 script: npm run deploy
 after_success:
   npm run release:web
