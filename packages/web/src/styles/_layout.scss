@@ -32,7 +32,7 @@
   a {
     position: relative;
     color: inherit;
-    &.router-link-active {
+    &.router-link-active,&:hover {
       color: blue;
     }
     &.router-link-exact-active {

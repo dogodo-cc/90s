@@ -1,4 +1,4 @@
-/*eslint no-undef: 1*/
+/*eslint no-undef: 0*/
 
 /**
  * storage
