@@ -10,7 +10,7 @@
   "scripts": {
     "build:web": "lerna exec --scope @90s/web -- npm run build",
     "build:tools": "lerna exec --scope @90s/tools -- npm run build",
-    "start:web": "lerna exec --scope @90s/web -- npm run start",
+    "dev:web": "lerna exec --scope @90s/web -- npm run start",
     "release:web": "lerna exec --scope @90s/web -- npm run release",
     "predeploy": "if [ ! -x 'node_modules/.bin/ci-task-runner' ]; then echo 'install ci-task-runner...' && learn bootstrap; else echo 'ci-task-runner ready'; fi",
     "deploy": "npx ci-task-runner --config .ci-task-runner.js"

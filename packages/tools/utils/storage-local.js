@@ -1,10 +1,9 @@
-/*eslint no-undef: 0*/
 
 /**
  * storage
  */
 
-const storeLocal = {
+export const storeLocal = {
   get(key) {
     return JSON.parse(window.localStorage.getItem(key));
   },
@@ -17,10 +16,3 @@ const storeLocal = {
     key && window.localStorage.removeItem(key);
   }
 };
-
-// Debug
-if (process.env.NODE_ENV === "development") {
-  window._session = storeLocal;
-}
-
-export { storeLocal };

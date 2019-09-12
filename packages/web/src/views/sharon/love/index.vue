@@ -77,7 +77,7 @@
 <script>
 import $ from "jquery";
 import { Garden } from "./utils/garden";
-import {isPhone} from '@/utils/tool.js';
+import {isPhone} from '@90s/tools';
 import Orientation from '@/components/orientation/index.vue'
 export default {
   name: "sharon-love",

@@ -1,9 +1,8 @@
-/*eslint no-undef: 1*/
 /**
  * session
  */
 
-const storeSession = {
+export const storeSession = {
   get(key) {
     return JSON.parse(window.sessionStorage.getItem(key));
   },
@@ -16,10 +15,3 @@ const storeSession = {
     key && window.sessionStorage.removeItem(key);
   }
 };
-
-// Debug
-if (process.env.NODE_ENV === "development") {
-  window._sessionStorage = storeSession;
-}
-
-export default storeSession;

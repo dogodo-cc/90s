@@ -1,8 +1,10 @@
-function hi() {
-  return '我来自 @90s/tool 模块,当你看到这句话的时候，说明使用 lerna 管理多项目和 travis CI 持续集成成功啦 ^-^ .';
-}
+function isPhone() {
+  if (navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)) {
+    return true;
+  }
 
-/*eslint no-undef: 1*/
+  return false;
+}
 
 /**
  * storage
@@ -17,13 +19,7 @@ var storeLocal = {
   "delete": function _delete(key) {
     key && window.localStorage.removeItem(key);
   }
-}; // Debug
-
-if (process.env.NODE_ENV === "development") {
-  window._session = storeLocal;
-}
-
-/*eslint no-undef: 1*/
+};
 
 /**
  * session
@@ -38,10 +34,8 @@ var storeSession = {
   "delete": function _delete(key) {
     key && window.sessionStorage.removeItem(key);
   }
-}; // Debug
+};
 
-if (process.env.NODE_ENV === "development") {
-  window._sessionStorage = storeSession;
-}
+var a = 1234567;
 
-export { hi, storeLocal };
+export { a, isPhone, storeLocal, storeSession };
