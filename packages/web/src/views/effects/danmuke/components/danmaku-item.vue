@@ -1,7 +1,7 @@
 <template>
   <div class="danmaku-item" :class="{ biu: danmaku.biu }" :style="{ top: `${top}%` }">
     <div class="item">
-      <div v-if="danmaku.avatar" class="pic" :style="{'background-image': `url(${danmaku.avatar})`}"></div>
+      <div class="pic"><img :src="danmaku.avatar" alt="avatar"></div>
       <div class="content">
         <template v-if="danmaku.isImg">
           <div class="img-box">
@@ -65,7 +65,11 @@ export default {
       margin-right: 20px;
       border-radius: 50%;
       overflow: hidden;
-      background-size: contain;
+      img {
+        object-fit: cover;
+        width: 100%;
+        height: 100%;
+      }
     }
     .content {
       padding-right: 20px;
