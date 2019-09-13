@@ -1,1 +1,1 @@
-export const a = 1234567;
+export const a = 'i am from @90s/tools';

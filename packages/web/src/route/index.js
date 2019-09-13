@@ -177,8 +177,8 @@ const router = new VueRouter({
     },
     {
       path: '*',
-      name: 'not-found',
-      component:() => import(/* webpackChunkName: "not-found" */ '@/views/not-found/index.vue'),
+      name: '404',
+      component:() => import(/* webpackChunkName: "404" */ '@/views/404/index.vue'),
     }
   ]
 })
