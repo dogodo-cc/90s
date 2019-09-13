@@ -1,7 +1,7 @@
 <template>
   <div class="danmaku-item" :class="{ biu: danmaku.biu }" :style="{ top: `${top}%` }">
     <div class="item">
-      <div class="pic" :style="{'background-image': `url(${danmaku.avatar})`}"></div>
+      <div v-if="danmaku.avatar" class="pic" :style="{'background-image': `url(${danmaku.avatar})`}"></div>
       <div class="content">
         <template v-if="danmaku.isImg">
           <div class="img-box">
