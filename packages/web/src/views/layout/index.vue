@@ -29,9 +29,9 @@
 <script>
 export default {
   name: 'layout',
-  computed: {
-    navs() {
-       return this.$router.options.routes.filter(item => {
+  data(){
+    return {
+      navs: this.$router.options.routes.filter(item => {
          if(item.children) {
            item.children= item.children.filter(o => {
              return o.meta && o.meta.title && !o.meta.hidden;
@@ -40,8 +40,7 @@ export default {
            item.children = [];
          } 
          return item.meta && item.meta.title && !item.meta.hidden;
-       });
-       
+       })
     }
   }
 }
