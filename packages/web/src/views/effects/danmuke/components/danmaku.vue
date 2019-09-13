@@ -31,90 +31,12 @@ export default {
     return {
       // danmakuWait: [],
       danmakuGroup: [], // 总弹幕池
-      runways: [
-        {
-          id: 1,
+      runways: [1,2,3,4,5,6,7].map(id => {
+        return {
+          id,
           lock: false,
           isFree: true,
-          seat: [
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false }
-          ]
-        },
-        {
-          id: 2,
-          lock: false,
-          isFree: true,
-          seat: [
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false }
-          ]
-        },
-        {
-          id: 3,
-          lock: false,
-          isFree: true,
-          seat: [
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false }
-          ]
-        },
-        {
-          id: 4,
-          lock: false,
-          isFree: true,
-          isFat: true,
-          seat: [
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false }
-          ]
-        },
-        {
-          id: 5,
-          lock: false,
-          isFree: true,
-          seat: [
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false }
-          ]
-        },
-        {
-          id: 6,
-          lock: false,
-          isFree: true,
-          seat: [
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false },
-            { biu: false }
-          ]
-        },
-        {
-          id: 7,
-          lock: false,
-          isFree: true,
+          isFat: id === 4,
           seat: [
             { biu: false },
             { biu: false },
@@ -124,7 +46,7 @@ export default {
             { biu: false }
           ]
         }
-      ],
+      }),
       picMaxHeight: 280 // 弹幕图片的最大高度
     };
   },
@@ -172,8 +94,10 @@ export default {
     }
   },
   mounted() {
-    const h = this.$refs.danmakuWrap.offsetHeight * 0.2;
-    this.picMaxHeight = Math.ceil(h);
+    this.$nextTick(() => {
+      const h = this.$refs.danmakuWrap.offsetHeight * 0.2;
+      this.picMaxHeight = Math.ceil(h);
+    })
 
     const { danmakuGroup } = this;
 
