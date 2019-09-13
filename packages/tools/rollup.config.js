@@ -7,7 +7,7 @@ import { version } from './package.json';
 export default {
   input: './main.js',
   output: {
-    file: 'index.js',
+    file: './dist/index.js',
     format: 'esm'
   },
   plugins: [
