@@ -1,0 +1,3 @@
+/* components/m-icon/m-icon.wxss */
+
+@import '../../font/iconfont.wxss';

@@ -1,0 +1,21 @@
+
+<view  class='title-bar'>
+  <view class='status' style="height: {{statusBarHeight + 'px'}}"></view>
+  <view class='bar'>
+    <view class="function">
+      <view class="title-bar-back" wx:if="{{showBack === true}}" bindtap="goBack">
+        <m-icon color="#000" icon="iconleft"></m-icon>
+        <text wx:if="{{backText}}">{{backText}}</text>
+      </view>
+      <view class="title-bar-scan" wx:if="{{showScan === true}}" bindtap="scan">
+        <m-icon font-size="28rpx" icon="iconziyuan2" color="#000"></m-icon>
+        <text>核销</text>
+      </view>
+    </view>
+    <view class='title' style="color: {{color}};font-weight:{{fontWeight}}">{{title}}</view>
+  </view>
+</view>
+<view
+  data-txt="用来占位用的，抵消title-bar 的fixed布局" 
+  style="width:100vw;height: {{titleBarHeight + 'px'}};background-color: #fff;">
+</view>

@@ -1,0 +1,12 @@
+<view class="m-input">
+  <input
+    placeholder-style="color:#BEC3C9;"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    maxlength="{{maxlength}}"
+    bindfocus="focus"
+    bindblur="blur"></input>
+  <view bindtap="clear" class="clear" wx:if="{{showClear}}">
+    <m-icon color="#BEC3C9" icon="iconClear"/>
+  </view>
+</view>

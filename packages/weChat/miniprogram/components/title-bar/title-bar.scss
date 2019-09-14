@@ -1,0 +1,36 @@
+.title-bar {
+  position: fixed;
+  z-index: 999;
+  top:0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  .bar {
+    height: 44px;
+    line-height: 44px;
+    position: relative;
+    
+    .function {
+      position: absolute;
+      left: 20rpx;
+      top:0;
+      bottom:0;
+      display: flex;
+      align-items: center;
+      .title-bar-back {
+        display: flex;
+      }
+      .title-bar-scan {
+        display: flex;
+        text {
+          padding-left: 15rpx;
+          font-size: 24rpx;
+          color: #444950;
+        }
+      }
+    }
+    .title {
+      text-align: center;
+    }
+  }
+}
