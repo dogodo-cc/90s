@@ -1,7 +1,7 @@
 const app = getApp();
-const computedBehavior = require('miniprogram-computed')
+// const computedBehavior = require('miniprogram-computed')
 Component({
-  behaviors: [computedBehavior],
+  // behaviors: [computedBehavior],
   properties: {
     title: {
       type: String,

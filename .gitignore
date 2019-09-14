@@ -67,3 +67,6 @@ dist/
 
 # @90s/tools 的生成文件
  packages/tools/index.js
+
+ # 小程序的构建文件
+ miniprogram_npm/

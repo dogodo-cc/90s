@@ -1,0 +1,23 @@
+{
+  "name": "@90s/wechat",
+  "version": "1.0.0",
+  "description": "看图工具",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "alan",
+  "license": "ISC",
+  "dependencies": {},
+  "publishConfig": {
+    "registry": "http://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dogodo-cc/90s.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dogodo-cc/90s/issues"
+  }
+}
