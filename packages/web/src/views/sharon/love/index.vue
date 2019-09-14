@@ -256,7 +256,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .page-love {
   width: 100vw;
   height: 100vh;

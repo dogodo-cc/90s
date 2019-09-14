@@ -40,7 +40,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .danmaku-item {
   position: absolute;
   left: 0;

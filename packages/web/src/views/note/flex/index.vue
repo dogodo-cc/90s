@@ -11,17 +11,10 @@
       </div>
       <div class="control">
         <div class="control-attr">
-          <el-popover
-            placement="bottom-start"
-            width="500"
-            trigger="hover"
-            >
-            <div slot="content"><img src="https://www.ruanyifeng.com/blogimg/asset/2015/bg2015071004.png" alt=""></div>
-            <h3 slot="reference">容器属性</h3>
-          </el-popover>
+          <h3 slot="reference">容器属性</h3>
           <div class="attr" v-for="(attr,i) in flexContainer" :key="i">
             <em class="name">
-              <el-tooltip :content="attr.text" placement="top">
+              <el-tooltip :open-delay="2000" :content="attr.text" placement="top">
                 <span>{{attr.attribute}}</span>
               </el-tooltip>
             </em>
@@ -117,6 +110,7 @@
 export default {
   data() {
     return {
+      img: 'https://www.ruanyifeng.com/blogimg/asset/2015/bg2015071004.png',
       show: false,
       items: [
         {
