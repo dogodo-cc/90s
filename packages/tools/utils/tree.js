@@ -1,1 +1,5 @@
-export const a = 'i am from @90s/tools';
+const a = 'i am from @90s/tools';
+
+export {
+  a
+};
