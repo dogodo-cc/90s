@@ -107,33 +107,16 @@
 </template>
 
 <script>
+import {isPhone} from '@90s/tools';
 export default {
   data() {
     return {
       img: 'https://www.ruanyifeng.com/blogimg/asset/2015/bg2015071004.png',
       show: false,
-      items: [
-        {
-          w: "100px",
-          h: "100px"
-        },
-        {
-          w: "100px",
-          h: "100px"
-        },
-        {
-          w: "100px",
-          h: "100px"
-        },
-        {
-          w: "100px",
-          h: "100px"
-        },
-        {
-          w: "100px",
-          h: "100px"
-        }
-      ],
+      items: Array(5).fill({
+          w: isPhone ? '40px' : "100px",
+          h: isPhone ? '40px' : "100px"
+        }),
       // 容器的属性
       flexContainer: [
         {
@@ -272,7 +255,7 @@ export default {
         "justify-conten": "flex-start",
         "align-items": "stretch",
         "align-content": "stretch",
-        height: "600px",
+        height: isPhone ? 'calc(100vh - 50px)' : 'calc(100vh - 60px);',
         width: "100%"
       },
       flexItem: [
@@ -405,6 +388,16 @@ export default {
     font-size: 30px;
     color: #333;
     order: 2;
+    border-radius: 4px;
+  }
+
+  @media screen and (max-width: 780px) {
+    .control {
+      width: 400px;
+      padding: 5px;
+      height: calc(100vh - 50px);
+    }
   }
 }
+
 </style>
