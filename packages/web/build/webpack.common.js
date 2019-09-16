@@ -38,7 +38,14 @@ module.exports = {
           },
           {
             loader: 'sass-loader' // 编译 scss
-          }
+          },
+          {
+            loader: 'style-resources-loader',
+            options: {
+                patterns: path.resolve(__dirname, '../src/styles/theme.scss'),
+                injector: 'prepend'
+            }
+        }
         ]
       },
       {
