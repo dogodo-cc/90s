@@ -146,15 +146,15 @@ const router = new VueRouter({
         }
       ]
     },
-    // {
-    //   path: '/sharon',
-    //   component:() => import('@/views/sharon/photos/index.vue'),
-    //   meta: {
-    //     title: '照片墙',
-    //     pageTitle: '我们结婚啦^_^',
-    //     hidden: true
-    //   }
-    // },
+    {
+      path: '/sharon',
+      component:() => import('@/views/sharon/photos/index.vue'),
+      meta: {
+        title: '照片墙',
+        pageTitle: '我们结婚啦^_^',
+        hidden: true
+      }
+    },
     {
       path: '/love',
       component:() => import('@/views/sharon/love/index.vue'),
@@ -174,6 +174,18 @@ const router = new VueRouter({
         path: '/',
         component:() => import('@/views/case/index.vue'),
       }]
+    },
+    // 渣男
+    {
+      // path: '/hi/:name?',
+      path: '/hi/:name',
+      component:() => import('@/views/sharon/photos/index.vue'),
+      props: (route) => ({
+        name: route.params.name,
+      }),
+      meta: {
+        pageTitle: 'Hi',
+      }
     },
     {
       path: '*',

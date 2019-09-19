@@ -14,9 +14,18 @@ import * as THREE from 'three';
 import * as TWEEN from '@tweenjs/tween.js';
 import { TrackballControls } from './utils/TrackballControls.js';
 import { CSS3DRenderer, CSS3DObject } from './utils/CSS3DRenderer.js';
-const img = require('./assets/1.jpg')
+const imgMap = {
+	'sharon': require('./assets/1.jpg'),
+	'myLife': require('./assets/my-life.jpg'),
+}
 export default {
-  name: 'photos',
+	name: 'photos',
+	props: {
+		name: {
+			type: String,
+			default: 'sharon'
+		}
+	},
   mounted() {
     var table = [
 				"H", "Hydrogen", "1.00794", 1, 1,
@@ -141,7 +150,7 @@ export default {
 			var table2 = [];
 			for (let i = 0; i < table.length; i += 5) {
 				table2.push({
-					img: img,
+					img: imgMap[this.name],
 					x: table[i + 3],
 					y: table[i + 4]
 				});
