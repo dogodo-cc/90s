@@ -235,7 +235,7 @@ export default {
       }, 5000);
     }
 
-    if (isPhone()) {
+    if (isPhone) {
       if (window.orientation === 90) {
         begin();
       }
