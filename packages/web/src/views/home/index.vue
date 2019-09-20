@@ -2,16 +2,17 @@
   <div class="page page-home">
     嗯哼，这是我的个人博客，没有UI设计，后面慢慢优化 .
     <br>
-    {{a}}
+    {{a}} - 手机模式：{{isPhone}}
   </div>
 </template>
 <script>
-import { a} from '@90s/tools';
+import { a, isPhone } from '@90s/tools';
 export default {
   name: 'home',
   data() {
     return {
-      a
+      a,
+      isPhone
     }
   }
 }
