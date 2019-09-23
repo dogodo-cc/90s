@@ -1,1 +1,116 @@
-{"children":[{"type":"group","visible":true,"opacity":1,"blendingMode":"passthru","name":"画板","left":32,"right":142,"top":33,"bottom":147,"height":114,"width":110,"children":[{"type":"layer","visible":true,"opacity":1,"blendingMode":"normal","name":"blue","left":0,"right":0,"top":0,"bottom":0,"height":0,"width":0,"mask":{"top":87,"left":214,"bottom":191,"right":359,"width":145,"height":104,"defaultColor":0,"relative":false,"disabled":false,"invert":false},"image":{}},{"type":"layer","visible":true,"opacity":1,"blendingMode":"normal","name":"红","left":75,"right":101,"top":122,"bottom":147,"height":25,"width":26,"mask":{},"text":{"value":"红","font":{"name":"DejaVuSans","sizes":[28],"colors":[[0,0,0,255]],"alignment":["left"]},"left":0,"top":0,"right":1105199104,"bottom":1105199104,"transform":{"xx":1,"xy":0,"yx":0,"yy":1,"tx":74,"ty":145}},"image":{}},{"type":"layer","visible":true,"opacity":1,"blendingMode":"normal","name":"red","left":0,"right":0,"top":0,"bottom":0,"height":0,"width":0,"mask":{"top":87,"left":38,"bottom":191,"right":184,"width":146,"height":104,"defaultColor":0,"relative":false,"disabled":false,"invert":false},"image":{}},{"type":"layer","visible":true,"opacity":1,"blendingMode":"normal","name":"颜色规范","left":32,"right":142,"top":33,"bottom":59,"height":26,"width":110,"mask":{},"text":{"value":"颜色规范","font":{"name":"DejaVuSans","sizes":[28],"colors":[[0,0,0,255]],"alignment":["left"]},"left":0,"top":0,"right":1121976320,"bottom":1105199104,"transform":{"xx":1,"xy":0,"yx":0,"yy":1,"tx":31,"ty":56}},"image":{}}]}],"document":{"width":412,"height":382,"resources":{"layerComps":[],"guides":[],"slices":[]}}}
+{
+  "children": [
+    {
+      "type": "layer",
+      "visible": true,
+      "opacity": 1,
+      "blendingMode": "normal",
+      "name": "red",
+      "left": 96,
+      "right": 217,
+      "top": 251,
+      "bottom": 372,
+      "height": 121,
+      "width": 121,
+      "mask": {},
+      "image": {}
+    },
+    {
+      "type": "layer",
+      "visible": true,
+      "opacity": 1,
+      "blendingMode": "normal",
+      "name": "blue",
+      "left": 274,
+      "right": 397,
+      "top": 250,
+      "bottom": 373,
+      "height": 123,
+      "width": 123,
+      "mask": {
+        "top": 250,
+        "left": 274,
+        "bottom": 373,
+        "right": 397,
+        "width": 123,
+        "height": 123,
+        "defaultColor": 0,
+        "relative": false,
+        "disabled": false,
+        "invert": false
+      },
+      "image": {}
+    },
+    {
+      "type": "layer",
+      "visible": true,
+      "opacity": 1,
+      "blendingMode": "normal",
+      "name": "颜色规范",
+      "left": 96,
+      "right": 242,
+      "top": 150,
+      "bottom": 184,
+      "height": 34,
+      "width": 146,
+      "mask": {},
+      "text": {
+        "value": "颜色规范",
+        "font": {
+          "name": "PingFangSC-Semibold",
+          "sizes": [
+            36
+          ],
+          "colors": [
+            [
+              0,
+              0,
+              0,
+              255
+            ]
+          ],
+          "alignment": [
+            "left"
+          ]
+        },
+        "left": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "transform": {
+          "xx": 1,
+          "xy": 0,
+          "yx": 0,
+          "yy": 1,
+          "tx": 96.05859375,
+          "ty": 179.56640625
+        }
+      },
+      "image": {}
+    },
+    {
+      "type": "layer",
+      "visible": true,
+      "opacity": 1,
+      "blendingMode": "normal",
+      "name": "背景",
+      "left": 0,
+      "right": 1242,
+      "top": 0,
+      "bottom": 2208,
+      "height": 2208,
+      "width": 1242,
+      "mask": {},
+      "image": {}
+    }
+  ],
+  "document": {
+    "width": 1242,
+    "height": 2208,
+    "resources": {
+      "layerComps": [],
+      "guides": [],
+      "slices": []
+    }
+  }
+}

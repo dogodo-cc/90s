@@ -245,3 +245,10 @@ git stash list // 展示所有暂存
 git stash apply stash@{0} // 得到指定的暂存
 ```
 
+## 取消跟踪
+```base
+git rm -r -n --cached dist
+git rm -r --cached dist
+```
+将已经在 git 跟踪的 dist 文件夹取消，不需要跟踪
+

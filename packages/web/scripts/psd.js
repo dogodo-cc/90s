@@ -6,7 +6,7 @@
 const PSD = require('psd');
 const fs = require('fs');
 const path = require('path');
-const psdPath = path.join(__dirname, 'test.psd');
+const psdPath = path.join(__dirname, 'color.psd');
 const psd = PSD.fromFile(psdPath);
 psd.parse();
 const treeData = psd.tree().export()
