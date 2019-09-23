@@ -1,13 +1,20 @@
 <template>
   <div>
-    <header class="alan-header"> 
-      <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
-      <div class="quick-link">
-        <a  target="_blank" href="https://www.90s.co/note">学习笔记</a>
-      </div>
+    <header class="alan-header">
+      <div class="wap-header" v-if="isPhone">
+        <icon @click.native="showNav = !showNav" color="#333" name="icon-menu"></icon>
+        <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
+      </div> 
+  
+      <template v-else>
+        <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
+        <div class="quick-link">
+          <a  target="_blank" href="https://www.90s.co/note">学习笔记</a>
+        </div>
+      </template>
     </header>
     <div class="alan-body">
-      <nav class="alan-nav">
+      <nav class="alan-nav" :class="{'show-nav':showNav}">
         <ul>
           <li v-for="nav in navs" :key="nav.path">
             <dl>
@@ -27,6 +34,7 @@
 </template>
 
 <script>
+import {isPhone} from '@90s/tools';
 export default {
   name: 'layout',
   data(){
@@ -40,7 +48,9 @@ export default {
            item.children = [];
          } 
          return item.meta && item.meta.title && !item.meta.hidden;
-       })
+       }),
+      isPhone,
+      showNav: false,
     }
   }
 }

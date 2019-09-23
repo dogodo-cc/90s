@@ -3,6 +3,10 @@ import App from './App.vue';
 import router from './route'
 import eventBus from "./utils/event-bus";
 
+import Icon from './components/Icon';
+Icon.regist('//at.alicdn.com/t/font_1431321_3zy5l06f66u.js');
+Vue.use(Icon);
+
 import "normalize.css"
 import '@/styles/reset.scss';
 import '@/styles/layout.scss';

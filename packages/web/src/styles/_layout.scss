@@ -16,6 +16,14 @@
   .quick-link {
     font-size: 14px;
   }
+
+  .wap-header {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
 .alan-body {
@@ -29,6 +37,7 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
   padding:30px 15px 30px 24px;
   color: #333;
+  background-color: #fff;
   a {
     position: relative;
     color: inherit;
@@ -68,12 +77,21 @@
   .alan-header {
     .logo-box {
       img {
-        height: 34px;
+        height: 28px;
       }
     }
   }
 
   .alan-nav {
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top:$headerHieght;
+    transform: translateX(-100%);
     padding: 15px 10px 15px 24px;
+    transition: transform .4s ease;
+    &.show-nav {
+      transform: translateX(0);
+    }
   }
 }
