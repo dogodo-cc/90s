@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import App from './App.vue';
 import router from './route'
+import store from './store';
 import eventBus from "./utils/event-bus";
 
 import Icon from './components/Icon';
@@ -22,6 +23,7 @@ Vue.prototype.$eventBus = eventBus;
 // eslint-disable-next-line 
 const app = new Vue({
   router,
+  store,
   render: h => h(App),
 }).$mount('#app')
 
