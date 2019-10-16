@@ -5,11 +5,14 @@
     {{a}} - 手机模式：{{isPhone}}
     <br>
     测试vuex: {{showAdminButton}} <el-button @click="emitSetAdminButton">click</el-button> {{count}}
+    <br>
+    <el-button @click="download">下载</el-button>
   </div>
 </template>
 <script>
 import { mapState, mapActions } from 'vuex'
-import { a, isPhone } from '@90s/tools';
+import { a, isPhone, downFile } from '@90s/tools';
+const treeData = require('../../../scripts/tree.json')
 export default {
   name: 'home',
   data() {
@@ -22,7 +25,10 @@ export default {
     ...mapState('test', ['showAdminButton','count'])
   },
   methods: {
-    ...mapActions('test', ['emitSetAdminButton'])
+    ...mapActions('test', ['emitSetAdminButton']),
+    download() {
+      downFile('tree.json', JSON.stringify(treeData,null,2))
+    }    
   }
 }
 </script>

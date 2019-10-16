@@ -3,7 +3,7 @@ const presets = [
     "@babel/preset-env",
     {
       "useBuiltIns": "usage",
-      "corejs": 3,
+      "corejs": 2,
       targets: {
         firefox: "65",
         chrome: "70",
