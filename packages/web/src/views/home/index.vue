@@ -2,7 +2,7 @@
   <div class="page page-home">
     嗯哼，这是我的个人博客，没有UI设计，后面慢慢优化 .
     <br>
-    {{a}} - 手机模式：{{isPhone}}
+    手机模式：{{isPhone}}
     <br>
     测试vuex: {{showAdminButton}} <el-button @click="emitSetAdminButton">click</el-button> {{count}}
     <br>
@@ -11,13 +11,12 @@
 </template>
 <script>
 import { mapState, mapActions } from 'vuex'
-import { a, isPhone, downFile } from '@90s/tools';
+import { isPhone, downFile } from '@90s/tools';
 const treeData = require('../../../scripts/tree.json')
 export default {
   name: 'home',
   data() {
     return {
-      a,
       isPhone
     }
   },

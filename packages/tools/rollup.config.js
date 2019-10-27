@@ -8,7 +8,12 @@ export default {
   input: './main.js',
   output: {
     file: './dist/index.js',
-    format: 'esm'
+    format: 'esm',
+    globals: {
+      jquery: '$'
+    },
+    banner: '/* 元帅的个人工具库 版本:' + version + ' */',
+    footer: '/* follow me on GitHub dogodo-cc */'
   },
   plugins: [
     json(),
@@ -18,10 +23,5 @@ export default {
       exclude: 'node_modules/**' // 只编译我们的源代码
     })
   ],
-  globals: {
-    jquery: '$'
-  },
   external: ['lodash','jquery'],
-  banner: '/* 元帅的个人工具库 版本' + version + ' */',
-  footer: '/* follow me on GitHub dogodo-cc */'
 }
