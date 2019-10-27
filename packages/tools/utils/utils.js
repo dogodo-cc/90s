@@ -1,3 +1,4 @@
+// 下载
 const downFile = (fileName = '下载文件', content = 'download file is empty') => {
   const aLink = document.createElement('a');
   const blob = new Blob([content], {
@@ -9,7 +10,7 @@ const downFile = (fileName = '下载文件', content = 'download file is empty')
   URL.revokeObjectURL(blob);
 }
 
-
+// 一维数组按个数排队
 const lineArray = (arr = [], num = 2) => {
   let count = Math.round(arr.length / num);
   let result = [];
@@ -19,6 +20,7 @@ const lineArray = (arr = [], num = 2) => {
   return result;
 }
 
+// 一维数组转为树形结构数组
 const array2tree = (arr = [], config = {ID:'id',PID:'pid'}) => {
   const {ID, PID} = config;
   let roots = []
