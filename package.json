@@ -13,7 +13,8 @@
     "dev:web": "lerna exec --scope @90s/web -- npm run start",
     "release:web": "lerna exec --scope @90s/web -- npm run release",
     "predeploy": "if [ ! -x 'node_modules/.bin/ci-task-runner' ]; then echo 'install ci-task-runner...' && learn bootstrap; else echo 'ci-task-runner ready'; fi",
-    "deploy": "npx ci-task-runner --config .ci-task-runner.js"
+    "deploy": "npx ci-task-runner --config .ci-task-runner.js",
+    "tsc": "npx tsc packages/typescript/index.ts"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",

@@ -7,6 +7,16 @@
     测试vuex: {{showAdminButton}} <el-button @click="emitSetAdminButton">click</el-button> {{count}}
     <br>
     <el-button @click="download">下载</el-button>
+
+    <el-slider style="width: 400px;" v-model="ratioW"></el-slider>
+    <div class="ratio-16-9" :style="{width: ratioW * 10 + 'px'}">
+      <div class="ratio-bridge">
+        <div class="ratio-box">
+          <sapn>16:9</sapn>
+        </div>
+      </div>
+    </div>
+    
   </div>
 </template>
 <script>
@@ -17,7 +27,8 @@ export default {
   name: 'home',
   data() {
     return {
-      isPhone
+      isPhone,
+      ratioW: 10
     }
   },
   computed: {
@@ -37,5 +48,29 @@ export default {
   padding: 20px;
   font-size: 16px;
   color: $colorMain;
+
+  .ratio-16-9{
+    width: 160px;
+    background-image: linear-gradient(-225deg, #D463CB 0%, #EC7979 100%);
+    .ratio-bridge {
+      width: 100%;
+      padding-bottom: 56.25%;
+      position: relative;
+      .ratio-box {
+        position: absolute;
+        top:0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #fff;
+        font-size: 16px;
+      }
+    }
+  }
 }
 </style>

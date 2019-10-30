@@ -8,7 +8,8 @@ import {
   RadioButton,
   Checkbox,
   Popover,
-  Tooltip
+  Tooltip,
+  Slider
 } from 'element-ui'
 
 if (window.innerWidth < 780) {
@@ -24,3 +25,4 @@ Vue.use(RadioButton)
 Vue.use(Checkbox)
 Vue.use(Popover)
 Vue.use(Tooltip)
+Vue.use(Slider)
