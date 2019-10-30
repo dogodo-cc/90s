@@ -9,11 +9,10 @@
     <el-button @click="download">下载</el-button>
 
     <el-slider style="width: 400px;" v-model="ratioW"></el-slider>
+
     <div class="ratio-16-9" :style="{width: ratioW * 10 + 'px'}">
-      <div class="ratio-bridge">
-        <div class="ratio-box">
-          <span>16:9</span>
-        </div>
+      <div class="ratio-box">
+        <span>16:9</span>
       </div>
     </div>
     
@@ -49,14 +48,15 @@ export default {
   font-size: 16px;
   color: $colorMain;
 
-  .ratio-16-9{
-    width: 160px;
+  .ratio-16-9 {
+    position: relative;
     background-image: linear-gradient(-225deg, #D463CB 0%, #EC7979 100%);
-    .ratio-bridge {
-      width: 100%;
-      padding-bottom: 56.25%;
-      position: relative;
-      .ratio-box {
+    &::before {
+      content: '';
+      padding-top: 56.25%;
+      display: block;
+    }
+    .ratio-box {
         position: absolute;
         top:0;
         right: 0;
@@ -70,7 +70,6 @@ export default {
         color: #fff;
         font-size: 16px;
       }
-    }
   }
 }
 </style>
