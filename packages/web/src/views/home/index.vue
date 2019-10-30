@@ -12,7 +12,7 @@
     <div class="ratio-16-9" :style="{width: ratioW * 10 + 'px'}">
       <div class="ratio-bridge">
         <div class="ratio-box">
-          <sapn>16:9</sapn>
+          <span>16:9</span>
         </div>
       </div>
     </div>
