@@ -15,12 +15,14 @@
         <span>16:9</span>
       </div>
     </div>
+
+    <el-button @click="downloadByLink">通过链接下载</el-button>
     
   </div>
 </template>
 <script>
 import { mapState, mapActions } from 'vuex'
-import { isPhone, downFile } from '@90s/tools';
+import { isPhone, downFile, downloadByLink } from '@90s/tools';
 const treeData = require('../../../scripts/tree.json')
 export default {
   name: 'home',
@@ -37,6 +39,12 @@ export default {
     ...mapActions('test', ['emitSetAdminButton']),
     download() {
       downFile('tree.json', JSON.stringify(treeData,null,2))
+    },
+    downloadByLink() {
+      downloadByLink('https://st0.dancf.com/csc/3/fonts/55/20180421-115128-59.woff');
+      window.setTimeout(() => {
+        downloadByLink('https://st0.dancf.com/csc/3/fonts/55/20180421-115128-58.ttf');
+      }, 1000)
     }    
   }
 }

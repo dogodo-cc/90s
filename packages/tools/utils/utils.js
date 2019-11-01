@@ -10,6 +10,14 @@ const downFile = (fileName = '下载文件', content = 'download file is empty')
   URL.revokeObjectURL(blob);
 }
 
+const downloadByLink = (link) => {
+  console.log(link); // eslint-disable-line
+  const aLink = document.createElement('a');
+  aLink.download = link;
+  aLink.href = link;
+  aLink.click();
+}
+
 // 一维数组按个数排队
 const lineArray = (arr = [], num = 2) => {
   let count = Math.round(arr.length / num);
@@ -67,6 +75,7 @@ const array2tree = (arr = [], config = {ID:'id',PID:'pid'}) => {
 
 export {
   downFile,
+  downloadByLink,
   lineArray,
   array2tree
 }
