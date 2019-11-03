@@ -10,12 +10,17 @@ const downFile = (fileName = '下载文件', content = 'download file is empty')
   URL.revokeObjectURL(blob);
 }
 
-const downloadByLink = (link) => {
-  console.log(link); // eslint-disable-line
-  const aLink = document.createElement('a');
-  aLink.download = link;
-  aLink.href = link;
-  aLink.click();
+const downloadByLink = (link, config = { filename: null }) => {
+  fetch(link).then(res => res.blob().then(blob => {
+    const a = document.createElement('a');
+    const url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = config.filename || link;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+}));
 }
 
 // 一维数组按个数排队
