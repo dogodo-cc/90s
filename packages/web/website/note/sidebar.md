@@ -16,6 +16,7 @@
 1. [nginx](#docs/nginx)
 1. [brew](#docs/brew)
 1. [linux](#docs/linux)
+1. [TypeScript](#docs/typescript)
 
 
 ## 其他
