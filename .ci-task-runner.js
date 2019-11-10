@@ -17,6 +17,6 @@ const buildTasks = [
   };
 });
 
-ciTaskRunnerConfig.tasks.push(buildTasks);
+ciTaskRunnerConfig.tasks = buildTasks;
 
 module.exports = ciTaskRunnerConfig;
