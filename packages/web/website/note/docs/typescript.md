@@ -139,3 +139,98 @@ function getLength(something: string | number): number {
 ```
 
 ## 进阶
+
+### 类型别名
+```
+type Name = string;
+type NameResolver = () => string;
+type NameOrResolver = Name | NameResolver;
+
+function getName(n: NameOrResolver): Name {
+  if (typeof n === 'string) {
+    return n;
+  }else {
+    return n();
+  }
+}
+```
+
+### 字符串字面量类型
+```
+type EventNames = 'click' | 'scroll' | 'mouseover';
+function handleEvent(ele: Element, event: EventNames) { // do sth}
+
+handleEvent(document.getElementById('hello'), 'scroll');
+handleEvent(document.getElementById('world'), 'dbclick'); // 报错
+
+```
+
+### 元组
+```
+let tom: [string, number];
+tom = ['tom', 28]
+tom = ['tom']; // err
+
+tom.push(true); // err
+```
+
+### 枚举
+
+#### 基础
+
+枚举成员会被赋值为从`0`开始递增的数字，同时也会对枚举值到枚举名进行方向映射
+
+```
+enum Days {today, tomorrow, yesterday};
+console.log(Days['today'] === 0); // true
+console.log(Days['tomorrow'] === 1); // true
+
+console.log(Days[0] === 'today'); // true
+console.log(Days[1] === 'tomorrow'); // true
+```
+#### 手动赋值
+```
+enum Days {today = 2, tomorrow, yesterday};
+
+console.log(Days['today'] === 2); // true
+console.log(Days['tomorrow'] === 3); // true
+
+// 最好不要出现覆盖的情况
+enum Days {Sun = 3, Mon = 1, Tue, Wed, Thu, Fri, Sat};
+console.log(Days["Sun"] === 3); // true
+console.log(Days["Wed"] === 3); // true
+console.log(Days[3] === "Sun"); // false
+console.log(Days[3] === "Wed"); // true
+```
+
+### 类
+
+
+### 类与接口
+
+### 泛型
+
+#### 基础
+泛型（Generics）是指在定义函数、接口或类的时候，不预先指定具体的类型，而在使用的时候再指定类型的一种特性。
+
+```
+function createArray<T>(length: number, value: T): Array<T> {
+  let result: T[] = [];
+  for(let i = 0; i < length; i++>) {
+    resulet.push(value);
+  }
+  return result;
+}
+
+createArray<string>(3, 'x'); // ['x','x','x']
+```
+上例中，我们在函数名后添加了`<T>`，其中`T`用来指代任意输入的类型，在后面的输入`value: T`和输出`Array<T>`中即可使用了.
+
+#### 多个类型参数
+```
+function swap<T,U>(tuple: [T,U]):[U,T] {
+  return [tuple[1], tuple[0]];
+}
+
+swap([7, 'seven']); // ['seven', 7]
+```

@@ -31,6 +31,9 @@ const router = new VueRouter({
           path: '/',
           name: 'home',
           component:() => import('@/views/home/index.vue'),
+          props: (route) => ({
+            name: route.params.name, // 路由传参的方式 此时 path：/:name
+          }),
         }
       ]
     },
@@ -88,7 +91,7 @@ const router = new VueRouter({
           path: '/effects/mouse',
           component:() => import('@/views/effects/mouse/index.vue'),
           meta: {
-            title: '鼠标效果'
+            title: '鼠标方向'
           }
         },
         {
@@ -174,18 +177,6 @@ const router = new VueRouter({
         path: '/',
         component:() => import('@/views/case/index.vue'),
       }]
-    },
-    // 渣男
-    {
-      // path: '/hi/:name?',
-      path: '/hi/:name',
-      component:() => import('@/views/sharon/photos/index.vue'),
-      props: (route) => ({
-        name: route.params.name,
-      }),
-      meta: {
-        pageTitle: 'Hi',
-      }
     },
     {
       path: '*',

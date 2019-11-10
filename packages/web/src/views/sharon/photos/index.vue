@@ -16,7 +16,6 @@ import { TrackballControls } from './utils/TrackballControls.js';
 import { CSS3DRenderer, CSS3DObject } from './utils/CSS3DRenderer.js';
 const imgMap = {
 	'sharon': require('./assets/1.jpg'),
-	'myLife': require('./assets/my-life.jpg'),
 }
 export default {
 	name: 'photos',
