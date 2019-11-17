@@ -33,6 +33,15 @@ const lineArray = (arr = [], num = 2) => {
   return result;
 }
 
+const makeArrayLine = (arr = [], lines = 2) => {
+  let perLine = Math.round(arr.length / lines);
+  let result = [];
+  for(let i = 0; i < lines; i++) {
+    result.push(arr.slice(i * perLine, (i+1) * perLine));
+  }
+  return result;
+}
+
 // 一维数组转为树形结构数组
 const array2tree = (arr = [], config = {ID:'id',PID:'pid'}) => {
   const {ID, PID} = config;
@@ -82,6 +91,7 @@ export {
   downFile,
   downloadByLink,
   lineArray,
-  array2tree
+  array2tree,
+  makeArrayLine
 }
 
