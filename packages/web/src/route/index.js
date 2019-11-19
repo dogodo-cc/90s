@@ -16,12 +16,6 @@ const router = new VueRouter({
   routes: [
     {
       path: '/',
-      redirect: {
-        name: 'home'
-      }
-    },
-    {
-      path: '/home',
       component: Layout,
       meta: {
         title: '首页'
