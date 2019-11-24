@@ -28,7 +28,16 @@
 import { mapState, mapActions } from 'vuex'
 import { isPhone, downFile, downloadByLink } from '@90s/tools';
 import DragSelect from '@/directives/drag-select.js'
-const treeData = require('../../../scripts/tree.json')
+const treeData = require('../../../scripts/tree.json');
+const creatArray = (len) => {
+  let i = 0;
+  let arr = [];
+  while(i < len) {
+    arr.push({ id:i,name: i})
+    i++
+  }
+  return arr;
+}
 export default {
   name: 'home',
   directives: {
@@ -38,12 +47,7 @@ export default {
     return {
       isPhone,
       ratioW: 20,
-      selectList: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(i => {
-        return  {
-          id:i,
-          name: i
-        }
-      })
+      selectList: creatArray(19)
     }
   },
   computed: {

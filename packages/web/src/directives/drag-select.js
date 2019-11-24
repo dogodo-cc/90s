@@ -44,6 +44,8 @@ const justInMiddle = (start,val,end) => {
   return line[1] === val;
 }
 
+// 子元素的位置信息
+let childrensPosition = [];
 
 export default {
   bind(el, binding) {
@@ -52,9 +54,6 @@ export default {
     let offsetXStart = 0;
     let offsetYStart = 0;
 
-    // 子元素的位置信息
-    let childrensPosition = [];
-
     // 用于前后对比，避免重复触发回调事件
     let selected = '';
 
@@ -62,15 +61,17 @@ export default {
 
     // mousedown
     el.addEventListener('mousedown', event => {
-      // 点击的时候获取一次 避免因为页面滚动，位置信息更新导致计算不准确的bug
-      childrensPosition = getchildPosition(el, binding.arg);
-
       // 点击 清空上次的选择
       binding.value && binding.value([]);
 
       const {offsetX, offsetY} = event;
+      const {scrollTop} = el;
+
       offsetXStart = offsetX;
-      offsetYStart = offsetY;
+      offsetYStart = offsetY + scrollTop;
+      // console.log(offsetXStart, offsetYStart)
+
+     
 
       el.dataset.isDraging = true;
       if (selectRectangle) {
@@ -87,7 +88,9 @@ export default {
       event.preventDefault();
       const isDraging = el.dataset.isDraging === 'true';
       if (isDraging) {
-        const {offsetX, offsetY} = event;       
+        let {offsetX, offsetY} = event;
+        const {scrollTop} = el;
+        offsetY += scrollTop;   
         selectRectangle.style.cssText = getSelectRectanglePosition(offsetXStart, offsetYStart, offsetX, offsetY);
 
         // 判断哪些项目被选中
@@ -117,4 +120,7 @@ export default {
       el.removeChild(selectRectangle);
     }, false);
   },
+  inserted(el, binding) {
+    childrensPosition = getchildPosition(el, binding.arg);
+  }
 }
