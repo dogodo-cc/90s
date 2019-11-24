@@ -38,7 +38,7 @@ export default {
     return {
       isPhone,
       ratioW: 20,
-      selectList: [0,1,2,3,4,5,6,7,8,9].map(i => {
+      selectList: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18].map(i => {
         return  {
           id:i,
           name: i
@@ -104,6 +104,8 @@ export default {
 
   .drag-select {
     height: 400px;
+    overflow-y: auto;
+    user-select:none;
     background-color: #eee;
     margin: 20px 0;
     padding: 20px;
@@ -111,6 +113,7 @@ export default {
     flex-wrap: wrap;
     align-content: flex-start;
     .item {
+      pointer-events: none;
       width: 100px;
       height: 100px;
       line-height: 100px;
