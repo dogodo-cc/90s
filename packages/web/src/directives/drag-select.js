@@ -44,15 +44,15 @@ const justInMiddle = (start,val,end) => {
   return line[1] === val;
 }
 
-// 子元素的位置信息
-let childrensPosition = [];
-
 export default {
   bind(el, binding) {
     let selectRectangle;
   
     let offsetXStart = 0;
     let offsetYStart = 0;
+
+    // 子元素的位置信息
+    let childrensPosition = [];
 
     // 用于前后对比，避免重复触发回调事件
     let selected = '';
@@ -61,6 +61,7 @@ export default {
 
     // mousedown
     el.addEventListener('mousedown', event => {
+      childrensPosition = getchildPosition(el, binding.arg);
       // 点击 清空上次的选择
       binding.value && binding.value([]);
 
@@ -120,7 +121,6 @@ export default {
       el.removeChild(selectRectangle);
     }, false);
   },
-  inserted(el, binding) {
-    childrensPosition = getchildPosition(el, binding.arg);
+  inserted() {
   }
 }
