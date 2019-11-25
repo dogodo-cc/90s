@@ -62,8 +62,9 @@ export default {
     // mousedown
     el.addEventListener('mousedown', event => {
       childrensPosition = getchildPosition(el, binding.arg);
-      // 点击 清空上次的选择
-      binding.value && binding.value([]);
+
+      // 点击 清空上次的选择 为了减少误操作，还是不要吧
+      // binding.value && binding.value([]);
 
       const {offsetX, offsetY} = event;
       const {scrollTop} = el;
