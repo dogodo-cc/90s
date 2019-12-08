@@ -109,12 +109,20 @@ const router = new VueRouter({
           component:() => import('@/views/note/index.vue'),
         },
         {
-        path: '/note/flex',
-        component:() => import('@/views/note/flex/index.vue'),
-        meta: {
-          title: 'flex 布局'
+          path: '/note/flex',
+          component:() => import('@/views/note/flex/index.vue'),
+          meta: {
+            title: 'flex 布局'
+          }
+        },
+        {
+          path: '/note/drag',
+          component:() => import('@/views/note/drag/index.vue'),
+          meta: {
+            title: '拖动选择&分类'
+          }
         }
-      }]
+      ]
     },
     {
       path: '/study',

@@ -1,27 +1,3 @@
-// 下载
-const downFile = (fileName = '下载文件', content = 'download file is empty') => {
-  const aLink = document.createElement('a');
-  const blob = new Blob([content], {
-      type: 'application/json',
-  });
-  aLink.download = fileName;
-  aLink.href = URL.createObjectURL(blob);
-  aLink.click();
-  URL.revokeObjectURL(blob);
-}
-
-const downloadByLink = (link, config = { filename: null }) => {
-  fetch(link).then(res => res.blob().then(blob => {
-    const a = document.createElement('a');
-    const url = window.URL.createObjectURL(blob);
-    a.href = url;
-    a.download = config.filename || link;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-}));
-}
 
 // 一维数组按个数排队
 const lineArray = (arr = [], num = 2) => {
@@ -88,8 +64,6 @@ const array2tree = (arr = [], config = {ID:'id',PID:'pid'}) => {
 }
 
 export {
-  downFile,
-  downloadByLink,
   lineArray,
   array2tree,
   makeArrayLine

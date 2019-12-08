@@ -17,37 +17,19 @@
     </div>
 
     <el-button @click="downloadByLink">通过链接下载</el-button>
-
-    <div class="drag-select" v-dragSelect:item="drag">
-      <div :class="{selected: item.selected}" class="item" v-for="item in selectList" :key="item.id">{{item.name}}</div>
-    </div>
-    
   </div>
 </template>
 <script>
 import { mapState, mapActions } from 'vuex'
 import { isPhone, downFile, downloadByLink } from '@90s/tools';
-import DragSelect from '@/directives/drag-select.js'
 const treeData = require('../../../scripts/tree.json');
-const creatArray = (len) => {
-  let i = 0;
-  let arr = [];
-  while(i < len) {
-    arr.push({ id:i,name: i})
-    i++
-  }
-  return arr;
-}
+
 export default {
   name: 'home',
-  directives: {
-    DragSelect
-  },
   data() {
     return {
       isPhone,
       ratioW: 20,
-      selectList: creatArray(19)
     }
   },
   computed: {
@@ -64,14 +46,6 @@ export default {
         downloadByLink('https://st0.dancf.com/csc/3/fonts/55/20180421-115128-58.ttf');
       }, 1000)
     },
-    drag(selected) {
-      this.selectList = this.selectList.map((child,index) => {
-        return {
-          ...child,
-          selected: selected.includes(index)
-        }
-      })
-    }    
   }
 }
 </script>
@@ -104,33 +78,6 @@ export default {
         color: #fff;
         font-size: 16px;
       }
-  }
-
-  .drag-select {
-    height: 400px;
-    overflow-y: auto;
-    user-select:none;
-    background-color: #eee;
-    margin: 20px 0;
-    padding: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    .item {
-      pointer-events: none;
-      width: 100px;
-      height: 100px;
-      line-height: 100px;
-      background-color: #ccc;
-      margin: 30px;
-      color: #fff;
-      text-align: center;
-      font-size: 40px;
-      font-weight: bold;
-      &.selected {
-        background-color: #D463CB;
-      }
-    }
   }
 }
 </style>
