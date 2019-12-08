@@ -23,23 +23,12 @@
       </div>
     </div>
 
-    <div class="drag-select" v-dragSelect:item="drag">
-      <div :class="{selected: item.selected}" class="item" v-for="item in selectList" :key="item.id">{{item.name}}</div>
-    </div>
+    <DragSelect></DragSelect>
   </div>
 </template>
 <script>
 import { downloadImage } from '@90s/tools'
-import DragSelect from '@/directives/drag-select.js'
-const creatArray = (len) => {
-  let i = 0;
-  let arr = [];
-  while(i < len) {
-    arr.push({ id:i,name: i})
-    i++
-  }
-  return arr;
-}
+import DragSelect from './components/drag-select.vue'
 const image = 'https://st-gdx.dancf.com/uxms/20191207-171908-83f8.png?x-oss-process=image/resize,w_80,h_80,type_6/interlace,1';
 function createDragImage(ev) {
   var img = new Image(); 
@@ -48,12 +37,11 @@ function createDragImage(ev) {
 }
 export default {
   name: 'drap',
-  directives: {
+  components: {
     DragSelect
   },
   data() {
     return {
-      selectList: creatArray(19),
       selected: {
         index:0,
         ids: []
@@ -127,14 +115,6 @@ export default {
     }
   },
   methods: {
-    drag(selected) {
-      this.selectList = this.selectList.map((child,index) => {
-        return {
-          ...child,
-          selected: selected.includes(index)
-        }
-      })
-    },
     select(id, index, multiple = false) {
       if (this.selected.index === index) {
         const includes = this.selected.ids.includes(id);
@@ -199,33 +179,6 @@ export default {
   padding: 20px;
   font-size: 16px;
   color: $colorMain;
-
-  .drag-select {
-    height: 400px;
-    overflow-y: auto;
-    user-select:none;
-    background-color: #eee;
-    margin: 20px 0;
-    padding: 20px;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-start;
-    .item {
-      pointer-events: none;
-      width: 100px;
-      height: 100px;
-      line-height: 100px;
-      background-color: #ccc;
-      margin: 30px;
-      color: #fff;
-      text-align: center;
-      font-size: 40px;
-      font-weight: bold;
-      &.selected {
-        background-color: #D463CB;
-      }
-    }
-  }
 
   .drag-sort {
     height: 500px;
