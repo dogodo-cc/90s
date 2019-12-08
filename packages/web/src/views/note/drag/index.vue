@@ -137,10 +137,16 @@ export default {
     },
     select(id, index, multiple = false) {
       if (this.selected.index === index) {
+        const includes = this.selected.ids.includes(id);
         if (multiple) {
-          this.selected.ids.push(id);
+          if (includes) {
+            const _i = this.selected.ids.findIndex(v => v.id === +id);
+            this.selected.ids.splice(_i, 1);
+          } else {
+            this.selected.ids.push(id);
+          }
         } else {
-          this.selected.ids = [id];
+          this.selected.ids = includes ? [] : [id];
         }
       } else {
         this.selected.index = index;
