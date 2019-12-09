@@ -1,5 +1,6 @@
 <template>
   <div class="page page-drag">
+    <span>按住shift键可以多选拖动</span>
     <div class="drag-sort">
       <div
         :class="[`team-${index + 1}`, 'team']"

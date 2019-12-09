@@ -1,5 +1,6 @@
 <template>
   <div class="page page-drag-select">
+    <span>鼠标按钮框选</span>
     <div class="drag-select" v-dragSelect:item="drag">
       <div
         :class="{selected: item.selected, item: true}"
@@ -46,15 +47,14 @@ export default {
 
 <style lang="scss">
 .page-drag-select {
-  padding: 20px;
   font-size: 16px;
   color: $colorMain;
+  margin: 30px 0;
   .drag-select {
     height: 400px;
     overflow-y: auto;
     user-select:none;
     background-color: #eee;
-    margin: 20px 0;
     padding: 20px;
     display: flex;
     flex-wrap: wrap;
