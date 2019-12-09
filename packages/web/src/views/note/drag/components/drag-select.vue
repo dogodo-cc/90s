@@ -1,6 +1,6 @@
 <template>
   <div class="page page-drag-select">
-    <span>鼠标按钮框选</span>
+    <span>鼠标左键拖动框选</span>
     <div class="drag-select" v-dragSelect:item="drag">
       <div
         :class="{selected: item.selected, item: true}"
