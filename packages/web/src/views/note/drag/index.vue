@@ -30,11 +30,11 @@
 <script>
 import { downloadImage } from '@90s/tools'
 import DragSelect from './components/drag-select.vue'
-const image = 'https://st-gdx.dancf.com/uxms/20191207-171908-83f8.png?x-oss-process=image/resize,w_80,h_80,type_6/interlace,1';
+const image = 'https://st-gdx.dancf.com/assets/20191209-163143-7009.png';
 function createDragImage(ev) {
   var img = new Image(); 
   img.src = image; 
-  ev.dataTransfer.setDragImage(img, 28.5, 40);
+  ev.dataTransfer.setDragImage(img, 64, 64);
 }
 export default {
   name: 'drap',
