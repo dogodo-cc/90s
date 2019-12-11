@@ -1,6 +1,6 @@
 <template>
   <div class="page page-drag-select">
-    <span>鼠标左键拖动框选</span>
+    <span>鼠标左键拖动框选 - 已选中 {{selected.join('、')}}</span>
     <div class="drag-select" v-dragSelect="{className: 'item', onlyElTriger: false,cb: drag}">
       <div
         :class="{selected: item.selected, item: true}"
@@ -33,10 +33,12 @@ export default {
   data() {
     return {
       selectList: creatArray(19),
+      selected: []
     }
   },
   methods: {
     drag(selected) {
+      this.selected = selected;
       this.selectList = this.selectList.map(child => {
         return {
           ...child,
