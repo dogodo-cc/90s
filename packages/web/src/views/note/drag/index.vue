@@ -10,11 +10,12 @@
         :data-origin-index="index"
         @dragover="dragOver"
         @drop="drop"
+        v-dragSelect="{className: 'item', onlyElTriger: true,cb: dragSelect}"
         >
         <div :class="{item:true, selected: member.selected}"
           draggable="true"
           @click.shift="select(member.id, index, true)"
-          @click.exact="select(member.id, index)"
+          @click.exact.stop="select(member.id, index)"
           @dragstart="dragStart"
           :data-origin-index="index"
           :data-id="member.id"
@@ -25,11 +26,12 @@
     </div>
 
     <DragSelect></DragSelect>
+    <img src="https://st-gdx.dancf.com/assets/20191209-163143-7009.png" alt="" style="display:none">
   </div>
 </template>
 <script>
-import { downloadImage } from '@90s/tools'
 import DragSelect from './components/drag-select.vue'
+import DragSelectDirective from '@/directives/drag-select.js'
 const image = 'https://st-gdx.dancf.com/assets/20191209-163143-7009.png';
 function createDragImage(ev) {
   var img = new Image(); 
@@ -40,6 +42,9 @@ export default {
   name: 'drap',
   components: {
     DragSelect
+  },
+  directives: {
+    dragSelect: DragSelectDirective
   },
   data() {
     return {
@@ -167,10 +172,19 @@ export default {
         const itemIndex = originTeam.findIndex(v => v.id === id);
         this.gaoding[targetGroupIndex].members.push(originTeam.splice(itemIndex,1)[0]);
       }
-    }
-  },
-  mounted() {
-    downloadImage(image);
+    },
+    dragSelect(selected) {
+      const index = this.gaoding.findIndex(v => {
+        return v.members.some(o => selected.includes(o.id))
+      })
+      
+      if (index !== -1) {
+        this.selected = {
+          index,
+          ids: selected
+        }
+      }
+    },
   }
 }
 </script>

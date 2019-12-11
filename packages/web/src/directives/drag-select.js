@@ -20,12 +20,46 @@ const getSelectRectanglePosition = (offsetXStart,offsetYStart, offsetXEnd, offse
 const getchildPosition = (el, className = 'item') => {
   const childrens = el.getElementsByClassName(className);
   const result = Array.from(childrens).map(item => {
-    const {offsetLeft, offsetTop, offsetWidth, offsetHeight} = item;
+    const {offsetLeft, offsetTop, offsetWidth, offsetHeight, dataset} = item;
     const axisX = getAxisArray(offsetLeft, offsetWidth);
     const axisY = getAxisArray(offsetTop, offsetHeight);
-    return {axisX, axisY};
+    const id = dataset.id;
+    return {axisX, axisY, id};
   })
   return result;
+}
+
+// 计算el子元素在el内的offset偏移值
+const getChildOffset = (el, child) => {
+  let offsetLeft = 0;
+  let offsetTop = 0;
+  do {
+    offsetLeft += child.offsetLeft;
+    offsetTop += child.offsetTop;
+    child = child.offsetParent;
+  } while(child !== el);
+  return [offsetLeft, offsetTop];
+}
+
+// 得到鼠标基于容器的真实偏移量
+const getMouseAxis = (el, event) => {
+  const {offsetX, offsetY, target} = event;
+  const {scrollTop} = el;
+  let result = [0,0];
+
+  if (target === el) {
+    result = [offsetX, offsetY + scrollTop]; // el上触发，需要加上el自己的scrollTop
+  } else {
+    const [offsetLeft, offsetTop] = getChildOffset(el, target);
+    result = [offsetX + offsetLeft, offsetY + offsetTop];
+  }
+  return result;  
+}
+
+// 有些场景不允许在子元素上触发框选 ： 比如和拖动效果在一起使用的情况
+// 当 onlyElTriger 为true，说明只能el自己触发框选
+const isLegal = (onlyElTriger, el,target) => {
+  return onlyElTriger ? el === target : true;
 }
 
 // 得到坐标轴数组
@@ -57,52 +91,54 @@ export default {
     // 用于前后对比，避免重复触发回调事件
     let selected = '';
 
+    // 确保 在计算 offsetLeft 等值的时候能依据指令容器 el
     el.style.position = 'relative';
+
+    // 获取指令参数
+    const {className, onlyElTriger = false, cb} = binding.value;
 
     // mousedown
     el.addEventListener('mousedown', event => {
-      childrensPosition = getchildPosition(el, binding.arg);
+      if (isLegal(onlyElTriger, el, event.target)) {
+        childrensPosition = getchildPosition(el, className);
 
-      // 点击 清空上次的选择 为了减少误操作，还是不要吧
-      // binding.value && binding.value([]);
+        // 点击 清空上次的选择 为了减少误操作，还是不要吧
+        // binding.value && binding.value([]);
 
-      const {offsetX, offsetY} = event;
-      const {scrollTop} = el;
+        const [x, y] =  getMouseAxis(el, event);
+        offsetXStart = x;
+        offsetYStart = y;
 
-      offsetXStart = offsetX;
-      offsetYStart = offsetY + scrollTop;
-      // console.log(offsetXStart, offsetYStart)
+        el.dataset.isDraging = true;
 
-     
-
-      el.dataset.isDraging = true;
-      if (selectRectangle) {
-        selectRectangle.parentNode && selectRectangle.parentNode.removeChild(selectRectangle);
-      } else {
-        selectRectangle = document.createElement('div');
+        if (selectRectangle) {
+          selectRectangle.parentNode && selectRectangle.parentNode.removeChild(selectRectangle);
+        } else {
+          selectRectangle = document.createElement('div');
+        }
+        selectRectangle.style.cssText = `${defaultStyle}left:${offsetXStart + 'px'};top:${offsetYStart + 'px'};`
+        el.appendChild(selectRectangle);
       }
-      selectRectangle.style.cssText = `${defaultStyle}left:${offsetXStart + 'px'};top:${offsetYStart + 'px'};`
-      el.appendChild(selectRectangle);
     }, false);
 
     // mousemove
     el.addEventListener('mousemove', event => {
-      event.preventDefault();
       const isDraging = el.dataset.isDraging === 'true';
+
       if (isDraging) {
-        let {offsetX, offsetY} = event;
-        const {scrollTop} = el;
-        offsetY += scrollTop;   
-        selectRectangle.style.cssText = getSelectRectanglePosition(offsetXStart, offsetYStart, offsetX, offsetY);
+        event.preventDefault();
+      
+        const [moveX, moveY] =  getMouseAxis(el, event);
+        selectRectangle.style.cssText = getSelectRectanglePosition(offsetXStart, offsetYStart, moveX, moveY);
 
         // 判断哪些项目被选中
-        const newSelected = childrensPosition.map((child, index) => {
-          const {axisX, axisY} = child;
+        const newSelected = childrensPosition.map(child => {
+          const {axisX, axisY, id} = child;
           
-          const isAcrossX = axisX.some(x => justInMiddle(offsetXStart, x, offsetX));
-          const isAcrossY = axisY.some(y => justInMiddle(offsetYStart, y, offsetY));
+          const isAcrossX = axisX.some(x => justInMiddle(offsetXStart, x, moveX));
+          const isAcrossY = axisY.some(y => justInMiddle(offsetYStart, y, moveY));
           if (isAcrossX && isAcrossY) {
-            return index;
+            return +id;
           }
           return false;
         }).filter(v => v!==false);
@@ -111,7 +147,7 @@ export default {
           // do nothing
         } else {
           selected = newSelected.toString();
-          binding.value && binding.value(newSelected);
+          cb && cb(newSelected);
         }
       }
     }, false);
@@ -119,7 +155,7 @@ export default {
     // mouseup
     el.addEventListener('mouseup',() => {
       el.dataset.isDraging = false;
-      el.removeChild(selectRectangle);
+      selectRectangle && selectRectangle.parentNode && selectRectangle.parentNode.removeChild(selectRectangle);
     }, false);
   },
   inserted() {

@@ -1,12 +1,15 @@
 <template>
   <div class="page page-drag-select">
     <span>鼠标左键拖动框选</span>
-    <div class="drag-select" v-dragSelect:item="drag">
+    <div class="drag-select" v-dragSelect="{className: 'item', onlyElTriger: false,cb: drag}">
       <div
         :class="{selected: item.selected, item: true}"
+        :data-id="item.id"
         v-for="item in selectList"
         :key="item.id">
-        {{item.name}}
+        <div>
+          {{item.name}}
+        </div>
       </div>
     </div>
   </div>
@@ -34,10 +37,10 @@ export default {
   },
   methods: {
     drag(selected) {
-      this.selectList = this.selectList.map((child,index) => {
+      this.selectList = this.selectList.map(child => {
         return {
           ...child,
-          selected: selected.includes(index)
+          selected: selected.includes(child.id)
         }
       })
     },
@@ -60,10 +63,8 @@ export default {
     flex-wrap: wrap;
     align-content: flex-start;
     .item {
-      pointer-events: none;
       width: 100px;
       height: 100px;
-      line-height: 100px;
       background-color: #ccc;
       margin: 30px;
       color: #fff;
@@ -72,6 +73,13 @@ export default {
       font-weight: bold;
       &.selected {
         background-color: #D463CB;
+      }
+      > div  {
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        background-color: green;
+        margin: 20px;
       }
     }
   }
