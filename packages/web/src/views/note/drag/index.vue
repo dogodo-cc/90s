@@ -126,13 +126,17 @@ export default {
         const includes = this.selected.ids.includes(id);
         if (multiple) {
           if (includes) {
-            const _i = this.selected.ids.findIndex(v => v.id === +id);
+            const _i = this.selected.ids.findIndex(v => v === +id);
             this.selected.ids.splice(_i, 1);
           } else {
             this.selected.ids.push(id);
           }
         } else {
-          this.selected.ids = includes ? [] : [id];
+          if (includes) {
+            this.selected.ids = this.selected.ids.length > 1 ? [id] : [];
+          } else {
+            this.selected.ids = [id];
+          }
         }
       } else {
         this.selected.index = index;
