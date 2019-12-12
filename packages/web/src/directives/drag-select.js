@@ -99,26 +99,25 @@ export default {
 
     // mousedown
     el.addEventListener('mousedown', event => {
-      if (isLegal(onlyElTriger, el, event.target)) {
-        childrensPosition = getchildPosition(el, className);
+      if (!isLegal(onlyElTriger, el, event.target)) return;
+      
+      el.dataset.isDraging = true;
+      childrensPosition = getchildPosition(el, className);
 
-        // 点击 清空上次的选择 为了减少误操作，还是不要吧
-        // binding.value && binding.value([]);
+      // 点击 清空上次的选择 为了减少误操作，还是不要吧
+      // binding.value && binding.value([]);
 
-        const [x, y] =  getMouseAxis(el, event);
-        offsetXStart = x;
-        offsetYStart = y;
+      const [x, y] =  getMouseAxis(el, event);
+      offsetXStart = x;
+      offsetYStart = y;
 
-        el.dataset.isDraging = true;
-
-        if (selectRectangle) {
-          selectRectangle.parentNode && selectRectangle.parentNode.removeChild(selectRectangle);
-        } else {
-          selectRectangle = document.createElement('div');
-        }
-        selectRectangle.style.cssText = `${defaultStyle}left:${offsetXStart + 'px'};top:${offsetYStart + 'px'};`
-        el.appendChild(selectRectangle);
+      if (selectRectangle) {
+        selectRectangle.parentNode && selectRectangle.parentNode.removeChild(selectRectangle);
+      } else {
+        selectRectangle = document.createElement('div');
       }
+      selectRectangle.style.cssText = `${defaultStyle}left:${offsetXStart + 'px'};top:${offsetYStart + 'px'};`
+      el.appendChild(selectRectangle);
     }, false);
 
     // mousemove
