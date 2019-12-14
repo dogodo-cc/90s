@@ -10,7 +10,6 @@
           :key="item.hash"></component>
       </div>
     </div>
-    
     <DragSortDemo></DragSortDemo>
     <DragSelectDemo></DragSelectDemo>
   </div>
@@ -27,32 +26,11 @@ export default {
   name: 'drap',
   components: {
     DragSelectDemo,
-    DragSortDemo
+    DragSortDemo,
   },
   data() {
     return {
       allImages: []
-    }
-  },
-  watch: {
-    selected: {
-      handler: function(val) {
-        this.gaoding = this.gaoding.map((team, i) => {
-          if (i === val.index) {
-            team.members = team.members.map(v => {
-              v.selected = val.ids.includes(v.id);
-              return v;
-            })
-          } else {
-            team.members = team.members.map(v => {
-              v.selected = false;
-              return v;
-            })
-          }
-          return team;
-        })
-      },
-      deep: true
     }
   },
   methods: {
