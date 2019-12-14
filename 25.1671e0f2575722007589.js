@@ -1,1 +1,0 @@
-(window.webpackJsonp=window.webpackJsonp||[]).push([[25],{413:function(n,t,e){"use strict";e.r(t);var s=e(9),i=Object(s.a)({},(function(){var n=this.$createElement;return(this._self._c||n)("div",[this._v("动画效果会收集在这里")])}),[],!1,null,null,null);t.default=i.exports}}]);
