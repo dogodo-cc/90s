@@ -17,6 +17,7 @@
 1. [brew](#docs/brew)
 1. [linux](#docs/linux)
 1. [TypeScript](#docs/typescript)
+1. [wechat](#docs/wechat)
 
 
 ## 其他

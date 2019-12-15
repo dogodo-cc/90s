@@ -1,2 +1,0 @@
-<!--components/m-icon/m-icon.wxml-->
-<view class='iconfont {{icon}}' style='color:{{color}};font-size:{{fontSize}}'></view>

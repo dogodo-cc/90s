@@ -1,9 +1,0 @@
-.m-input {
-  display: flex;
-  align-items: center;
-  height: 84rpx;
-  border-bottom: 2rpx solid #DADDE1; }
-  .m-input input {
-    color: #444950;
-    font-size: 28rpx;
-    flex: 1; }
