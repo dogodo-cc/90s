@@ -23,7 +23,7 @@ const getchildPosition = (el, className = 'item') => {
     const {offsetLeft, offsetTop, offsetWidth, offsetHeight, dataset} = item;
     const axisX = getAxisArray(offsetLeft, offsetWidth);
     const axisY = getAxisArray(offsetTop, offsetHeight);
-    const id = dataset.id;
+    const id = +dataset.id || dataset.id; //如果是数值的转为number
     return {axisX, axisY, id};
   })
   return result;
@@ -137,7 +137,7 @@ export default {
           const isAcrossX = axisX.some(x => justInMiddle(offsetXStart, x, moveX));
           const isAcrossY = axisY.some(y => justInMiddle(offsetYStart, y, moveY));
           if (isAcrossX && isAcrossY) {
-            return +id;
+            return id;
           }
           return false;
         }).filter(v => v!==false);

@@ -103,7 +103,7 @@ export default {
         if (multiple) {
           if (includes) {
             const _i = selected.ids.findIndex(v => v === id);
-            selected.ids.splice(_i, 1);
+            _i !== -1 && selected.ids.splice(_i, 1);
           } else {
             selected.ids.push(id);
           }
@@ -135,14 +135,15 @@ export default {
       }
     },
     dragStart(ev) {
-      const { originGroupIndex, id } = ev.target.dataset;
+      let { originGroupIndex, id } = ev.target.dataset;
+      id = +id || id; // 兼容string number 的id类型
       let selectedLength = this.selected.ids.length;
 
-      const includes = this.selected.ids.includes(+id);
+      const includes = this.selected.ids.includes(id);
       if (includes && +originGroupIndex === this.selected.index) {
         // do nothing
       } else {
-        this.select(+id, +originGroupIndex);
+        this.select(id, +originGroupIndex);
         selectedLength = 1; // 手动设置length，避免下面获取到到length 更新不及时的问题
       }
 
@@ -171,7 +172,7 @@ export default {
       while(this.selected.ids.length) {
         const id = this.selected.ids.shift();
         const itemIndex = originTeam.findIndex(v => v.id === id);
-        value[targetGroupIndex].childrens.push(originTeam.splice(itemIndex,1)[0]);
+        itemIndex !== -1 && value[targetGroupIndex].childrens.push(originTeam.splice(itemIndex,1)[0]);
       }
       this.$emit('input', value)
     },
