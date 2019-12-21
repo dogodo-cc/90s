@@ -1,7 +1,9 @@
 <template>
   <div class="drag-sort-demo">
     <div class="title">拖动分类 (按住shift键可多选) - (支持鼠标左键框选)</div>
-    <DragSort v-model="gaoding" :styleConfig="styleConfig">
+    <DragSort
+      v-model="gaoding"
+      :styleConfig="styleConfig">
       <template #default="slotProps">
         <component :is="getComponent(slotProps.data.sex)" :data="slotProps.data"></component>
       </template>
@@ -115,7 +117,6 @@ export default {
 
 <style lang="scss">
 .drag-sort-demo {
-  margin-top: 40px;
   .title {
     margin: 4px 0;
     color: #333;

@@ -6,4 +6,4 @@ postcss.config.js
 dist
 website/
 node_modules/
-weChat/
+!.eslintrc.js
