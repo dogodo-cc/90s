@@ -28,7 +28,7 @@
             :data-origin-group-index="index"
             :data-id="item.id"
             >
-              <slot :data="item"></slot>
+              <slot :data="item" :group="group"></slot>
           </div>
         </div>
         <div class="group-footer">
@@ -192,6 +192,7 @@ export default {
       display: flex;
       flex-wrap: wrap;
       align-content: flex-start;
+      align-items: flex-start;
 
       .group-item {
         position: relative;
