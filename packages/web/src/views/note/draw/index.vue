@@ -15,8 +15,8 @@
 </template>
 
 <script>
-const before = ['希罗','腰果','重来','童童'];
-const after = ['元帅','重来','坐标','王导'];
+const before = ['王导','坐标','重来','元帅'];
+const after = ['童童','重来','腰果','希罗'];
 export default {
   name: 'draw',
   data() {
@@ -79,7 +79,7 @@ export default {
       const steps = 8 * path.length + random;
       this.run(path, steps);
 
-      console.log(random, ['希罗','腰果','重来','元帅','王导', '坐标', '重来', '童童'][random - 1]); // eslint-disable-line
+      console.log(random, ['希罗','腰果','重来','童童','王导', '坐标', '重来', '元帅'][random - 1]); // eslint-disable-line
     }
   }
 }
