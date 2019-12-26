@@ -1,3 +1,19 @@
 <template>
-  <div>这里放一些零散的学习笔记</div>
+  <div class="note">
+    <Draw></Draw>
+  </div>
 </template>
+
+<script>
+import Draw from './draw/index.vue'
+export default {
+  name: 'note',
+  components: {
+    Draw
+  }
+}
+</script>
+
+<style>
+
+</style>
