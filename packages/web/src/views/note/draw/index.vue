@@ -78,8 +78,6 @@ export default {
       const random = Math.floor(Math.random() * path.length);
       const steps = 8 * path.length + random;
       this.run(path, steps);
-
-      console.log(random, ['希罗','腰果','重来','童童','王导', '坐标', '重来', '元帅'][random - 1]); // eslint-disable-line
     }
   }
 }
