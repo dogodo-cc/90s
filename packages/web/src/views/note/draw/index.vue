@@ -28,39 +28,44 @@ export default {
     }
   },
   methods: {
-    generateCirclePath(n, cell) {
+    generateCirclePath(n, cell = 1) {
       let arr = [];
+      // up
       for(let i = 0; i < n; i++ ) {
-        arr.push([i*cell, 0]);
+        arr.push([i * cell, 0]);
       }
+      // right
       for(let i = 0; i < n-1; i++) {
-        arr.push([(n-1)*cell, (i+1)*cell]);
+        arr.push([(n-1) * cell, (i+1) * cell]);
       }
-      for (let i=0;i< n-1;i++) {
-        arr.push([(n-i-2)*cell,(n-1)*cell])
+      // bottom
+      for (let i = 0;i < n-1; i++) {
+        arr.push([(n-i-2) * cell,(n-1) * cell])
       }
-      for(let i=0; i<n-2; i++) {
-        arr.push([0, (n-i-2)*cell]);
+      // left
+      for(let i = 0; i < n-2; i++) {
+        arr.push([0, (n-i-2) * cell]);
       }
       return arr;
     },
-    run(path, n =1, speed = 60, i = 0, len = path.length, random = Math.floor(Math.random() * len)) {
+    /** 
+     * path: 运动轨迹
+     * steps: 总共跑几步
+     * speed: 初始速度
+     * index: 从第几格开始跑
+     * **/
+    run(path, steps, speed = 60, index = 0) {
       setTimeout(() => {
-        if(n > 0) {
-          this.lock = true;
-          // 如果n为1,则设置中奖数值
-          if(n === 1) {
-            len = random
+        if(index < steps) {
+          const length = path.length;
+          // 每跑完一圈，更新一下速度
+          if (index % length === length - 1) {
+            speed += speed * .2
           }
-          if(len <= i) {
-              i = n === 1 ? len : 0
-              n--
-              speed += (300 - speed) / n
-          }
-          const [x, y] = path[i];
+          const [x, y] = path[index % length];
           this.x = x;
           this.y = y;
-          this.run(path, n, speed, ++i, len, random)
+          this.run(path, steps, speed, ++index)
         } else {
           this.lock = false;
         }
@@ -68,8 +73,13 @@ export default {
     },
     start(v) {
       if (v !== '开始' || this.lock) return;
-      const path = this.generateCirclePath(3, 100);
-      this.run(path, 8)
+      this.lock = true;
+      const path = this.generateCirclePath(3, 100); // 运动轨道
+      const random = Math.floor(Math.random() * path.length);
+      const steps = 8 * path.length + random;
+      this.run(path, steps);
+
+      console.log(random, ['希罗','腰果','重来','元帅','王导', '坐标', '重来', '童童'][random - 1]); // eslint-disable-line
     }
   }
 }
