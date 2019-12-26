@@ -121,6 +121,17 @@ export default {
           width: 100px;
           height: 100px;
           background-color: rgba(0,0,0,.2);
+          overflow: hidden;
+          &::after {
+            display: block;
+            content: 'luck';
+            position: absolute;
+            right: -19px;
+            top: 0;
+            background-color:blueviolet;
+            transform: rotate(45deg);
+            padding: 4px 16px;
+          }
       }
   }
 }
