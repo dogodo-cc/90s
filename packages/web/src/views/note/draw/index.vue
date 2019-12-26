@@ -80,12 +80,14 @@ export default {
   .title {
     font-size: 20px;
     padding: 20px 0;
+    text-align: center;
   }
   .box {
       display: flex;
       flex-wrap: wrap;
       width: 300px;
       height: 300px;
+      margin: 0 auto;
       position: relative;
       background-color: seagreen;
       color: #fff;
