@@ -9,7 +9,9 @@
           @click="start(member)">
           {{member}}
         </div>
-        <div class="spin" :style="{transform: `translate(${x}px, ${y}px)`}"></div>
+        <div
+          :class="{spin: true, win: !isRunning}"
+          :style="{transform: `translate(${x}px, ${y}px)`}"></div>
     </div>
   </div>
 </template>
@@ -24,7 +26,8 @@ export default {
       x:0,
       y:0,
       members: [...before, '开始', ...after ],
-      lock: false
+      isRunning: false,
+      index: 0, // 从哪里开始跑
     }
   },
   methods: {
@@ -54,7 +57,7 @@ export default {
      * speed: 初始速度
      * index: 从第几格开始跑
      * **/
-    run(path, steps, speed = 60, index = 0) {
+    run(path, steps,index = 0, speed = 60) {
       setTimeout(() => {
         if(index < steps) {
           const length = path.length;
@@ -65,19 +68,20 @@ export default {
           const [x, y] = path[index % length];
           this.x = x;
           this.y = y;
-          this.run(path, steps, speed, ++index)
+          this.run(path, steps, ++index, speed)
         } else {
-          this.lock = false;
+          this.isRunning = false;
         }
       }, speed);
     },
     start(v) {
-      if (v !== '开始' || this.lock) return;
-      this.lock = true;
+      if (v !== '开始' || this.isRunning) return;
+      this.isRunning = true;
       const path = this.generateCirclePath(3, 100); // 运动轨道
       const random = Math.floor(Math.random() * path.length);
       const steps = 8 * path.length + random;
-      this.run(path, steps);
+      this.run(path, steps, this.index);
+      this.index = random;
     }
   }
 }
@@ -121,7 +125,7 @@ export default {
           background-color: rgba(0,0,0,.2);
           overflow: hidden;
           &::after {
-            display: block;
+            display: none;
             content: 'luck';
             position: absolute;
             right: -19px;
@@ -129,6 +133,9 @@ export default {
             background-color:blueviolet;
             transform: rotate(45deg);
             padding: 4px 16px;
+          }
+          &.win::after {
+            display: block;
           }
       }
   }
