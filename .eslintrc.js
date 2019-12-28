@@ -30,6 +30,6 @@ module.exports = {
 // "error" or 2 - 将规则视为一个错误 (退出码为1)
 
 // 取消规则验证
-/* eslint-disable no-alert console*/ // 当前文件
+/* eslint-disable no-console */ // 当前文件
 /* eslint-disable-next-line */       // 下一行
 /* eslint-disable-line no-alert */   // 当前行

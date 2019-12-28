@@ -17,7 +17,7 @@
 </template>
 
 <script>
-const before = ['王导','坐标','重来','元帅'];
+const before = ['王导','坐标','冻结','元帅'];
 const after = ['童童','重来','腰果','希罗'];
 export default {
   name: 'draw',
