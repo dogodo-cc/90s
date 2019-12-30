@@ -103,7 +103,7 @@ const justInMiddle = (start, val, end) => {
 
 export default {
     bind(el, binding) {
-        let selectRectangle;
+        let selectRectangle = null;
 
         let offsetXStart = 0;
         let offsetYStart = 0;
@@ -118,17 +118,18 @@ export default {
         el.style.position = 'relative';
 
         // 获取指令参数
-        const { className, onlyElTriger = false, cb } = binding.value;
+        const { className, onlyElTriger = false, cb, clickCancel = false } = binding.value;
 
         // mousedown
         el.addEventListener('mousedown', event => {
-            if (!isLegal(onlyElTriger, el, event.target)) return;
+            if (!isLegal(onlyElTriger, el, event.target) || event.button !== 0) return;
 
             el.dataset.isDraging = true;
             childrensPosition = getchildPosition(el, className);
 
-            // 点击 清空上次的选择 为了减少误操作，还是不要吧
-            // binding.value && binding.value([]);
+            // 点击 清空上次的选择 为了减少误操作，最好不要
+            // eslint-disable-next-line
+            clickCancel && cb && cb([]); // ui 说要加就加吧，如果下次说要取消，记得怼回去
 
             const [x, y] = getMouseAxis(el, event);
             offsetXStart = x;
