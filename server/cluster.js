@@ -8,7 +8,7 @@ const master = cfort({
   count: 2
 })
 
-chokidar.watch('./app').on('change', (event, path) => {
+chokidar.watch('./').on('change', (event, path) => {
   console.log(event, path);
   reload(2)
 })
