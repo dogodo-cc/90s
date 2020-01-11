@@ -1,13 +1,13 @@
 <template>
 <div class="uxms-draw">
-  <el-switch v-model="useAudio"/>
+  <el-switch class="switch" v-model="useAudio"/>
   <div class="title">设计工坊&哥伦布尾牙抽奖</div>
   <div class="draw-turntable">
     <div
       class="turntable"
       :style="{
         transform: `rotate(${totalDeg}deg)`,
-        transition: `transform ${time}ms cubic-bezier(0, .47, .31, 1.03)`
+        transition: `transform ${time}ms cubic-bezier(0, .31, .57, 1.03)`
       }"
       @transitionend="isPlaying = false">
       <div
@@ -22,7 +22,7 @@
     </div>
     <div class="start" @click="start"></div>
   </div>
-  <audio preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-162757-aa31.mp3"></audio>
+  <audio preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-170134-3df4.mov"></audio>
 </div>  
 </template>
 
@@ -39,6 +39,11 @@ export default {
       useAudio: true,
     }
   },
+  computed: {
+    $audio() {
+      return this.$refs.audio;
+    }
+  },
   methods: {
     start() {
       if(this.isPlaying) return;
@@ -49,14 +54,17 @@ export default {
       setTimeout(() => {
         const random = Math.floor(Math.random() * 12);
         this.totalDeg = 360 * 5 + this.radis * random + this.radis / 2;
-        this.time = 11 * 1000;
+        this.time = 10 * 1000;
         this.playAudio();
         console.log(this.pieces[random], random);// eslint-disable-line
       }, 100)
     },
     playAudio() {
       if (!this.useAudio) return;
-      this.$refs.audio.play();
+      const {$audio} = this;
+      if ($audio.paused) {
+        $audio.play();
+      }
     }
   }
 }
@@ -68,6 +76,11 @@ export default {
     font-size: 20px;
     padding: 20px 0;
     text-align: center;
+  }
+  .switch {
+    position: fixed;
+    left: 0;
+    bottom: 0;
   }
 }
 .draw-turntable {
