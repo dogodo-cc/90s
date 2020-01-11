@@ -53,7 +53,7 @@ export default {
 
       setTimeout(() => {
         const random = Math.floor(Math.random() * 12);
-        this.totalDeg = 360 * 5 + this.radis * random + this.radis / 2;
+        this.totalDeg = 360 * 8 + this.radis * random + this.radis / 2;
         this.time = 10 * 1000;
         this.playAudio();
         console.log(this.pieces[random], random);// eslint-disable-line
