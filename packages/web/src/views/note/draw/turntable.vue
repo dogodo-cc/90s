@@ -1,5 +1,6 @@
 <template>
 <div class="uxms-draw">
+  <el-switch v-model="useAudio"/>
   <div class="title">设计工坊&哥伦布尾牙抽奖</div>
   <div class="draw-turntable">
     <div
@@ -21,6 +22,7 @@
     </div>
     <div class="start" @click="start"></div>
   </div>
+  <audio preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-162757-aa31.mp3"></audio>
 </div>  
 </template>
 
@@ -34,6 +36,7 @@ export default {
       time: 0,
       totalDeg: 0,
       isPlaying: false,
+      useAudio: true,
     }
   },
   methods: {
@@ -46,9 +49,14 @@ export default {
       setTimeout(() => {
         const random = Math.floor(Math.random() * 12);
         this.totalDeg = 360 * 5 + this.radis * random + this.radis / 2;
-        this.time = 16 * 1000;
+        this.time = 11 * 1000;
+        this.playAudio();
         console.log(this.pieces[random], random);// eslint-disable-line
       }, 100)
+    },
+    playAudio() {
+      if (!this.useAudio) return;
+      this.$refs.audio.play();
     }
   }
 }

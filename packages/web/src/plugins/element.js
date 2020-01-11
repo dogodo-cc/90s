@@ -9,7 +9,8 @@ import {
   Checkbox,
   Popover,
   Tooltip,
-  Slider
+  Slider,
+  Switch
 } from 'element-ui'
 
 if (window.innerWidth < 780) {
@@ -26,3 +27,4 @@ Vue.use(Checkbox)
 Vue.use(Popover)
 Vue.use(Tooltip)
 Vue.use(Slider)
+Vue.use(Switch)
