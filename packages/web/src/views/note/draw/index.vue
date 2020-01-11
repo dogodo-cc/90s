@@ -10,8 +10,8 @@
           {{member}}
         </div>
         <div
-          :class="{spin: true, win: !isRunning}"
-          :style="{transform: `translate(${x}px, ${y}px)`}"></div>
+          :class="{spin: true, win: !isRunning, run: isRunning}"
+          :style="{transform: `translate(${x}px, ${y}px)`, transition: `transform ${duration}ms`}"></div>
     </div>
   </div>
 </template>
@@ -28,6 +28,7 @@ export default {
       members: [...before, '开始', ...after ],
       isRunning: false,
       index: 0, // 从哪里开始跑
+      duration:0
     }
   },
   methods: {
@@ -68,6 +69,7 @@ export default {
           const [x, y] = path[index % length];
           this.x = x;
           this.y = y;
+          this.duration = speed;
           this.run(path, steps, ++index, speed)
         } else {
           this.isRunning = false;
@@ -79,7 +81,7 @@ export default {
       this.isRunning = true;
       const path = this.generateCirclePath(3, 100); // 运动轨道
       const random = Math.floor(Math.random() * path.length);
-      const steps = 8 * path.length + random;
+      const steps = 6 * path.length + random;
       this.run(path, steps, this.index);
       this.index = random;
     }
@@ -116,13 +118,13 @@ export default {
       }
       // 滑块
       .spin {
+          transition: transform .2s;
           position: absolute;
           left: 0;
           top: 0;
           display: inline-block;
           width: 100px;
           height: 100px;
-          background-color: rgba(0,0,0,.2);
           overflow: hidden;
           &::after {
             display: none;
@@ -136,6 +138,21 @@ export default {
           }
           &.win::after {
             display: block;
+          }
+          &::before {
+            transition: opacity .2s;
+            position: absolute;
+            content: '';
+            opacity: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top:0;
+            background:url('https://st-gdx.dancf.com/assets/20200111-103204-f1cb.jpg') center center no-repeat;
+            background-size: cover;
+          }
+          &.run::before {
+            opacity: 1;
           }
       }
   }
