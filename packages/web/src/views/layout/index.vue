@@ -9,7 +9,7 @@
       <template v-else>
         <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
         <div class="quick-link">
-          <a  target="_blank" href="https://www.90s.co/note">学习笔记</a>
+          <a  target="_blank" href="https://www.90s.co/note">笔记</a>
         </div>
       </template>
     </header>
