@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import Draw from './draw/turntable.vue'
+import Draw from './draw/index.vue'
 export default {
   name: 'note',
   components: {

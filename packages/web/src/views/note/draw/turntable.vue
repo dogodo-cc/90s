@@ -72,6 +72,12 @@ export default {
 
 <style lang="scss">
 .uxms-draw {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   .title {
     font-size: 20px;
     padding: 20px 0;

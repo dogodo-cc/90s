@@ -161,6 +161,15 @@ const router = new VueRouter({
       }
     },
     {
+      path: '/uxms',
+      component:() => import('@/views/note/draw/turntable.vue'),
+      meta: {
+        title: '设计工坊年会',
+        pageTitle: '设计工坊年会',
+        hidden: true
+      }
+    },
+    {
       path: '/case',
       component: Layout,
       meta: {
