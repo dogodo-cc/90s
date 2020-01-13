@@ -1,7 +1,7 @@
 <template>
 <div class="uxms-draw">
-  <img class="header" @click="useAudio = !useAudio" src="./images/head.png" alt="">
-  <div class="draw-turntable">
+  <img class="header" @click="useAudio = !useAudio" src="https://st-gdx.dancf.com/assets/20200113-202612-7b5c.png" alt="">
+  <div class="turntable-box">
     <div
       class="turntable"
       :style="{
@@ -9,24 +9,13 @@
         transition: `transform ${time}ms cubic-bezier(0, .31, .57, 1.03)`
       }"
       @transitionend="isPlaying = false">
-      <template v-if="false">
-        <div
-          :class="['piece', `piece-${index}`]"
-          v-for="(item, index) in pieces"
-          :key="index"
-          >
-          <div class="content">
-            <span>{{item}}</span>
-          </div>
-        </div>
-      </template>
     </div>
     <div class="start" @click="start">
-      <img src="./images/btn.png" alt="">
+      <img src="https://st-gdx.dancf.com/assets/20200113-202647-01a4.png" alt="">
     </div>
   </div>
   <audio preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-170134-3df4.mov"></audio>
-  <img class="footer" src="./images/foot.png" alt="">
+  <img class="footer" src="https://st-gdx.dancf.com/assets/20200113-202629-1375.png" alt="">
 </div>  
 </template>
 
@@ -81,8 +70,39 @@ export default {
   align-items: center;
   overflow: hidden;
   height: 100vh;
-  background: url('./images/bg.png') top center no-repeat;
+  background: url('https://st-gdx.dancf.com/assets/20200113-202526-e195.png') top center no-repeat;
   background-size: cover;
+
+  .turntable-box {
+    position: relative;
+    width: 300px;
+    height: 300px;
+
+    .turntable {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: url('https://st-gdx.dancf.com/assets/20200113-202551-0521.png') center center no-repeat;
+      background-size: cover;
+      transform-origin: center center;
+    }
+    .start {
+      width: 50px;
+      height: 50px;
+      background-color: #fff;
+      border-radius: 50%;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin-left: -25px;
+      margin-top: -25px;
+      img {
+        max-width: 100%;
+        width: 100%;
+        margin-top: -9px;
+      }
+    }
+  }
   .header {
     position: fixed;
     top: 0;
@@ -92,36 +112,6 @@ export default {
     position: fixed;
     bottom: 0;
     max-width: 100%;
-  }
-}
-.draw-turntable {
-  position: relative;
-  width: 300px;
-  height: 300px;
-
-  .turntable {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: url('./images/turntable.png') center center no-repeat;
-    background-size: cover;
-    transform-origin: center center;
-  }
-  .start {
-    width: 50px;
-    height: 50px;
-    background-color: #fff;
-    border-radius: 50%;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    margin-left: -25px;
-    margin-top: -25px;
-    img {
-      max-width: 100%;
-      width: 100%;
-      margin-top: -9px;
-    }
   }
 }
 
