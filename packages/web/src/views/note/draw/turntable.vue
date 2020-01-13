@@ -48,8 +48,7 @@ export default {
         this.totalDeg = 360 * 8 + this.radis * random + this.radis / 2;
         this.time = 10 * 1000;
         this.playAudio();
-        console.log(this.pieces.resever()[random], random);// eslint-disable-line
-      }, 100)
+      }, 30)
     },
     playAudio() {
       if (!this.useAudio) return;
@@ -73,7 +72,6 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  overflow: hidden;
   height: 100vh;
   background: url('https://st-gdx.dancf.com/assets/20200113-202526-e195.png') top center no-repeat;
   background-size: cover;
