@@ -11,10 +11,10 @@
       @transitionend="isPlaying = false">
     </div>
     <div class="start" @click="start">
+      <audio preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-170134-3df4.mov"></audio>
       <img src="https://st-gdx.dancf.com/assets/20200113-202647-01a4.png" alt="">
     </div>
   </div>
-  <audio preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-170134-3df4.mov"></audio>
   <img class="footer" src="https://st-gdx.dancf.com/assets/20200113-202629-1375.png" alt="">
 </div>  
 </template>
@@ -24,7 +24,6 @@ export default {
   name: 'draw',
   data() {
     return {
-      pieces: ['牛仔', '焦糖','冻结','元帅','腰果','希罗','再来','童童','坐标','冰粉','再来','王导'],
       radis: 30,
       time: 0,
       totalDeg: 0,
@@ -59,6 +58,12 @@ export default {
         $audio.play();
       }
     }
+  },
+  mounted() {
+    const meta = document.createElement('meta');
+    meta.name = 'apple-mobile-web-app-capable';
+    meta.content = 'yes'
+    document.head.appendChild(meta);
   }
 }
 </script>
@@ -66,12 +71,13 @@ export default {
 <style lang="scss">
 .uxms-draw {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   overflow: hidden;
   height: 100vh;
   background: url('https://st-gdx.dancf.com/assets/20200113-202526-e195.png') top center no-repeat;
   background-size: cover;
+  flex-direction: column;
 
   .turntable-box {
     position: relative;
@@ -104,13 +110,9 @@ export default {
     }
   }
   .header {
-    position: fixed;
-    top: 0;
     max-width: 100%;
   }
   .footer {
-    position: fixed;
-    bottom: 0;
     max-width: 100%;
   }
 }
