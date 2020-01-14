@@ -1,5 +1,5 @@
 <template>
-<div class="uxms-draw">
+<div class="uxms-draw" :class="{pc: !isPhone}">
   <img class="header" @click="useAudio = !useAudio" src="https://st-gdx.dancf.com/assets/20200114-185809-40e7.png" alt="">
   <div class="turntable-box">
     <div
@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import { isPhone } from '@90s/tools';
 export default {
   name: 'draw',
   data() {
@@ -29,6 +30,7 @@ export default {
       totalDeg: 0,
       isPlaying: false,
       useAudio: true,
+      isPhone
     }
   },
   computed: {
@@ -65,13 +67,18 @@ export default {
 .uxms-draw {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  height: 100vh;
+  align-items: center; 
   width: 100vw;
+  height: 100vh;
   overflow: hidden;
   background: url('https://st-gdx.dancf.com/assets/20200113-202526-e195.png') top center no-repeat;
   background-size: cover;
   flex-direction: column;
+  &.pc {
+    width: 375px;
+    height: 667px;
+    margin: 0 auto;
+  }
 
   .turntable-box {
     position: relative;
