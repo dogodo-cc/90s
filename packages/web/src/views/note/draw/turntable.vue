@@ -1,6 +1,6 @@
 <template>
 <div class="uxms-draw">
-  <img class="header" @click="useAudio = !useAudio" src="https://st-gdx.dancf.com/assets/20200113-202612-7b5c.png" alt="">
+  <img class="header" @click="useAudio = !useAudio" src="https://st-gdx.dancf.com/assets/20200114-185809-40e7.png" alt="">
   <div class="turntable-box">
     <div
       class="turntable"
@@ -12,10 +12,10 @@
     </div>
     <div class="start" @click="start">
       <audio preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-170134-3df4.mov"></audio>
-      <img src="https://st-gdx.dancf.com/assets/20200113-202647-01a4.png" alt="">
+      <img src="https://st-gdx.dancf.com/assets/20200114-185605-9076.png" alt="">
     </div>
   </div>
-  <img class="footer" src="https://st-gdx.dancf.com/assets/20200113-202629-1375.png" alt="">
+  <img class="footer" src="https://st-gdx.dancf.com/assets/20200114-185831-411c.png" alt="">
 </div>  
 </template>
 
@@ -67,6 +67,8 @@ export default {
   justify-content: space-between;
   align-items: center;
   height: 100vh;
+  width: 100vw;
+  overflow: hidden;
   background: url('https://st-gdx.dancf.com/assets/20200113-202526-e195.png') top center no-repeat;
   background-size: cover;
   flex-direction: column;
@@ -80,7 +82,7 @@ export default {
       position: relative;
       width: 100%;
       height: 100%;
-      background: url('https://st-gdx.dancf.com/assets/20200113-202551-0521.png') center center no-repeat;
+      background: url('https://st-gdx.dancf.com/assets/20200114-185530-f432.png') center center no-repeat;
       background-size: cover;
       transform-origin: center center;
     }
