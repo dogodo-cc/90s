@@ -57,12 +57,6 @@ export default {
         $audio.play();
       }
     }
-  },
-  mounted() {
-    const meta = document.createElement('meta');
-    meta.name = 'apple-mobile-web-app-capable';
-    meta.content = 'yes'
-    document.head.appendChild(meta);
   }
 }
 </script>
@@ -98,8 +92,7 @@ export default {
       position: absolute;
       left: 50%;
       top: 50%;
-      margin-left: -25px;
-      margin-top: -25px;
+      transform: translate(-50%, -50%);
       img {
         max-width: 100%;
         width: 100%;
