@@ -94,8 +94,8 @@ export default {
       transform-origin: center center;
     }
     .start {
-      width: 50px;
-      height: 50px;
+      width: 70px;
+      height: 70px;
       background-color: #fff;
       border-radius: 50%;
       position: absolute;
@@ -105,7 +105,7 @@ export default {
       img {
         max-width: 100%;
         width: 100%;
-        margin-top: -9px;
+        margin-top: -14px;
       }
     }
   }
