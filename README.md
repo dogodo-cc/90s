@@ -1,5 +1,5 @@
 
-[![Build Status](https://travis-ci.org/dogodo-cc/on-the-way.svg?branch=master)](https://travis-ci.org/dogodo-cc/90s)
+[![Build Status](https://travis-ci.org/dogodo-cc/90s.svg?branch=master)](https://travis-ci.org/dogodo-cc/90s)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 # 前端路上
 

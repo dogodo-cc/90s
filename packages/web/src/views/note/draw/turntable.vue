@@ -1,6 +1,6 @@
 <template>
 <div class="uxms-draw" :class="{pc: !isPhone}">
-  <img class="header" @click="useAudio = !useAudio" src="https://st-gdx.dancf.com/assets/20200114-185809-40e7.png" alt="">
+  <img class="header" @click="isMuted = !isMuted" src="https://st-gdx.dancf.com/assets/20200114-185809-40e7.png" alt="">
   <div class="turntable-box">
     <div
       class="turntable"
@@ -11,7 +11,7 @@
       @transitionend="isPlaying = false">
     </div>
     <div class="start" @click="start">
-      <audio preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-170134-3df4.mov"></audio>
+      <audio :muted="isMuted" preload ref="audio" src="https://st-gdx.dancf.com/assets/20200111-170134-3df4.mov"></audio>
       <img src="https://st-gdx.dancf.com/assets/20200114-185605-9076.png" alt="">
     </div>
   </div>
@@ -29,7 +29,7 @@ export default {
       time: 0,
       totalDeg: 0,
       isPlaying: false,
-      useAudio: true,
+      isMuted: true,
       isPhone
     }
   },
@@ -53,7 +53,6 @@ export default {
       }, 30)
     },
     playAudio() {
-      if (!this.useAudio) return;
       const {$audio} = this;
       if ($audio.paused) {
         $audio.play();
@@ -82,8 +81,8 @@ export default {
 
   .turntable-box {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: 320px;
+    height: 320px;
 
     .turntable {
       position: relative;
@@ -94,8 +93,8 @@ export default {
       transform-origin: center center;
     }
     .start {
-      width: 70px;
-      height: 70px;
+      width: 80px;
+      height: 80px;
       background-color: #fff;
       border-radius: 50%;
       position: absolute;
@@ -105,7 +104,7 @@ export default {
       img {
         max-width: 100%;
         width: 100%;
-        margin-top: -14px;
+        margin-top: -15px;
       }
     }
   }
