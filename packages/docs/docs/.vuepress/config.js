@@ -1,13 +1,13 @@
 const { fs, path, globby } = require('@vuepress/shared-utils')
 function genComponentsDir(name) {
 	const dir = fs.readdirSync(path.resolve(__dirname, '..', name));
-	return dir.sort().map(name => name.replace('README.md', ''));
+	return dir.sort().filter(name => name !== 'README.md');
 }
 
 module.exports = {
   title: '前端路上',
   description: 'www.90s.co',
-  base: '/',
+  base: '/note/',
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },
