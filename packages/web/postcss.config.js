@@ -1,10 +1,12 @@
 module.exports = ctx => {
   return {
-    // parser: 'sugarss',
+    parser: 'postcss-scss',
     map: ctx.env === 'development' ? ctx.map : false,
     plugins: {
       'postcss-import': {},
-      'postcss-cssnext': {},
+      'postcss-preset-env': {
+        browsers: 'last 2 versions',
+      },
       'cssnano': {},
       'postcss-inline-svg': {}
     }

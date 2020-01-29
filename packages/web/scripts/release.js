@@ -10,7 +10,11 @@ exec('cp ./CNAME ./dist', {
 exec('cp ./public/favicon.ico ./dist', {
   cwd: projectPath
 })
+
 exec('cp -R ./website/* ./dist', {
+  cwd: projectPath
+})
+exec('cp -R ../docs/docs/.vuepress/dist/ ./dist/note', {
   cwd: projectPath
 }).then(() => {
   console.log('😄 静态文件复制完成！'); //eslint-disable-line
