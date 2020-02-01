@@ -4,7 +4,7 @@ heroImage: /desk.jpeg
 heroText: 
 tagline: 走在前端的大道上
 actionText: 走进瞧瞧 →
-actionLink: /project/
+actionLink: /note/
 features:
 - title: 前端工程化
   details: 记录前端工程化的配置笔记，常用插件的使用笔记。
