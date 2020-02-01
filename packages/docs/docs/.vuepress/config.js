@@ -10,10 +10,10 @@ module.exports = {
   base: '/note/',
   themeConfig: {
     nav: [
-      { text: '首页', link: '/' },
-      { text: '工程', link: '/project/' },
+      // { text: '首页', link: '/' },
+      { text: '项目', link: '/project/' },
       { text: '笔记', link: '/note/' },
-      { text: '文章收藏', link: '/article/' },
+      { text: '收藏', link: '/article/' },
       { text: 'Github', link: 'https://github.com/dogodo-cc/90s' },
     ],
     sidebar: {
@@ -29,6 +29,13 @@ module.exports = {
 					title: '文章收藏',
 					collapsable: true,
 					children: genComponentsDir('article'),
+				},
+      ],
+      '/project/': [
+				{
+					title: '项目记录',
+					collapsable: true,
+					children: genComponentsDir('project'),
 				},
 			],
     }
