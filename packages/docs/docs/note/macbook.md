@@ -1,4 +1,4 @@
-# MacBook 之手持利剑，笑傲江湖！
+# MacBook 之先利其器
 
 
 ## 常用命令
@@ -35,56 +35,18 @@ lsof -i tcp:port (port替换成端口号，比如6379，可以查看该端口被
 kill 6375
 ```
 
-## 命令报错
-```
-No write since last change (add ! to override)
 
-```
-- 解释：有修改未保存。
-- 解决：使用命令`:wq!`存盘并退出
-- 或者`shift+zz`
-
-
-## macbook 系统功能
-### 截图
-```
-command+Shift+3：截取整个屏幕。
-command+Shift+4：截取一部分屏幕。
-defaults write com.apple.screencapture type jpg 修改生成的图片格式
-defaults write com.apple.screencapture location ~/Picture/  修改生成的图片地址
-killall SystemUIServer  使修改生效
-```
-
-### 本地服务器
-```
-cd 到目录
-php -S localhost:3000
-php -S 0.0.0.0:8000  同局域网可访问
-192.168.1.5:8000/fish/views/buy-compass.php
-```
-
-## macbook 系统设置
+## 系统设置
 
 - 系统偏好设置-键盘-输入法-自动切换到文稿的输入法 （可以保持不同程序之间各自的输入状态）
+- /usr/local/bin/sshpass -p "asdfghjkl,.456" ssh -p22 root@47.52.88.145
 
-## macbook 优秀软件
+## 优秀软件
 
 - <http://pilotmoon.com/scrollreverser/?_blank>  鼠标方向
 - <https://brew.sh?_blank>  命令行 下载软件
 - <http://ohmyz.sh/?_blank>  终端辅助，寻找文件方便
 - <https://gist.github.com/arunoda/7790979>  保存ssh密码
-
-```
-/usr/local/bin/sshpass -p "asdfghjkl,.456" ssh -p22 root@47.52.88.145
-```
-
-## 修改host
-```
-sudo -i  // 暂时获得超级管理员权限
-
-vi /etc/hosts
- 
-```
 
 
 ## 生产力软件的使用技巧
@@ -96,5 +58,22 @@ cmd + opt + f    // 搜索关键字
 cmd + l 	 // 跳转到源码的行
 ```
 
-### webstorm
-- 破解 http://idea.lanyus.com/
+## 快捷键
+
+### 系统
+
+* shift-option-command-v，把富文本粘贴为纯文本
+* control+command+Q 锁屏
+
+### 截图
+
+- Command＋shift＋3 全屏截图
+- Command＋shift＋4 自定义区域
+- Command＋shift＋4 之后再按 “空格” 点击某个窗口，就截图该窗口
+- 以上所有操作 加按 “control” 可以直接在黏贴版使用
+
+::: tip 截图地址
+defaults write com.apple.screencapture type jpg 修改生成的图片格式
+defaults write com.apple.screencapture location ~/Picture/  修改生成的图片地址
+killall SystemUIServer  使修改生效
+:::
