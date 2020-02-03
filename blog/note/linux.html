@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>linux 服务器配置 | 前端路上</title>
+    <meta name="description" content="www.90s.co">
+    
+    
+    <link rel="preload" href="/blog/assets/css/0.styles.cae27982.css" as="style"><link rel="preload" href="/blog/assets/js/app.758d98f3.js" as="script"><link rel="preload" href="/blog/assets/js/2.a7cfdfbd.js" as="script"><link rel="preload" href="/blog/assets/js/18.b34a4a2a.js" as="script"><link rel="prefetch" href="/blog/assets/js/10.7480e1d0.js"><link rel="prefetch" href="/blog/assets/js/11.cae8c482.js"><link rel="prefetch" href="/blog/assets/js/12.39feedb2.js"><link rel="prefetch" href="/blog/assets/js/13.a55defff.js"><link rel="prefetch" href="/blog/assets/js/14.7fb56834.js"><link rel="prefetch" href="/blog/assets/js/15.b25453f4.js"><link rel="prefetch" href="/blog/assets/js/16.5b92f1dc.js"><link rel="prefetch" href="/blog/assets/js/17.325def90.js"><link rel="prefetch" href="/blog/assets/js/19.2256ec03.js"><link rel="prefetch" href="/blog/assets/js/20.51ae6633.js"><link rel="prefetch" href="/blog/assets/js/21.4777aa9d.js"><link rel="prefetch" href="/blog/assets/js/22.bf921185.js"><link rel="prefetch" href="/blog/assets/js/23.1a6c67f6.js"><link rel="prefetch" href="/blog/assets/js/24.d63deb21.js"><link rel="prefetch" href="/blog/assets/js/25.3eda4113.js"><link rel="prefetch" href="/blog/assets/js/26.596374c3.js"><link rel="prefetch" href="/blog/assets/js/27.68424425.js"><link rel="prefetch" href="/blog/assets/js/28.b3e02485.js"><link rel="prefetch" href="/blog/assets/js/29.701e6c98.js"><link rel="prefetch" href="/blog/assets/js/3.1407e0eb.js"><link rel="prefetch" href="/blog/assets/js/30.dcf0177b.js"><link rel="prefetch" href="/blog/assets/js/31.4c0a1e97.js"><link rel="prefetch" href="/blog/assets/js/32.1fbe6fa2.js"><link rel="prefetch" href="/blog/assets/js/33.a2e48a9e.js"><link rel="prefetch" href="/blog/assets/js/34.c2f7d7ed.js"><link rel="prefetch" href="/blog/assets/js/4.48b209a2.js"><link rel="prefetch" href="/blog/assets/js/5.85e65fcb.js"><link rel="prefetch" href="/blog/assets/js/6.c0e041a6.js"><link rel="prefetch" href="/blog/assets/js/7.6305a00c.js"><link rel="prefetch" href="/blog/assets/js/8.7ae6872c.js"><link rel="prefetch" href="/blog/assets/js/9.739cd717.js">
+    <link rel="stylesheet" href="/blog/assets/css/0.styles.cae27982.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/blog/" class="home-link router-link-active"><!----> <span class="site-name">前端路上</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/blog/project/" class="nav-link">项目</a></div><div class="nav-item"><a href="/blog/note/" class="nav-link router-link-active">笔记</a></div><div class="nav-item"><a href="/blog/article/" class="nav-link">收藏</a></div><div class="nav-item"><a href="https://github.com/dogodo-cc/90s" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  Github
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/blog/project/" class="nav-link">项目</a></div><div class="nav-item"><a href="/blog/note/" class="nav-link router-link-active">笔记</a></div><div class="nav-item"><a href="/blog/article/" class="nav-link">收藏</a></div><div class="nav-item"><a href="https://github.com/dogodo-cc/90s" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  Github
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group collapsable depth-0"><p class="sidebar-heading open"><span>前端笔记</span> <span class="arrow down"></span></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/blog/note/brew.html" class="sidebar-link">brew 笔记</a></li><li><a href="/blog/note/code.html" class="sidebar-link">代码片段</a></li><li><a href="/blog/note/git-commit.html" class="sidebar-link">Git 使用规范</a></li><li><a href="/blog/note/git.html" class="sidebar-link">git 使用笔记</a></li><li><a href="/blog/note/gulp.html" class="sidebar-link">gulp自动化配置</a></li><li><a href="/blog/note/linux.html" class="active sidebar-link">linux 服务器配置</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/blog/note/linux.html#root-用户登陆" class="sidebar-link">root 用户登陆</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#软件安装" class="sidebar-link">软件安装</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#外面的世界" class="sidebar-link">外面的世界</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#ngx" class="sidebar-link">NGX</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#php-配置" class="sidebar-link">php 配置</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#vim-使用" class="sidebar-link">vim 使用</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#zsh" class="sidebar-link">zsh</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#linux-常用命令" class="sidebar-link">linux 常用命令</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#创建-硬-软-链接" class="sidebar-link">创建[硬|软]链接</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#下载网站" class="sidebar-link">下载网站</a></li><li class="sidebar-sub-header"><a href="/blog/note/linux.html#删除文件" class="sidebar-link">删除文件</a></li></ul></li><li><a href="/blog/note/macbook.html" class="sidebar-link">MacBook 之先利其器</a></li><li><a href="/blog/note/markdown.html" class="sidebar-link">markdown 语法</a></li><li><a href="/blog/note/mock.html" class="sidebar-link">mock 数据模拟</a></li><li><a href="/blog/note/nginx.html" class="sidebar-link">nginx</a></li><li><a href="/blog/note/node-section1.html" class="sidebar-link">node 笔记</a></li><li><a href="/blog/note/node.html" class="sidebar-link">node</a></li><li><a href="/blog/note/npm.html" class="sidebar-link">npm 常见命令</a></li><li><a href="/blog/note/typescript.html" class="sidebar-link">typescript</a></li><li><a href="/blog/note/vscode.html" class="sidebar-link">vscode</a></li><li><a href="/blog/note/webpack.html" class="sidebar-link">webpack 配置笔记</a></li><li><a href="/blog/note/wechat.html" class="sidebar-link">小程序开发笔记</a></li></ul></section></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="linux-服务器配置"><a href="#linux-服务器配置" class="header-anchor">#</a> linux 服务器配置</h1> <h2 id="root-用户登陆"><a href="#root-用户登陆" class="header-anchor">#</a> root 用户登陆</h2> <div class="language- extra-class"><pre class="language-text"><code>ssh root@47.52.88.145
+</code></pre></div><ul><li>输入yes 继续</li> <li>输入密码</li></ul> <h2 id="软件安装"><a href="#软件安装" class="header-anchor">#</a> 软件安装</h2> <div class="language- extra-class"><pre class="language-text"><code>apt install nodejs-legacy
+</code></pre></div><h2 id="外面的世界"><a href="#外面的世界" class="header-anchor">#</a> 外面的世界</h2> <p>如果邮件提示Google失效了，运行</p> <div class="language- extra-class"><pre class="language-text"><code>letsencrypt renew
+</code></pre></div><h2 id="ngx"><a href="#ngx" class="header-anchor">#</a> NGX</h2> <div class="language- extra-class"><pre class="language-text"><code>sed -i  's/\/var\/www\/html/\/data\/90s/' /etc/nginx/sites-enabled/default
+nginx -s reload
+
+</code></pre></div><h2 id="php-配置"><a href="#php-配置" class="header-anchor">#</a> php 配置</h2> <ul><li>apt install php</li> <li>vim /etc/nginx/sites-enabled/default</li> <li>按 <code>/</code> 然后 输入 <code>localhost</code> 找到</li></ul> <div class="language- extra-class"><pre class="language-text"><code>        #location ~ \.php$ {
+        #       include snippets/fastcgi-php.conf;
+        #
+        #       # With php7.0-cgi alone:
+        #       fastcgi_pass 127.0.0.1:9000;
+        #       # With php7.0-fpm:
+        #       fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+        #}
+</code></pre></div><ul><li>去掉注释和不需要的节，改为</li></ul> <div class="language- extra-class"><pre class="language-text"><code>    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+    }
+</code></pre></div><ul><li>重启 Nginx 生效，sudo nginx -s reload</li></ul> <h2 id="vim-使用"><a href="#vim-使用" class="header-anchor">#</a> vim 使用</h2> <div class="language- extra-class"><pre class="language-text"><code>touch ~/.bash_profile 创建文件
+vim ~/.bash_profile 编辑文件
+</code></pre></div><ul><li>按  <code>i</code> 进入编辑，<code>s</code> 删除光标所在的字符</li> <li>按 <code>esc</code> 退出编辑,再按 <code>:</code> 冒号。
+按 <code>w</code> 写入
+按 <code>q</code> 退出
+按 <code>x</code> 等于同时按了 <code>w</code> 和 <code>q</code></li></ul> <h2 id="zsh"><a href="#zsh" class="header-anchor">#</a> zsh</h2> <p>npx live-server --host=localhost --port=3000
+alias npxls=&quot;npx live-server --host=localhost --port=3000&quot;
+vim ~/.zshrc</p> <h2 id="linux-常用命令"><a href="#linux-常用命令" class="header-anchor">#</a> linux 常用命令</h2> <h4 id="系统信息"><a href="#系统信息" class="header-anchor">#</a> 系统信息</h4> <div class="language-bash extra-class"><pre class="language-bash"><code>arch     显示机器的处理器架构<span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> 
+<span class="token function">uname</span> -m 显示机器的处理器架构<span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span> 
+<span class="token function">uname</span> -r 显示正在使用的内核版本  
+<span class="token function">date</span> 显示系统日期 
+<span class="token function">cal</span> <span class="token number">2007</span> 显示2007年的日历表 
+</code></pre></div><h4 id="文件和目录"><a href="#文件和目录" class="header-anchor">#</a> 文件和目录</h4> <div class="language-bash extra-class"><pre class="language-bash"><code><span class="token builtin class-name">cd</span> /home 进入 <span class="token string">'/home'</span> 目录
+<span class="token builtin class-name">cd</span> <span class="token punctuation">..</span> 返回上一级目录 
+<span class="token builtin class-name">cd</span> <span class="token punctuation">..</span>/<span class="token punctuation">..</span> 返回上两级目录 
+<span class="token builtin class-name">cd</span> 进入个人的主目录 
+<span class="token builtin class-name">cd</span> - 返回上次所在的目录 
+<span class="token builtin class-name">pwd</span> 显示工作路径
+
+<span class="token function">ls</span> 查看目录中的文件
+<span class="token function">ls</span> *<span class="token punctuation">[</span><span class="token number">0</span>-9<span class="token punctuation">]</span>* 显示包含数字的文件名和目录名
+tree 显示文件和目录由根目录开始的树形结构
+
+<span class="token function">mkdir</span> dir1 创建一个叫做 <span class="token string">'dir1'</span> 的目录
+<span class="token function">mkdir</span> dir1 dir2 同时创建两个目录
+<span class="token function">mkdir</span> -p /dir1/dir2/dir3 创建一个目录树
+
+<span class="token function">rm</span> -f file1 删除一个叫做 <span class="token string">'file1'</span> 的文件<span class="token string">' 
+rmdir dir1 删除一个叫做 '</span>dir1<span class="token string">' 的目录'</span> 
+<span class="token function">rm</span> -rf dir1 删除一个叫做 <span class="token string">'dir1'</span> 的目录及其内容 
+<span class="token function">rm</span> -rf dir1 dir2 同时删除两个目录及其内容
+
+<span class="token function">mv</span> dir1 new_dir 重命名/移动 一个目录/文件 
+<span class="token function">cp</span> file1 file2 复制一个文件
+</code></pre></div><h2 id="创建-硬-软-链接"><a href="#创建-硬-软-链接" class="header-anchor">#</a> 创建[硬|软]链接</h2> <div class="language-bash extra-class"><pre class="language-bash"><code><span class="token function">ln</span> sourceFile targetFile 硬连接
+<span class="token function">ln</span> -s sourceFile targetFile 软连接
+</code></pre></div><p>ln 会保持每一处链接文件的同步性，无论改动了哪一处，其他文件都会同步更改。</p> <ul><li>硬链接：会在选定的位置上生成一个和源文件大小相同的文件</li> <li>软链接：会在你选定的位置上生成一个文件的镜像，不会占用磁盘空间 （类似win的快捷方式）</li></ul> <p>#####【硬连接】
+硬连接指通过索引节点来进行连接。在Linux的文件系统中，保存在磁盘分区中的文件不管是什么类型都给它分配一个编号，称为索引节点号(Inode Index)。在Linux中，多个文件名指向同一索引节点是存在的。一般这种连接就是硬连接。硬连接的作用是允许一个文件拥有多个有效路径名，这样用户就可以建立硬连接到重要文件，以防止“误删”的功能。其原因如上所述，因为对应该目录的索引节点有一个以上的连接。只删除一个连接并不影响索引节点本身和其它的连接，只有当最后一个连接被删除后，文件的数据块及目录的连接才会被释放。也就是说，文件真正删除的条件是与之相关的所有硬连接文件均被删除。</p> <p>#####【软连接】
+另外一种连接称之为符号连接（Symbolic Link），也叫软连接。软链接文件有类似于Windows的快捷方式。它实际上是一个特殊的文件。在符号连接中，文件实际上是一个文本文件，其中包含的有另一文件的位置信息。</p> <h5 id="对比"><a href="#对比" class="header-anchor">#</a> 对比</h5> <p>不允许给目录创建硬链接。只有在同一文件系统中的文件之间才能创建链接，而且只有超级用户才有建立硬链接权限。
+软链接没有硬链接以上的两个限制，因而现在更为广泛使用，它具有更大的灵活性，甚至可以跨越不同机器、不同网络对文件进行链接。但是软链接的缺点在于：因为链接文件包含有原文件的路径信息，所以当原文件从一个目录下移到其他目录中，再访问链接文件，系统就找不到了，而硬链接就没有这个缺陷，你想怎么移就怎么移；还有它要系统分配额外的空间用于建立新的索引节点和保存原文件的路径。</p> <h5 id="使用场景"><a href="#使用场景" class="header-anchor">#</a> 使用场景</h5> <p>项目中nginx的配置文件conf可以放在项目里方便管理，然后用软链接的方式链接到etc/nginx/server/,随时跟着生效。</p> <div class="language-bash extra-class"><pre class="language-bash"><code><span class="token function">ln</span> -s gaoding.nginx.conf /usr/local/etc/nginx/servers/gaoding.nginx.conf
+<span class="token function">ln</span> -s /Users/yuanweihai/gaoding/gaoding-hrm/gaoding.nginx.conf /usr/local/etc/nginx/servers/gaoding.nginx.conf
+</code></pre></div><h2 id="下载网站"><a href="#下载网站" class="header-anchor">#</a> 下载网站</h2> <div class="language-bash extra-class"><pre class="language-bash"><code><span class="token function">wget</span> -r url http://gipo.valentine.uunn.cn/  下载网站
+</code></pre></div><h2 id="删除文件"><a href="#删除文件" class="header-anchor">#</a> 删除文件</h2> <div class="language-bash extra-class"><pre class="language-bash"><code><span class="token function">find</span> <span class="token builtin class-name">.</span> -name <span class="token string">'*.css'</span> <span class="token operator">|</span> <span class="token function">xargs</span> <span class="token function">rm</span>
+</code></pre></div></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
+      ←
+      <a href="/blog/note/gulp.html" class="prev">gulp自动化配置</a></span> <span class="next"><a href="/blog/note/macbook.html">MacBook 之先利其器</a>
+      →
+    </span></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/blog/assets/js/app.758d98f3.js" defer></script><script src="/blog/assets/js/2.a7cfdfbd.js" defer></script><script src="/blog/assets/js/18.b34a4a2a.js" defer></script>
+  </body>
+</html>
