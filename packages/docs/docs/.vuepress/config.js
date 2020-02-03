@@ -7,7 +7,7 @@ function genComponentsDir(name) {
 module.exports = {
   title: '前端路上',
   description: 'www.90s.co',
-  base: '/note/',
+  base: '/blog/',
   themeConfig: {
     nav: [
       // { text: '首页', link: '/' },

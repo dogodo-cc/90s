@@ -14,7 +14,7 @@ exec('cp ./public/favicon.ico ./dist', {
 exec('cp -R ./website/* ./dist', {
   cwd: projectPath
 })
-exec('cp -R ../docs/docs/.vuepress/dist/ ./dist/note', {
+exec('cp -R ../docs/docs/.vuepress/dist/ ./dist/blog', {
   cwd: projectPath
 }).then(() => {
   console.log('😄 静态文件复制完成！'); //eslint-disable-line
