@@ -13,7 +13,7 @@ module.exports = {
       // { text: '首页', link: '/' },
       { text: '项目', link: '/project/' },
       { text: '笔记', link: '/note/' },
-      { text: '收藏', link: '/article/' },
+      { text: '文字', link: '/article/' },
       { text: 'Github', link: 'https://github.com/dogodo-cc/90s' },
     ],
     sidebar: {

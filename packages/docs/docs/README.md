@@ -6,11 +6,11 @@ tagline: 走在前端的大道上
 actionText: 走进瞧瞧 →
 actionLink: /note/
 features:
-- title: 前端工程化
-  details: 记录前端工程化的配置笔记，常用插件的使用笔记。
+- title: 项目经验
+  details: 积累一些过往项目中比较好的解决方案，方便后续阅读回顾也希望能帮助到读者。
 - title: 学习笔记
-  details: 在学习过程中的一些笔记，都记录在这里
-- title: 设计工坊
-  details: 厦门稿定科技旗下的设计工坊是一个很牛逼的平台。
+  details: 在前端路上的一些笔记、文档都沉淀在这里。
+- title: 文字
+  details: 收藏一些喜欢的文章和自己偶尔写的一些文字。
 footer: MIT Licensed | Copyright © 2020-present 元帅
 ---
