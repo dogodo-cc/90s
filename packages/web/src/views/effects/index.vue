@@ -1,7 +1,7 @@
 <template>
   <div class="effect-page">
     <SvgPath></SvgPath>
-    <StarBg v-if="false"></StarBg>
+    <StarBg></StarBg>
   </div>
 </template>
 

@@ -10,13 +10,20 @@ export default {
 
 <style lang="scss">
 .star-bg {
-  position: fixed;
-  width: 400vw;
-  height: 400vh;
+  // position: fixed;
+  // width: 400vw;
+  // height: 400vh;
+  // top: 50%;
+  // left: 50%;
+  // margin-top: -200vh;
+  // margin-left: -200vw;
+  position: relative;
   top: 50%;
   left: 50%;
-  margin-top: -200vh;
-  margin-left: -200vw;
+  width: 200%;
+  height: 200%;
+  margin-top: -100%;
+  margin-left: -100%;
   animation: logo-rotate 200s linear infinite;
   background-size: 240px;
   backface-visibility: visible;
