@@ -4,7 +4,7 @@
 
 如果报错 `Unnecessary curly bracket`，就把 parser 注释掉
 
-```javascript
+```js
 module.exports = ctx => {
   return {
     // parser: 'sugarss',
@@ -16,4 +16,10 @@ module.exports = ctx => {
     }
   }
 }
+```
+```js
+this.iconList = require.context('@/icons/svg/',false,/\.svg$/).keys().map(v => {
+  v = v.replace('./','').replace('.svg','').trim();
+  return v;
+});
 ```
