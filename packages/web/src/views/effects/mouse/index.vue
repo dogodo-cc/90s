@@ -8,10 +8,12 @@
       >
       <span>{{text}}</span>
     </div>
+    <DotRing></DotRing>
   </div>
 </template>
 
 <script>
+import DotRing from '../components/dot-ring/index.vue'
 /**
  * 知识点：
  * mouseover: 穿过指定元素或其子元素 对应： mouseout
@@ -23,6 +25,9 @@ const dirMap = {
 }
 export default {
   name: 'mouse',
+  components: {
+    DotRing
+  },
   data() {
     return {
       text: '',
