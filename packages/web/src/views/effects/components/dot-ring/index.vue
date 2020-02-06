@@ -48,7 +48,8 @@ export default {
   name: 'dotRing',
   data() {
     return {
-      dots: creatArray(36),
+      dotNum: 36,
+      dots: [],
       speed: .5,
       rotate: 0,
       stop: true,
@@ -56,25 +57,30 @@ export default {
     }
   },
   computed: {
-    
+    deg() {
+      return 360 / this.dotNum;
+    }
   },
   methods: {
     setOpacity(index) {
       const brothers = getBrother(index);
-          this.dots = this.dots.map(dot => {
-            let d = brothers.find(v => v.id === dot.id);
-            dot.opacity = d?.opacity || 0;
-            return dot;
-          })
+      this.dots.forEach(dot => {
+        let d = brothers.find(v => v.id === dot.id);
+        dot.opacity = d?.opacity || 0;
+      })
     },
     run() {
-      const {stop ,speed} = this;
+      const {stop ,speed, deg} = this;
       if (!stop) {
         this.rotate += this.clockwise ? speed : -speed;
-        if (this.rotate % 10 === 0) {
+        if (this.rotate % deg === 0) {
           const dist = this.rotate % 360;
-          const index = dist / 10
-          const topIndex = index > 0 ? 36 - index : -index;
+          const index = dist / deg
+          const topIndex = (index === 0)
+            ? 36
+            : index > 0
+              ? 36 - index
+              : Math.abs(index);
           this.setOpacity(topIndex);
         }
       }
@@ -87,7 +93,8 @@ export default {
     }
   },
   created() {
-    this.setOpacity(36);
+    this.dots = creatArray(this.dotNum);
+    this.setOpacity(this.dotNum);
     window.requestAnimationFrame(this.run);
   }
 }
