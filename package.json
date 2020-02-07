@@ -8,10 +8,10 @@
   "description": "走在前端的大道上",
   "author": "alan",
   "scripts": {
-    "dev:web": "lerna exec --scope @90s/web -- npm run start",
-    "dev:docs": "lerna exec --scope @90s/docs -- npm run docs:dev",
+    "dev:web": "lerna exec --scope @90s/web -- npm run dev",
+    "dev:docs": "lerna exec --scope @90s/docs -- npm run dev",
     "build:web": "lerna exec --scope @90s/web -- npm run build",
-    "build:docs": "lerna exec --scope @90s/docs -- npm run docs:build",
+    "build:docs": "lerna exec --scope @90s/docs -- npm run build",
     "build:tools": "lerna exec --scope @90s/tools -- npm run build",
     "release:web": "lerna exec --scope @90s/web -- npm run release",
     "predeploy": "if [ ! -x 'node_modules/.bin/ci-task-runner' ]; then echo 'install ci-task-runner...' && learn bootstrap; else echo 'ci-task-runner ready'; fi",
