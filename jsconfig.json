@@ -2,8 +2,7 @@
   "compilerOptions": {
       "baseUrl": "./",
       "paths": {
-          "@90s/tools": ["packages/tools/"],
-          "@/*": ["packages/web/src/*"],
+          "@90s/tools": ["packages/tools/"]
       }
   },
   "exclude": [
