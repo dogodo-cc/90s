@@ -51,9 +51,9 @@ const typeMap = {
 const PORT = 8008;
 
 http.createServer((req, res) => {
-  let url = req.url === '/' ? 'index.html' : req.url;
-  let dataPath = path.join(__dirname, url);
-  let dataType = url.substr(url.lastIndexOf('.') + 1);
+  let _url = req.url === '/' ? 'index.html' : decodeURIComponent(req.url);
+  let dataPath = path.join(__dirname, _url);
+  let dataType = _url.substr(_url.lastIndexOf('.') + 1);
 
   fs.readFile(dataPath, (err, data) => {
       if (err) {

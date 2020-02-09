@@ -28,6 +28,7 @@
       transform: translateY(-50%);
       transition: transform .4s;
       width: 160px;
+      user-select: none;
     }
 
     .nav.on {
@@ -129,6 +130,7 @@
   import {data, objectName } from './data.js';
   const nav = document.querySelector('.nav');
   const img = document.getElementById('img');
+  img.src = `./${objectName}/${data[0].name}/${data[0].child[0]}`; // 默认第一张
 
   // 预加载图片
   function createImg (src) {
@@ -138,8 +140,7 @@
     document.body.appendChild(img);
   };
 
-  img.src = `./${objectName}/${data[0].name}/${data[0].child[0]}`; // 默认第一张
-
+  
   let _html = '';
 
   // 生成二级菜单
@@ -230,7 +231,7 @@
   // 删除span上的current
   function removeCurrent() {
     let spans = nav.querySelectorAll('.hasImg');
-    [].slice.call(spans).forEach(function (o) {
+    [].slice.call(spans).forEach(o => {
       o.classList.remove('current');
     });
   }
@@ -272,8 +273,7 @@
   }
 
   // 展开 收起 快捷键
-  document.addEventListener('keydown',function (e) {
-    // console.log(e.keyCode);
+  document.addEventListener('keydown',(e) => {
     if(e.keyCode === 32){
       e.preventDefault();
       e.stopPropagation();
@@ -281,27 +281,24 @@
     }
 
     if(e.keyCode === 37){ // 左
-      e.preventDefault();
-      e.stopPropagation();
-
-      let current = document.querySelector('.current');
-      if(!current) return;
-      let prevNode = current.parentNode.previousSibling;
-      if(!prevNode) return;
-      prevNode.firstChild.click();
+      next(e, 'previousSibling');
     }
 
     if(e.keyCode === 39){ // 右
-      e.preventDefault();
-      e.stopPropagation();
-
-      let current = document.querySelector('.current');
-      if(!current) return;
-      let nextNode = current.parentNode.nextSibling;
-      if(!nextNode) return;
-      nextNode.firstChild.click();
+      next(e, 'nextSibling')
     }
   })
+
+  function next(e, dir = 'nextSibling') {
+    e.preventDefault();
+    e.stopPropagation();
+
+    let current = document.querySelector('.current');
+    if(!current) return;
+    let nextNode = current.parentNode[dir];
+    if(!nextNode) return;
+    nextNode.querySelector('span').click();
+  }
 
 </script>
 </body>
