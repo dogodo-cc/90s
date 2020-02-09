@@ -252,3 +252,12 @@ git rm -r --cached dist
 ```
 将已经在 git 跟踪的 dist 文件夹取消，不需要跟踪
 
+## 版本回退
+
+```shell
+git reset --hard commit_id
+```
+如果回到之前到某个版本，又想回到最新的版本, git log 只能显示当前`commit`之前的`log`信息
+```shell
+git reflog
+```
