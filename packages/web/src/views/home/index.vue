@@ -17,6 +17,9 @@
     </div>
 
     <el-button @click="downloadByLink">通过链接下载</el-button>
+    <div class="svg-box">
+      <img :src="svgLink" alt="svgLink">
+    </div>
   </div>
 </template>
 <script>
@@ -30,6 +33,7 @@ export default {
     return {
       isPhone,
       ratioW: 20,
+      svgLink: ''
     }
   },
   computed: {
@@ -46,6 +50,15 @@ export default {
         downloadByLink('https://st0.dancf.com/csc/3/fonts/55/20180421-115128-58.ttf');
       }, 1000)
     },
+  },
+  created() {
+    fetch('https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200205-162752-778d.svg').then(res => {
+      return res.text()
+    }).then(data => {
+      data = data.replace(/{{colors\[\d*\]}}/g, '#000000');
+      const blob = new Blob([data], {type: 'image/svg+xml'});
+      this.svgLink = window.URL.createObjectURL(blob);
+    })
   }
 }
 </script>
@@ -78,6 +91,17 @@ export default {
         color: #fff;
         font-size: 16px;
       }
+  }
+  .svg-box {
+    width: 130px;
+    height: 130px;
+    background-color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    img {
+      max-width: 100%;
+    }
   }
 }
 </style>
