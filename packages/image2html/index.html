@@ -133,12 +133,14 @@
   img.src = `./${objectName}/${data[0].name}/${data[0].child[0]}`; // 默认第一张
 
   // 预加载图片
-  function createImg (src) {
-    let img = document.createElement('img');
-    img.src = src;
-    img.style.display = 'none';
-    document.body.appendChild(img);
-  };
+  const downloadImage = (url) => {
+    const image = new Image();
+    image.onload = () => {
+      // console.log(url)
+    }
+    image.onerror = () => {};
+    image.src = url;
+}
 
   
   let _html = '';
@@ -148,7 +150,7 @@
     let html = "";
     items.forEach(function (item) {
       let src = `./${objectName}/${name}/${item}`;
-      createImg(src);
+      downloadImage(src);
       html += `<li class="sub-li">
                 <span class="hasImg" title="${item.split('.')[0]}" data-src="${src}">
                   ${item.split('.')[0]}
@@ -177,7 +179,7 @@
                 ${item.name.replace(/\d+/g, '')}
               </span>
             </li>`;
-      createImg(src)
+      downloadImage(src)
     }
     _html += li;
   });
