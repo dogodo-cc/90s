@@ -41,6 +41,12 @@ kill 6375
 - 系统偏好设置-键盘-输入法-自动切换到文稿的输入法 （可以保持不同程序之间各自的输入状态）
 - /usr/local/bin/sshpass -p "asdfghjkl,.456" ssh -p22 root@47.52.88.145
 
+### 设置鼠标的移动速度
+```
+defaults read -g com.apple.mouse.scaling 
+defaults write -g com.apple.mouse.scaling 8
+```
+
 ## 优秀软件
 
 - <http://pilotmoon.com/scrollreverser/?_blank>  鼠标方向
