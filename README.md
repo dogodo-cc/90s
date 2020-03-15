@@ -42,8 +42,9 @@ yarn workspace @90s/web add vue
 yarn workspace @90s/web add vue -D
 ```
 
+
 ## 待办
 - [x] 加入ci-task-runner，来处理增量构建
 - [ ] 加入typescript
 - [ ] 提高首屏加载速度
-- [ ] 增加一个 vuepress 文档网站
+- [x] 增加一个 vuepress 文档网站

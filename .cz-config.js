@@ -4,7 +4,7 @@ module.exports = {
   types: [
     { value: 'feat', name: 'feat:     你做完成了一个新功能' },
     { value: 'fix', name: 'fix:      你修复了一个bug' },
-    { value: 'docs', name: 'docs:     你更新了项目文档' },
+    // { value: 'docs', name: 'docs:     你更新了项目文档' },
     {
       value: 'style',
       name:
@@ -28,7 +28,7 @@ module.exports = {
     // { value: 'WIP', name: 'WIP:      Work in progress' },
   ],
 
-  scopes: [{ name: '学习' }, { name: '案例' }, { name: '构建' }, { name: '工具' }],
+  scopes: [{ name: '所有工程' },{ name: '叮当猫的口袋' }, { name: '90s项目' }, { name: '博客系统' }],
 
   allowTicketNumber: false,
   isTicketNumberRequired: false,
@@ -38,13 +38,13 @@ module.exports = {
   // it needs to match the value for field type. Eg.: 'fix'
 
   scopeOverrides: {
-    feat: [
-      {name: '学习笔记'},
-      {name: '代码收集'},
-      {name: '案例收集'},
-      {name: '工程构建'},
-      {name: '动画效果'},
-    ]
+    // feat: [
+    //   {name: '学习笔记'},
+    //   {name: '代码收集'},
+    //   {name: '案例收集'},
+    //   {name: '工程构建'},
+    //   {name: '动画效果'},
+    // ]
   },
 
   // override the messages, defaults are as follows
