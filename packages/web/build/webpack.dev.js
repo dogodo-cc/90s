@@ -13,6 +13,7 @@ module.exports = merge(common, {
   devServer: {
     // eslint-disable-next-line
     contentBase: path.resolve(__dirname, '../dist'),
-    hot: true
+    hot: true,
+    stats: "minimal"
   }
 })
