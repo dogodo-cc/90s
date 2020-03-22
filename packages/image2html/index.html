@@ -127,10 +127,10 @@
   <span class="switch">收起</span>
 </ul>
 <script type="module">
-  import {data, objectName } from './data.js';
+  import {data, project } from './data.js';
   const nav = document.querySelector('.nav');
   const img = document.getElementById('img');
-  img.src = `./${objectName}/${data[0].name}/${data[0].child[0]}`; // 默认第一张
+  img.src = `./${project}/${data[0].name}/${data[0].child[0]}`; // 默认第一张
 
   // 预加载图片
   const downloadImage = (url) => {
@@ -149,7 +149,7 @@
   function getChild(items, name) {
     let html = "";
     items.forEach(function (item) {
-      let src = `./${objectName}/${name}/${item}`;
+      let src = `./${project}/${name}/${item}`;
       downloadImage(src);
       html += `<li class="sub-li">
                 <span class="hasImg" title="${item.split('.')[0]}" data-src="${src}">
@@ -173,7 +173,7 @@
               <ul class="sub">${ulHtml}</ul>
             </li>`;
     } else {
-      let src = `./${objectName}/${item.name}/${item.child[0]}`;
+      let src = `./${project}/${item.name}/${item.child[0]}`;
       li = `<li class="nav-li">
               <span class="hasImg" data-src="${src}">
                 ${item.name.replace(/\d+/g, '')}

@@ -1,4 +1,5 @@
-// 这个文件由 app.js 自动生成
+// 此文件由 app.js 自动生成
+export const project = '湾峡泉';
 export const data = [
   {
     "name": "01首页",
@@ -40,4 +41,3 @@ export const data = [
     ]
   }
 ];
-export const objectName = 'imgs';

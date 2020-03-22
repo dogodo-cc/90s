@@ -4,18 +4,18 @@ const fs = require("fs");
 const path = require('path');
 const http = require("http");
 
-const imageSrc = process.argv.splice(2)[0] || 'imgs'; // 图片地址
+const project = process.argv.splice(2)[0] || '湾峡泉';
 
-if(!fs.existsSync(__dirname + `/${imageSrc}`)){
-  return console.error(`图片文件夹："${imageSrc}" 不存在！`)
+if(!fs.existsSync(__dirname + `/${project}`)){
+  return console.error(`项目： "${project}" 不存在！`)
 }
 
 // 根据图片文件夹生成侧边栏数据
 const navArr = [];
-fs.readdirSync(imageSrc).forEach(folder => {
+fs.readdirSync(project).forEach(folder => {
   if (folder === ".DS_Store") return;   // 忽略mac的解压文件
 
-  let filePath = __dirname + `/${imageSrc}/` + folder; // 每个文件夹路径
+  let filePath = __dirname + `/${project}/` + folder; // 每个文件夹路径
   let isDir = fs.lstatSync(filePath); // 是否文件夹
   if(isDir.isDirectory()){
     let data = {
@@ -30,9 +30,9 @@ fs.readdirSync(imageSrc).forEach(folder => {
   }
 });
 
-const dataContent = `// 这个文件由 app.js 自动生成
+const dataContent = `// 此文件由 app.js 自动生成
+export const project = '${project}';
 export const data = ${JSON.stringify(navArr, null, 2)};
-export const objectName = '${imageSrc}';
 `;
 
 fs.writeFile(path.join(__dirname,'data.js'), dataContent, err => {
