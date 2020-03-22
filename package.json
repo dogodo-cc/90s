@@ -24,7 +24,6 @@
     "child-process-promise": "^2.2.1",
     "ci-task-runner": "^1.0.4",
     "commitizen": "^4.0.3",
-    "cz-customizable": "^6.2.0",
     "eslint": "^5.0.0",
     "eslint-plugin-vue": "^5.2.3",
     "husky": "^3.0.4",
@@ -43,7 +42,6 @@
   "husky": {
     "hooks": {
       "pre-commit": "lint-staged",
-      "prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },

@@ -11,6 +11,6 @@ features:
 - title: 学习笔记
   details: 在前端路上的一些笔记、文档都沉淀在这里。
 - title: 文字
-  details: 收藏一些喜欢的文章和自己偶尔写的一些文字。
+  details: 自己偶尔写的一些文字。
 footer: MIT Licensed | Copyright © 2020-present 元帅
 ---
