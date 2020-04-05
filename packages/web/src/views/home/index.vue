@@ -1,6 +1,6 @@
 <template>
   <div class="page page-home">
-    嗯哼，这是我的个人博客，没有UI设计，后面慢慢优化 .
+    嗯哼，这是我的个人博客，没有UI设计，后面慢慢优化 . <hi-loading></hi-loading>
     <br>
     手机模式：{{isPhone}}
     <br>

@@ -3,6 +3,9 @@ import App from './App.vue';
 import router from './route'
 import store from './store';
 import eventBus from "./utils/event-bus";
+import HIui from '@90s/ui';
+
+Vue.use(HIui);
 
 import Icon from './components/Icon';
 Icon.regist('//at.alicdn.com/t/font_1431321_3zy5l06f66u.js');

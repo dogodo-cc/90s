@@ -6338,6 +6338,11 @@ hex-color-regex@^1.1.0:
   resolved "https://registry.npm.taobao.org/hex-color-regex/download/hex-color-regex-1.1.0.tgz#4c06fccb4602fe2602b3c93df82d7e7dbf1a8a8e"
   integrity sha1-TAb8y0YC/iYCs8k9+C1+fb8aio4=
 
+highlight.js@^9.3.0:
+  version "9.18.1"
+  resolved "https://registry.npm.taobao.org/highlight.js/download/highlight.js-9.18.1.tgz#ed21aa001fe6252bb10a3d76d47573c6539fe13c"
+  integrity sha1-7SGqAB/mJSuxCj121HVzxlOf4Tw=
+
 hmac-drbg@^1.0.0:
   version "1.0.1"
   resolved "https://registry.npm.taobao.org/hmac-drbg/download/hmac-drbg-1.0.1.tgz#d2745701025a6c775a6c545793ed502fc0c649a1"
@@ -11907,6 +11912,13 @@ tr46@^1.0.1:
   dependencies:
     punycode "^2.1.0"
 
+transliteration@^1.1.11:
+  version "1.6.6"
+  resolved "https://registry.npm.taobao.org/transliteration/download/transliteration-1.6.6.tgz#8a7e8ab3044ad19f233f50c15894cbf69e5d205e"
+  integrity sha1-in6KswRK0Z8jP1DBWJTL9p5dIF4=
+  dependencies:
+    yargs "^12.0.1"
+
 trim-newlines@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npm.taobao.org/trim-newlines/download/trim-newlines-1.0.0.tgz#5887966bb582a4503a41eb524f7d35011815a613"
@@ -12909,7 +12921,7 @@ yargs-parser@^5.0.0:
   dependencies:
     camelcase "^3.0.0"
 
-yargs@12.0.5:
+yargs@12.0.5, yargs@^12.0.1:
   version "12.0.5"
   resolved "https://registry.npm.taobao.org/yargs/download/yargs-12.0.5.tgz?cache=0&sync_timestamp=1577940731931&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fyargs%2Fdownload%2Fyargs-12.0.5.tgz#05f5997b609647b64f66b81e3b4b10a368e7ad13"
   integrity sha1-BfWZe2CWR7ZPZrgeO0sQo2jnrRM=
