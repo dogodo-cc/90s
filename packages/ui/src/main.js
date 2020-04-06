@@ -1,6 +1,10 @@
 import Loading from './components/Loading/index';
+import DragSort from './components/DragSort/index';
 
-const components = [Loading];
+const components = [
+  Loading,
+  DragSort
+];
 
 const install = function(Vue, opts = {}) { // eslint-disable-line
 
@@ -17,5 +21,6 @@ if (typeof window !== 'undefined' && window.Vue) {
 
 export default {
   install,
-  Loading
+  Loading,
+  DragSort
 }

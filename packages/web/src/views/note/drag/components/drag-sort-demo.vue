@@ -1,24 +1,24 @@
 <template>
   <div class="drag-sort-demo">
     <div class="title">拖动分类 (按住shift键可多选) - (支持鼠标左键框选)</div>
-    <DragSort
+    <hi-drag-sort
       v-model="gaoding"
       :styleConfig="styleConfig">
       <template #default="slotProps">
         <component :is="getComponent(slotProps.data.sex)" :data="slotProps.data"></component>
       </template>
-    </DragSort>
+    </hi-drag-sort>
   </div>
 </template>
 
 <script>
-import DragSort from '@/components/DragSort/index.vue'
+// import DragSort from '@/components/DragSort/index.vue'
 import CardBoy from './CardBoy.vue'
 import CardGirl from './CardGirl.vue'
 export default {
   name: 'drag-sort-demo',
   components: {
-    DragSort
+    // DragSort
   },
   data() {
     return {

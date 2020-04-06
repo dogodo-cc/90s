@@ -1,27 +1,18 @@
 <template>
   <div>
     <header class="alan-header">
-      <div class="wap-header" v-if="isPhone">
-        <icon @click.native="showNav = !showNav" color="#333" name="icon-menu"></icon>
+      <div class="wrap">
         <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
-      </div> 
-  
-      <template v-else>
-        <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
-      </template>
+      </div>
     </header>
-    <div class="alan-body">
-      <nav class="alan-nav" :class="{'show-nav':showNav}">
-        <ul>
-          <li v-for="nav in navs" :key="nav.path">
-            <dl>
-              <dt><router-link :to="nav.path">{{nav.meta.title}}</router-link></dt>
-              <dd v-for="o in nav.children" :key="o.path">
-                <router-link :to="o.path">{{o.meta.title}}</router-link>
-              </dd>
-            </dl>
-          </li>
-        </ul>
+    <div class="alan-body wrap">
+      <nav class="alan-nav">
+        <dl v-for="nav in navs" :key="nav.path">
+          <dt><router-link :to="nav.path">{{nav.meta.title}}</router-link></dt>
+          <dd v-for="o in nav.children" :key="o.path">
+            <router-link :to="o.path">{{o.meta.title}}</router-link>
+          </dd>
+        </dl>
       </nav>
       <div class="alan-contain page-container">
         <router-view></router-view>
@@ -31,7 +22,6 @@
 </template>
 
 <script>
-import {isPhone} from '@90s/tools';
 export default {
   name: 'layout',
   data(){
@@ -46,9 +36,6 @@ export default {
          } 
          return item.meta && item.meta.title && !item.meta.hidden;
        }),
-      isPhone,
-      showNav: false,
-      blogLink: `${window.location.origin}/blog`
     }
   }
 }

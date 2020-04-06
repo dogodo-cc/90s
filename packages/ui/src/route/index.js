@@ -35,6 +35,14 @@ const router = new VueRouter({
             title: '加载',
 
           }
+        },
+        {
+          path: '/drag',
+          name: 'drag',
+          component:() => import('@/components/DragSort/index.md'),
+          meta: {
+            title: '拖动分类',
+          }
         }
       ]
     },

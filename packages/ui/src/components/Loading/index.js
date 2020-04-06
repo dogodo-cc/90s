@@ -1,4 +1,4 @@
-import Loading from './src/main.vue';
+import Loading from './src/index.vue';
 
 /* istanbul ignore next */
 Loading.install = function(Vue) {

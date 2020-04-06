@@ -1,17 +1,17 @@
 <template>
   <div>
-    <div class="drag-sort-wrap">
+    <div :class="bem()">
       <div
         v-for="(group, index) in value"
         :key="index"
-        :class="[`group-${index}`, 'drag-sort-group']"
+        :class="[`group-${index}`, bem('group')]"
         :style="styleConfig[index]"
         >
-        <div class="group-header">
+        <div :class="bem('group-header')">
           <slot name="header">{{group.title}}</slot>
         </div>
         <div
-          class="group-body"
+          :class="bem('group-body')"
           :data-origin-group-index="index"
           @dragover="dragOver"
           @drop="drop"
@@ -31,18 +31,19 @@
               <slot :data="item" :group="group"></slot>
           </div>
         </div>
-        <div class="group-footer">
+        <div :class="bem('group-footer')">
           <slot name="footer"></slot>
         </div>
       </div>
     </div>
-    <img alt="预加载拖动多个文件时展示的图片" style="display:none" src="https://st-gdx.dancf.com/assets/20191209-163143-7009.png" />  
+    <img alt="预加载拖动多个文件时展示的图片" style="display:none" src="https://st-gdx.dancf.com/assets/20191223-162122-afcb.png" />  
   </div>
 </template>
 
 <script>
 import DragSelect from '@/directives/drag-select.js'
-const image = 'https://st-gdx.dancf.com/assets/20191209-163143-7009.png';
+import bem from '../../../mixins/bem';
+const image = 'https://st-gdx.dancf.com/assets/20191223-162122-afcb.png';
 const createDragImage = (ev) => {
   var img = new Image(); 
   img.src = image; 
@@ -52,7 +53,8 @@ const cloneDeep = (obj) => {
   return JSON.parse(JSON.stringify(obj));
 }
 export default {
-  name: 'DragSort',
+  name: 'hi-drag-sort',
+  mixins: [bem],
   directives: {
     DragSelect
   },
@@ -181,12 +183,13 @@ export default {
 </script>
 
 <style lang="scss">
-.drag-sort-wrap {
+.hi-drag-sort {
   display: flex;
-  .drag-sort-group {
+  &__group {
     display: flex;
     flex-direction: column;
-    .group-body {
+  }
+  &__group-body {
       flex: 1;
       width: 100%;
       display: flex;
@@ -210,6 +213,5 @@ export default {
         }
       }
     }
-  }
 }
 </style>

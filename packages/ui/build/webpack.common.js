@@ -11,6 +11,7 @@ module.exports = {
     app: path.resolve(__dirname, '../src/entry.js'),
   },
   output: {
+    // publicPath: '/public/',
     path: path.resolve(__dirname, '../dist'),
     filename: process.env.NODE_ENV === 'production' ? '[name].[chunkhash].js' : '[name].[hash].js',
   },
@@ -18,9 +19,6 @@ module.exports = {
     alias: {
       '@': path.resolve(__dirname, '../src')
     } 
-  },
-  externals: {
-    jquery: 'jQuery'
   },
   module: {
     rules: [
@@ -42,7 +40,7 @@ module.exports = {
           {
             loader: 'style-resources-loader',
             options: {
-                patterns: path.resolve(__dirname, '../src/styles/theme.scss'),
+                patterns: path.resolve(__dirname, '../src/styles/variable.scss'),
                 injector: 'prepend'
             }
         }
@@ -108,7 +106,7 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      title: '前端路上',
+      title: 'Hello-UI',
       template: path.resolve(__dirname, '../index.html')
     }),
     new VueLoaderPlugin()

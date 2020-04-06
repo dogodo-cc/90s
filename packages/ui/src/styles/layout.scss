@@ -1,6 +1,10 @@
+@import './hljs.scss';
+@import './common.scss';
+@import './demo-style/index.scss';
+
 @media screen and (min-width:780px) {
-  $headerHieght: 60px;
-  $navBarWidth: 200px;
+  $headerHieght: 80px;
+  $navBarWidth: 240px;
   @import './_layout.scss';
 }
 

@@ -9,7 +9,7 @@
 </template>
 <script>
 import { isPhone } from '@90s/tools';
-import Loading from '../../components/Loading/src/main.vue'
+import Loading from '../../components/Loading/src/index.vue'
 
 export default {
   name: 'home',
