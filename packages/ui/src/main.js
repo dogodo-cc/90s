@@ -1,14 +1,14 @@
 import Loading from './components/Loading/index';
 import DragSort from './components/DragSort/index';
 
-const components = [
+const components = {
   Loading,
   DragSort
-];
+};
 
 const install = function(Vue, opts = {}) { // eslint-disable-line
 
-  components.forEach(component => {
+  Object.values(components).forEach(component => {
     Vue.component(component.name, component);
   });
 
@@ -21,6 +21,5 @@ if (typeof window !== 'undefined' && window.Vue) {
 
 export default {
   install,
-  Loading,
-  DragSort
+  ...components
 }

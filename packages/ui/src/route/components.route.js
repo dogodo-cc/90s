@@ -1,0 +1,12 @@
+const components = [
+  {
+    name: 'Loading',
+    title: 'Loading 加载'
+  },
+  {
+    name: 'DragSort',
+    title: 'Drag 拖动分类'
+  }
+];
+
+export default components;

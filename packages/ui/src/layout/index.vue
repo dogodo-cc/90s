@@ -14,7 +14,7 @@
           </dd>
         </dl>
       </nav>
-      <div class="alan-contain page-container">
+      <div class="alan-contain">
         <router-view></router-view>
       </div>
     </div>

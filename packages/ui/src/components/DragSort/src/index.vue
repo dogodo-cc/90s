@@ -8,7 +8,7 @@
         :style="styleConfig[index]"
         >
         <div :class="bem('group-header')">
-          <slot name="header">{{group.title}}</slot>
+          <slot name="header"></slot>
         </div>
         <div
           :class="bem('group-body')"

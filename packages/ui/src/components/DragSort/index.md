@@ -9,11 +9,13 @@
 :::demo 支持使用`v-model`将数据传入
 ```html
 <template>
-  <hi-drag-sort v-model="gaoding" :styleConfig="styleConfig">
-    <template #default="slotProps">
-        <div class="card" :class="{selected:slotProps.data.selected }">
-          {{slotProps.data.name}}
-          <span>{{slotProps.data.sex === 1 ? 'boy' : 'girl'}}</span>
+  <hi-drag-sort
+    v-model="gaoding"
+    :styleConfig="styleConfig">
+    <template #default="{data}">
+        <div class="card" :class="{selected:data.selected }">
+          {{data.name}}
+          <span>{{data.sex === 1 ? 'boy' : 'girl'}}</span>
         </div>
     </template>
   </hi-drag-sort>

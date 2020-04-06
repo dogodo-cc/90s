@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Layout from '@/layout/index.vue';
 import hljs from 'highlight.js';
+import components from './components.route';
 
 Vue.use(VueRouter)
 
@@ -26,30 +27,40 @@ const router = new VueRouter({
           path: '/',
           name: 'home',
           component:() => import('@/views/home/index.vue'),
-        },
-        {
-          path: '/loading',
-          name: 'loading',
-          component:() => import('@/components/Loading/index.md'),
-          meta: {
-            title: '加载',
-
-          }
-        },
-        {
-          path: '/drag',
-          name: 'drag',
-          component:() => import('@/components/DragSort/index.md'),
-          meta: {
-            title: '拖动分类',
-          }
         }
+      ]
+    },
+    {
+      path: '/component/',
+      component: Layout,
+      redirect: '/component/quickstart',
+      meta: {
+        title: '组件',
+      },
+      children: [
+        {
+          path: 'quickstart',
+          meta: {
+            title: '快速开始',
+          },
+          component:() => import(`@/views/introduce/quickstart.md`),
+        },
+        ...components.map(c => {
+          return {
+            path: '/component/' + c.name.toLocaleLowerCase(),
+            name: c.name,
+            component:() => import(`@/components/${c.name}/index.md`),
+            meta: {
+              title: c.title,
+            }
+          }
+        })
       ]
     },
     {
       path: '*',
       name: '404',
-      component:() => import(/* webpackChunkName: "404" */ '@/views/404/index.vue'),
+      component:() => import('@/views/404/index.vue'),
     }
   ]
 })
