@@ -21,7 +21,7 @@
       :class="{ 'is-fixed': fixedControl }"
       @click="isExpanded = !isExpanded">
       <transition name="arrow-slide">
-        <i :class="[iconClass, { 'hovering': hovering }]"></i>
+        <svg-icon :icon-class="iconClass" :class="{ 'hovering': hovering }"></svg-icon>
       </transition>
       <transition name="text-slide">
         <span v-show="hovering">{{ controlText }}</span>
@@ -42,10 +42,6 @@
 
     code {
       font-family: Menlo, Monaco, Consolas, Courier, monospace;
-    }
-
-    .demo-button {
-      float: right;
     }
 
     .source {
@@ -126,9 +122,8 @@
         width: 868px;
       }
 
-      i {
-        font-size: 16px;
-        line-height: 44px;
+      .svg-icon {
+        margin-top: 14px;
         transition: .3s;
         &.hovering {
           transform: translateX(-40px);
@@ -154,31 +149,15 @@
         opacity: 0;
         transform: translateX(10px);
       }
-      
-      .control-button {
-        line-height: 26px;
-        position: absolute;
-        top: 0;
-        right: 0;
-        font-size: 14px;
-        padding-left: 5px;
-        padding-right: 25px;
-      }
     }
   }
 </style>
 
 <script type="text/babel">
-  import { stripScript, stripStyle, stripTemplate } from '../utils/index';
 
   export default {
     data() {
       return {
-        codepen: {
-          script: '',
-          html: '',
-          style: ''
-        },
         hovering: false,
         isExpanded: false,
         fixedControl: false,
@@ -200,16 +179,12 @@
     },
 
     computed: {
-      lang() {
-        return this.$route.path.split('/')[1];
-      },
-
       blockClass() {
-        return `demo-${ this.lang } demo-${ this.$router.currentRoute.path.split('/').pop() }`;
+        return `demo-${ this.$router.currentRoute.path.split('/').pop() }`;
       },
 
       iconClass() {
-        return this.isExpanded ? 'el-icon-caret-top' : 'el-icon-caret-bottom';
+        return this.isExpanded ? 'up' : 'down';
       },
 
       controlText() {
@@ -239,30 +214,15 @@
           return;
         }
         setTimeout(() => {
-          this.scrollParent = document.querySelector('.page-component__scroll > .el-scrollbar__wrap');
-          this.scrollParent && this.scrollParent.addEventListener('scroll', this.scrollHandler);
+          this.scrollParent = document.querySelector('.alan-body');
+          this.scrollParent && this.scrollParent.addEventListener('scroll', this.scrollHandler, false);
           this.scrollHandler();
         }, 200);
       }
     },
 
     created() {
-      const highlight = this.$slots.highlight;
-      if (highlight && highlight[0]) {
-        let code = '';
-        let cur = highlight[0];
-        if (cur.tag === 'pre' && (cur.children && cur.children[0])) {
-          cur = cur.children[0];
-          if (cur.tag === 'code') {
-            code = cur.children[0].text;
-          }
-        }
-        if (code) {
-          this.codepen.html = stripTemplate(code);
-          this.codepen.script = stripScript(code);
-          this.codepen.style = stripStyle(code);
-        }
-      }
+      
     },
 
     mounted() {

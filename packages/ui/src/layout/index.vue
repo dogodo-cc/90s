@@ -5,17 +5,19 @@
         <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
       </div>
     </header>
-    <div class="alan-body wrap">
-      <nav class="alan-nav">
-        <dl v-for="nav in navs" :key="nav.path">
-          <dt><router-link :to="nav.path">{{nav.meta.title}}</router-link></dt>
-          <dd v-for="o in nav.children" :key="o.path">
-            <router-link :to="o.path">{{o.meta.title}}</router-link>
-          </dd>
-        </dl>
-      </nav>
-      <div class="alan-contain">
-        <router-view></router-view>
+    <div class="alan-body">
+      <div class="wrap">
+        <nav class="alan-nav">
+          <dl v-for="nav in navs" :key="nav.path">
+            <dt><router-link :to="nav.path">{{nav.meta.title}}</router-link></dt>
+            <dd v-for="o in nav.children" :key="o.path">
+              <router-link :to="o.path">{{o.meta.title}}</router-link>
+            </dd>
+          </dl>
+        </nav>
+        <div class="alan-contain">
+          <router-view></router-view>
+        </div>
       </div>
     </div>
   </div>

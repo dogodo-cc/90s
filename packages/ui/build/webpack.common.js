@@ -63,17 +63,6 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.(png|svg|jpg|gif)$/,
-        use: [
-          {
-            loader: 'url-loader',
-            options: {
-              limit: 8192
-            }
-          }
-        ]
-      },
-      {
         test: /\.vue$/,
         exclude: file => (
           /node_modules/.test(file) &&
@@ -98,7 +87,27 @@ module.exports = {
         ]
       },
       {
-        test: /\.(eot|svg|ttf|woff2|woff)/,
+        test: /\.(png|svg|jpg|gif)$/,
+        exclude: [path.resolve(__dirname, '../src/icons')],
+        use: [
+          {
+            loader: 'url-loader',
+            options: {
+              limit: 8192
+            }
+          }
+        ]
+      },
+      {
+        test: /\.svg$/,
+        include: [path.resolve(__dirname, '../src/icons')],
+        loader: 'svg-sprite-loader',
+        options: {
+          symbolId: 'icon-[name]'
+        }
+      },
+      {
+        test: /\.(eot|ttf|woff2|woff)/,
         loader: 'file-loader'
       }
     ]

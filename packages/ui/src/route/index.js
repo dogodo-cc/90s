@@ -39,7 +39,7 @@ const router = new VueRouter({
       },
       children: [
         {
-          path: 'quickstart',
+          path: '/component/quickstart',
           meta: {
             title: '快速开始',
           },

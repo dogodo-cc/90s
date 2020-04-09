@@ -6,7 +6,7 @@ const components = {
   DragSort
 };
 
-const install = function(Vue, opts = {}) { // eslint-disable-line
+const install = function(Vue) {
 
   Object.values(components).forEach(component => {
     Vue.component(component.name, component);

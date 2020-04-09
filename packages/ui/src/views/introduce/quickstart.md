@@ -1,11 +1,11 @@
 ## 快速上手
 
-本节将介绍如何在项目中使用 HiUI。
+本节将介绍如何在项目中使用 Hello-UI。
 
 
-### 引入 HiUI
+### 引入 Hello-UI
 
-你可以引入整个 HiUI，或是根据需要仅引入部分组件。我们先介绍如何引入完整的 HiUI。
+你可以引入整个 Hello-UI，或是根据需要仅引入部分组件。我们先介绍如何引入完整的 Hello-UI。
 
 #### 完整引入
 
@@ -13,11 +13,11 @@
 
 ```javascript
 import Vue from 'vue';
-import HiUI from 'HiUI';
-import 'HiUI/lib/theme-chalk/index.css';
+import Hello-UI from 'Hello-UI';
+import 'Hello-UI/lib/theme-chalk/index.css';
 import App from './App.vue';
 
-Vue.use(HiUI);
+Vue.use(Hello-UI);
 
 new Vue({
   el: '#app',
@@ -25,7 +25,7 @@ new Vue({
 });
 ```
 
-以上代码便完成了 HiUI 的引入。需要注意的是，样式文件需要单独引入。
+以上代码便完成了 Hello-UI 的引入。需要注意的是，样式文件需要单独引入。
 
 #### 按需引入
 
@@ -46,7 +46,7 @@ npm install babel-plugin-component -D
     [
       "component",
       {
-        "libraryName": "HiUI",
+        "libraryName": "Hello-UI",
         "styleLibraryName": "theme-chalk"
       }
     ]
@@ -58,7 +58,7 @@ npm install babel-plugin-component -D
 
 ```javascript
 import Vue from 'vue';
-import { Button, Select } from 'element-ui';
+import { Button, Select } from 'Hello-UI';
 import App from './App.vue';
 
 Vue.component(Button.name, Button);
@@ -84,7 +84,7 @@ import {
   MessageBox,
   Message,
   Notification
-} from 'element-ui';
+} from 'Hello-UI';
 
 Vue.use(TimelineItem);
 Vue.use(Link);

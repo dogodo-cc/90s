@@ -1,12 +1,14 @@
 <template>
-  <div :class="bem()">
+ <transition name="el-loading-fade" @after-leave="handleAfterLeave">
+   <div :class="bem()">
     <div
       :class="bem('circle')"
-        v-for="i in 3"
-        :key="i"
-        :style="style"
+      v-for="i in 3"
+      :key="i"
+      :style="style"
     />
   </div>  
+ </transition>
 </template>
 
 <script>
@@ -38,6 +40,11 @@ export default {
         margin: `0 ${margin}px`
       };
     }
+  },
+  methods: {
+    handleAfterLeave() {
+      this.$emit('after-leave');
+    },
   }
 }
 </script>
@@ -50,6 +57,11 @@ export default {
     40% {
         transform: scale(1.0);
     }
+  }
+
+  .hi-loading-fade-enter,
+  .hi-loading-fade-leave-active {
+    opacity: 0;
   }
 
   .hi-loading {

@@ -4,12 +4,11 @@ import router from './route';
 import demoBlock from './layout/demo-block.vue';
 import HIui from './main';
 
-import Icon from './components/Icon';
-Icon.regist('//at.alicdn.com/t/font_1431321_3zy5l06f66u.js');
-Vue.use(Icon);
+import './icons';
 
 import "normalize.css"
 import '@/styles/layout.scss';
+import '@/styles/demo/index.scss';
 
 
 Vue.config.productionTip = false;

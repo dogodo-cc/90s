@@ -3,11 +3,8 @@
   margin: 0 auto;
 }
 .alan-header {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  z-index: 9;
   background-color: #fff;
   .wrap {
     height: $headerHieght;
@@ -18,55 +15,51 @@
   }
 }
 
-
-.alan-nav {
-  position: fixed;
-  top: calc(1px + #{$headerHieght});
-  bottom: 0;
-  width: $navBarWidth;
+.alan-body {
   height: calc(100vh - #{$headerHieght});
-  padding:30px 15px 30px 24px;
-  overflow-y: auto;
-  color: #333;
-  background-color: #fff;
-  a {
-    &.router-link-exact-active,&:hover {
-      color: blue;
+  overflow-y: scroll;
+  .alan-nav {
+    position: fixed;
+    top: calc(1px + #{$headerHieght});
+    bottom: 0;
+    width: $navBarWidth;
+    height: calc(100vh - #{$headerHieght});
+    padding:30px 15px 30px 24px;
+    overflow-y: auto;
+    color: #333;
+    background-color: #fff;
+    a {
+      &.router-link-exact-active,&:hover {
+        color: blue;
+      }
+    }
+    dl {
+      margin-bottom: 5px;
+    }
+    dt {
+      font-size: 16px;
+      color: #333;
+      line-height: 40px;
+      height: 40px;
+      font-weight: 700;
+    }
+    dd {
+      height: 40px;
+      color: #444;
+      line-height: 40px;
+      font-size: 14px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-weight: 400;
     }
   }
-  dl {
-    margin-bottom: 5px;
+  
+  .alan-contain {
+    margin-left: calc(30px + #{$navBarWidth});
+    padding-top: 30px;
+    height: 100%;
   }
-  dt {
-    font-size: 16px;
-    color: #333;
-    line-height: 40px;
-    height: 40px;
-    margin: 0;
-    padding: 0;
-    text-decoration: none;
-    display: block;
-    position: relative;
-    transition: .15s ease-out;
-    font-weight: 700;
-  }
-  dd {
-    display: block;
-    height: 40px;
-    color: #444;
-    line-height: 40px;
-    font-size: 14px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    font-weight: 400;
-  }
-}
-
-.alan-contain {
-  padding-top: calc(30px + #{$headerHieght});
-  margin-left: calc(30px + #{$navBarWidth});
-  min-height: calc(100vh - #{$headerHieght});
 }
 
 .hljs {
