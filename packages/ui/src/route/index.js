@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Layout from '@/layout/index.vue';
 import hljs from 'highlight.js';
-import components from './components.route';
+import components from '../components.json';
 
 Vue.use(VueRouter)
 

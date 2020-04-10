@@ -2,18 +2,19 @@ import Vue from 'vue';
 import App from './App.vue';
 import router from './route';
 import demoBlock from './layout/demo-block.vue';
-import HIui from './main';
+import HelloUI from './main';
+import 'hello-ui/src/components/stylesheet/hello-ui.scss'
 
 import './icons';
 
 import "normalize.css"
-import '@/styles/layout.scss';
-import '@/styles/demo/index.scss';
+import '@/styles/layout.scss'; // 项目布局样式
+import '@/styles/demo/index.scss'; // 每个demo单独的样式
 
 
 Vue.config.productionTip = false;
 Vue.component('demo-block', demoBlock);
-Vue.use(HIui);
+Vue.use(HelloUI);
 
 
 new Vue({

@@ -1,33 +1,39 @@
 <template>
  <transition name="el-loading-fade" @after-leave="handleAfterLeave">
-   <div :class="bem()">
-    <div
-      :class="bem('circle')"
-      v-for="i in 3"
-      :key="i"
-      :style="style"
-    />
+   <div
+    v-show="visible"
+    :class="[bem(), customClass, { 'is-fullscreen': fullscreen }]"
+    :style="{ backgroundColor: background || '' }"
+    >
+    <div :class="bem('circle-box')">
+      <div
+        :class="bem('circle')"
+        v-for="i in 3"
+        :key="i"
+        :style="style"
+      />
+    </div>
+    <p :class="bem('text')" v-if="text">{{text}}</p>
   </div>  
  </transition>
 </template>
 
 <script>
 import bem from '../../../mixins/bem';
+import {createComponentName} from '../../../utils/component';
 export default {
-  name: 'hi-loading',
+  name: createComponentName('loading'),
   mixins: [bem],
-  props: {
-    color: {
-      type: String,
-      default: '#2254f4'
-    },
-    size: {
-      type: Number,
-      default: 16,
-    },
-    margin: {
-      type: Number,
-      default: 4
+  data() {
+    return {
+      color: '',
+      size: 16,
+      margin: 4,
+      text: null,
+      background: null,
+      visible: false,
+      fullscreen: true,
+      customClass: ''
     }
   },
   computed: {
@@ -45,41 +51,9 @@ export default {
     handleAfterLeave() {
       this.$emit('after-leave');
     },
+    setText(text) {
+      this.text = text;
+    }
   }
 }
 </script>
-
-<style lang="scss">
-  @keyframes bouncedelay {
-    0%, 80%, 100% {
-        transform: scale(0.0);
-    }
-    40% {
-        transform: scale(1.0);
-    }
-  }
-
-  .hi-loading-fade-enter,
-  .hi-loading-fade-leave-active {
-    opacity: 0;
-  }
-
-  .hi-loading {
-    text-align: center;
-    font-size: 0;
-    
-    &__circle {
-      border-radius: 50%;
-      display: inline-block;
-      animation: bouncedelay 1.4s infinite ease-in-out;
-      animation-fill-mode: both;
-
-      &:nth-child(1) {
-          animation-delay: -0.32s;
-      }
-      &:nth-child(2) {
-          animation-delay: -0.16s;
-      }
-    }
-  }
-</style>

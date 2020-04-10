@@ -2,7 +2,6 @@ import Loading from './components/Loading/index';
 import DragSort from './components/DragSort/index';
 
 const components = {
-  Loading,
   DragSort
 };
 
@@ -12,14 +11,17 @@ const install = function(Vue) {
     Vue.component(component.name, component);
   });
 
+  Vue.use(Loading.directive);
+  Vue.prototype.$hiLoading = Loading.service;
 };
 
-/* istanbul ignore if */
+
 if (typeof window !== 'undefined' && window.Vue) {
   install(window.Vue);
 }
 
-export default {
+export default  {
   install,
+  Loading,
   ...components
 }

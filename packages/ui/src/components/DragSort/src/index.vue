@@ -43,6 +43,7 @@
 <script>
 import DragSelect from '@/directives/drag-select.js'
 import bem from '../../../mixins/bem';
+import {createComponentName} from '../../../utils/component';
 const image = 'https://st-gdx.dancf.com/assets/20191223-162122-afcb.png';
 const createDragImage = (ev) => {
   var img = new Image(); 
@@ -53,7 +54,7 @@ const cloneDeep = (obj) => {
   return JSON.parse(JSON.stringify(obj));
 }
 export default {
-  name: 'hi-drag-sort',
+  name: createComponentName('drag-sort'),
   mixins: [bem],
   directives: {
     DragSelect
@@ -181,37 +182,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.hi-drag-sort {
-  display: flex;
-  &__group {
-    display: flex;
-    flex-direction: column;
-  }
-  &__group-body {
-      flex: 1;
-      width: 100%;
-      display: flex;
-      flex-wrap: wrap;
-      align-content: flex-start;
-      align-items: flex-start;
-
-      .group-item {
-        position: relative;
-        margin: 10px;
-        // 为了保证永远都是这个容器获取到鼠标事件，我加了一层伪元素
-        &::after {
-          content: '';
-          display: block;
-          position: absolute;
-          left: 0;
-          top:0;
-          right: 0;
-          bottom:0;
-          // background-color: rgba(0, 0, 0, .2)
-        }
-      }
-    }
-}
-</style>

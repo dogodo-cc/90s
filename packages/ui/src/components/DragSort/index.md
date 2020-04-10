@@ -4,7 +4,7 @@
 
 ### 基本用法
 
-页面中的非浮层元素，不会自动消失。
+对一个对象数组进行拖动分类
 
 :::demo 支持使用`v-model`将数据传入
 ```html
@@ -13,7 +13,7 @@
     v-model="gaoding"
     :styleConfig="styleConfig">
     <template #default="{data}">
-        <div class="card" :class="{selected:data.selected }">
+        <div class="card" :class="{selected: data.selected }">
           {{data.name}}
           <span>{{data.sex === 1 ? 'boy' : 'girl'}}</span>
         </div>
@@ -94,17 +94,17 @@
           {
             width: '33.333%',
             height: '500px',
-            "background-color": '#ccc'
+            "background-color": '#eee'
           },
           {
             width: '33.333%',
             height: '500px',
-            "background-color": '#d463cb'
+            "background-color": 'rgb(235, 221, 221)'
           },
           {
             width: '33.333%',
             height: '500px',
-            "background-color": '#ccc'
+            "background-color": '#eee'
           }
         ]
       };
@@ -121,23 +121,17 @@
 ### Attributes
 | 参数      | 说明          | 类型      | 可选值                           | 默认值  |
 |---------- |-------------- |---------- |--------------------------------  |-------- |
-| title     | 标题           | string | — | — |
-| type | 主题 | string | success/warning/info/error | info |
-| description | 辅助性文字。也可通过默认 slot 传入 | string | — | — |
-| closable | 是否可关闭 | boolean | — | true |
-| center | 文字是否居中 | boolean | — | true |
-| close-text | 关闭按钮自定义文本 | string | — | — |
-| show-icon | 是否显示图标 | boolean | — | false |
-| effect | 选择提供的主题 | string | light/dark | light |
+| v-model     | 需要被分类的对象数组           | array | — | — |
+
 
 ### Slot
 
 | Name | Description |
 |------|--------|
 | — | 描述 |
-| title | 标题的内容 |
+| default | 自定义的拖动卡片组件 |
 
 ### Events
 | 事件名称 | 说明 | 回调参数 |
 |---------- |-------- |---------- |
-| close | 关闭alert时触发的事件 | — |
+| change | 拖动完成 | `orginalIndex`, `targetIndex`, `ids` 原组的索引和目标组的索引，且把被分类的id返回 |

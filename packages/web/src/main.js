@@ -3,11 +3,14 @@ import App from './App.vue';
 import router from './route'
 import store from './store';
 import eventBus from "./utils/event-bus";
-import HIui from '@90s/ui';
-
-Vue.use(HIui);
-
 import Icon from './components/Icon';
+
+// hello-ui
+import HelloUI from 'hello-ui';
+import 'hello-ui/lib/hello-ui.css';
+
+Vue.use(HelloUI);
+
 Icon.regist('//at.alicdn.com/t/font_1431321_3zy5l06f66u.js');
 Vue.use(Icon);
 
@@ -29,6 +32,3 @@ const app = new Vue({
   store,
   render: h => h(App),
 }).$mount('#app')
-
-// eslint-disable-next-line no-console
-// console.log(app);

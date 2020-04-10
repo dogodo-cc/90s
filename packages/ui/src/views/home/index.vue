@@ -1,6 +1,6 @@
 <template>
   <div class="page page-home">
-    ui 库.
+    hello-ui 库.
     
   <Loading></Loading>
 

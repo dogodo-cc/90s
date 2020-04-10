@@ -10,7 +10,8 @@ import {
   Popover,
   Tooltip,
   Slider,
-  Switch
+  Switch,
+  Loading
 } from 'element-ui'
 
 if (window.innerWidth < 780) {
@@ -28,3 +29,4 @@ Vue.use(Popover)
 Vue.use(Tooltip)
 Vue.use(Slider)
 Vue.use(Switch)
+Vue.use(Loading.directive);

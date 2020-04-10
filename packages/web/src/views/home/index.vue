@@ -1,6 +1,6 @@
 <template>
   <div class="page page-home">
-    嗯哼，这是我的个人博客，没有UI设计，后面慢慢优化 . <hi-loading></hi-loading>
+    嗯哼，这是我的个人博客，没有UI设计，后面慢慢优化 . 
     <br>
     手机模式：{{isPhone}}
     <br>
@@ -10,13 +10,14 @@
 
     <el-slider style="width: 400px;" v-model="ratioW"></el-slider>
 
-    <div class="ratio-16-9" :style="{width: ratioW * 10 + 'px'}">
+    <div class="ratio-16-9" v-hi-loading="loading" :style="{width: ratioW * 10 + 'px'}">
       <div class="ratio-box">
         <span>16:9</span>
       </div>
     </div>
 
     <el-button @click="downloadByLink">通过链接下载</el-button>
+    <el-button @click="loading = !loading">loading</el-button>
   </div>
 </template>
 <script>
@@ -30,6 +31,7 @@ export default {
     return {
       isPhone,
       ratioW: 20,
+      loading: true
     }
   },
   computed: {

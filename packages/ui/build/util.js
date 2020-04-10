@@ -6,6 +6,6 @@ const kebabCase = (str) => {
     .toLowerCase();
 };
 
-export {
+module.exports = {
   kebabCase
 }

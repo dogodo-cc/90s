@@ -61,6 +61,7 @@ typings/
 .next
 
 dist/
+lib
 
 # .ci-task-runner 的缓存
 .cache

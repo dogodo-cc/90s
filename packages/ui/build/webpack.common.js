@@ -5,6 +5,9 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const ProgressBarPlugin = require('progress-bar-webpack-plugin');
+
+const config = require('./config');
 
 module.exports = {
   entry: {
@@ -16,9 +19,7 @@ module.exports = {
     filename: process.env.NODE_ENV === 'production' ? '[name].[chunkhash].js' : '[name].[hash].js',
   },
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, '../src')
-    } 
+    alias: config.alias
   },
   module: {
     rules: [
@@ -114,8 +115,9 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
+    new ProgressBarPlugin(),
     new HtmlWebpackPlugin({
-      title: 'Hello-UI',
+      title: 'hello-ui',
       template: path.resolve(__dirname, '../index.html')
     }),
     new VueLoaderPlugin()
