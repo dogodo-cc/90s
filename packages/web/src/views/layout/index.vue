@@ -10,6 +10,7 @@
         <router-link class="logo-box" to="/"><img src="~@/assets/logo.png" alt="logo"></router-link>
         <div class="quick-link">
           <a  target="_blank" :href="blogLink">笔记</a>
+          <a  target="_blank" :href="uiLink">90s-ui</a>
         </div>
       </template>
     </header>
@@ -51,7 +52,8 @@ export default {
        }),
       isPhone,
       showNav: false,
-      blogLink: `${window.location.origin}/blog`
+      blogLink: `${window.location.origin}/blog`,
+      uiLink: `${window.location.origin}/ui`
     }
   }
 }

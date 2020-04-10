@@ -8,7 +8,7 @@ Vue.use(VueRouter)
 
 const router = new VueRouter({
   mode: 'hash',
-  base: '/',
+  base: '/ui/',
   scrollBehavior() {
     return {
         x: 0,

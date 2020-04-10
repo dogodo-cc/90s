@@ -14,6 +14,12 @@ exec('cp ./public/favicon.ico ./dist', {
 exec('cp -R ./website/* ./dist', {
   cwd: projectPath
 })
+
+// 90s-ui
+exec('cp -R ../ui/dist/ ./dist/ui', {
+  cwd: projectPath
+})
+
 exec('cp -R ../docs/docs/.vuepress/dist/ ./dist/blog', {
   cwd: projectPath
 }).then(() => {
