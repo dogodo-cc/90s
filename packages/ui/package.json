@@ -1,11 +1,11 @@
 {
-  "name": "hello-ui",
+  "name": "90s-ui",
   "version": "0.0.1",
   "description": "love what u do",
   "main": "lib/hello-ui.js",
   "author": "alan",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "files": [
     "lib",
     "src"

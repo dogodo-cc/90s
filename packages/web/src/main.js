@@ -6,8 +6,8 @@ import eventBus from "./utils/event-bus";
 import Icon from './components/Icon';
 
 // hello-ui
-import HelloUI from 'hello-ui';
-import 'hello-ui/lib/hello-ui.css';
+import HelloUI from '90s-ui';
+import '90s-ui/lib/hello-ui.css';
 
 Vue.use(HelloUI);
 
