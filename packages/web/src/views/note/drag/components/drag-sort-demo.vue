@@ -3,6 +3,7 @@
     <div class="title">拖动分类 (按住shift键可多选) - (支持鼠标左键框选)</div>
     <hi-drag-sort
       v-model="gaoding"
+      :contextmenu-options="options"
       :styleConfig="styleConfig">
       <template #default="slotProps">
         <component :is="getComponent(slotProps.data.sex)" :data="slotProps.data"></component>
@@ -91,7 +92,7 @@ export default {
       styleConfig: {
           common: {
             width: '33.333%',
-            height: '500px',
+            height: '340px',
             "background-color": '#eee'
           },
           groups: {
@@ -100,6 +101,16 @@ export default {
             }
           }
         }
+    }
+  },
+  computed: {
+    options(){
+      return this.gaoding.map((g, i) => {
+        return {
+          name:g.title,
+          value: i
+        }
+      })
     }
   },
   methods: {
