@@ -1,6 +1,6 @@
 {
   "name": "@90s/web",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "90s web",
   "main": "./src/main.js",
   "author": "alan",
@@ -14,8 +14,8 @@
   },
   "homepage": "https://www.90s.co",
   "dependencies": {
-    "@90s/tools": "1.0.0",
     "90s-ui": "0.0.4",
+    "@90s/tools": "^0.0.1",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/polyfill": "^7.4.4",
     "@babel/runtime-corejs2": "^7.4.5",

@@ -1,6 +1,6 @@
 {
   "name": "@90s/tools",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "工具函数",
   "main": "./dist/index.js",
   "author": "alan",
