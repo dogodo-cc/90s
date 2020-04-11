@@ -94,8 +94,9 @@
         styleConfig: {
           common: {
             width: '33.333%',
-            height: '500px',
-            "background-color": '#eee'
+            height: '340px',
+            "background-color": '#eee',
+            padding: '10px'
           },
           groups: {
             1: {

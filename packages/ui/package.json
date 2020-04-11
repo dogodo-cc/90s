@@ -1,6 +1,6 @@
 {
   "name": "90s-ui",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "love what u do",
   "main": "lib/hello-ui.js",
   "author": "alan",
@@ -14,7 +14,7 @@
     "dev": "webpack-dev-server --config ./build/webpack.dev.js",
     "build": "webpack --config ./build/webpack.prod.js",
     "build:css": "gulp build --gulpfile ./build/gulpfile.js",
-    "dist": "webpack --config ./build/webpack.component.js",
+    "dist": "npm run build:css && webpack --config ./build/webpack.component.js",
     "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml"
   },
   "homepage": "https://www.90s.co",

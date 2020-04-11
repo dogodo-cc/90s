@@ -55,6 +55,10 @@ import contextmenuClick from "@/directives/contextmenu-click.js";
 import bem from "../../../mixins/bem";
 import { createComponentName } from "../../../utils/component";
 const dragImage = "https://st-gdx.dancf.com/assets/20191223-162122-afcb.png";
+const downLoadImage = (link) => {
+  const image = new Image();
+  image.src = link;
+}
 const createDragImage = ev => {
   var img = new Image();
   img.src = dragImage;
@@ -251,6 +255,9 @@ export default {
       } = this;
       return Object.assign({}, common, groups[index] || null);
     }
+  },
+  mounted() {
+    downLoadImage(dragImage); // 预加载
   }
 };
 </script>

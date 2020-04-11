@@ -88,23 +88,18 @@ export default {
           ]
         }
       ],
-      styleConfig: [
-        {
-          width: '33.333%',
-          height: '500px',
-          "background-color": '#ccc'
-        },
-        {
-          width: '33.333%',
-          height: '500px',
-          "background-color": '#d463cb'
-        },
-        {
-          width: '33.333%',
-          height: '500px',
-          "background-color": '#ccc'
+      styleConfig: {
+          common: {
+            width: '33.333%',
+            height: '500px',
+            "background-color": '#eee'
+          },
+          groups: {
+            1: {
+              "background-color": 'rgb(235, 221, 221)'
+            }
+          }
         }
-      ]
     }
   },
   methods: {
