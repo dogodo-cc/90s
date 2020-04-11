@@ -13,14 +13,10 @@
 </template>
 
 <script>
-// import DragSort from '@/components/DragSort/index.vue'
 import CardBoy from './CardBoy.vue'
 import CardGirl from './CardGirl.vue'
 export default {
   name: 'drag-sort-demo',
-  components: {
-    // DragSort
-  },
   data() {
     return {
       gaoding: [
