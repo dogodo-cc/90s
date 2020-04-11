@@ -16,7 +16,8 @@
   </div>
 </template>
 <script>
-import DragSelect from '@/directives/drag-select.js'
+import HelloUI from '90s-ui';
+const {dragSelect} = HelloUI;
 const creatArray = (len) => {
   let i = 0;
   let arr = [];
@@ -29,7 +30,7 @@ const creatArray = (len) => {
 export default {
   name: 'drag-select',
   directives: {
-    DragSelect
+    dragSelect
   },
   data() {
     return {

@@ -1,5 +1,6 @@
 import Loading from './components/Loading/index';
 import DragSort from './components/DragSort/index';
+import dragSelect from './directives/drag-select.js';
 
 const components = {
   DragSort
@@ -18,9 +19,9 @@ const install = function(Vue) {
 if (typeof window !== 'undefined' && window.Vue) {
   install(window.Vue);
 }
-
 export default  {
   install,
+  dragSelect,
   Loading,
   ...components
 }

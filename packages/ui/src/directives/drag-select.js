@@ -34,7 +34,7 @@ const getchildPosition = (el, className = 'item') => {
         const { offsetLeft, offsetTop, offsetWidth, offsetHeight, dataset } = item;
         const axisX = getAxisArray(offsetLeft, offsetWidth);
         const axisY = getAxisArray(offsetTop, offsetHeight);
-        const id = +dataset.id || dataset.id;
+        const id = isNaN(dataset.id) ? dataset.id : +dataset.id;
         return { axisX, axisY, id };
     });
     return result;
