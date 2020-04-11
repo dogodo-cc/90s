@@ -13,7 +13,7 @@
     "dev:docs": "lerna exec --scope @90s/docs -- npm run dev",
     "dev:image2html": "lerna exec --scope @90s/image2html -- npm run dev",
     "build:web": "lerna exec --scope @90s/web -- npm run build",
-    "build:ui": "lerna exec --scope 90s-ui -- npm run dist && npm run build",
+    "build:ui": "lerna exec --scope 90s-ui -- npm run fuck",
     "build:docs": "lerna exec --scope @90s/docs -- npm run build",
     "build:tools": "lerna exec --scope @90s/tools -- npm run build",
     "publish:ui": "lerna exec --scope 90s-ui -- npm run dist",

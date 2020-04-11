@@ -16,7 +16,8 @@
     "build": "webpack --config ./build/webpack.prod.js",
     "build:css": "gulp build --gulpfile ./build/gulpfile.js",
     "dist": "npm run build:css && webpack --config ./build/webpack.component.js",
-    "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml"
+    "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml",
+    "fuck": "npm run dist && npm run build"
   },
   "homepage": "https://www.90s.co/ui",
   "peerDependencies": {
