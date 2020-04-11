@@ -6,13 +6,19 @@
       transform: scale(1.0);
   }
 }
+@import './mixins/mixins.scss';
 
-.hi-loading-fade-enter,
-.hi-loading-fade-leave-active {
-  opacity: 0;
+// Loading
+.hi-loading-parent--relative,
+.hi-popup-parent--relative {
+  position: relative;
+}
+.hi-loading-parent--hidden,
+.hi-popup-parent--hidden {
+  overflow: hidden;
 }
 
-.hi-loading {
+@include b(loading) {
   position: absolute;
   top: 0;
   right: 0;

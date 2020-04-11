@@ -4,14 +4,15 @@
 
 ### 基本用法
 
-对一个对象数组进行拖动分类
+对多组数据进行拖动分类
 
-:::demo 支持使用`v-model`将数据传入
+:::demo 支持使用`v-model`将数据传入，您还可以使用鼠标左键进行`框选`操作，或者按`shift`键进行多选。甚至支持鼠标右键进行快速分类。
 ```html
 <template>
   <hi-drag-sort
     v-model="gaoding"
-    :styleConfig="styleConfig">
+    :contextmenu-options="options"
+    :style-config="styleConfig">
     <template #default="{data}">
         <div class="card" :class="{selected: data.selected }">
           {{data.name}}
@@ -90,24 +91,29 @@
             ]
           }
         ],
-        styleConfig: [
-          {
+        styleConfig: {
+          common: {
             width: '33.333%',
             height: '500px',
             "background-color": '#eee'
           },
-          {
-            width: '33.333%',
-            height: '500px',
-            "background-color": 'rgb(235, 221, 221)'
-          },
-          {
-            width: '33.333%',
-            height: '500px',
-            "background-color": '#eee'
+          groups: {
+            1: {
+              "background-color": 'rgb(235, 221, 221)'
+            }
           }
-        ]
+        }
       };
+    },
+    computed: {
+      options(){
+        return this.gaoding.map((g, i) => {
+          return {
+            name:g.title,
+            value: i
+          }
+        })
+      }
     },
     methods: {
       
@@ -122,6 +128,8 @@
 | 参数      | 说明          | 类型      | 可选值                           | 默认值  |
 |---------- |-------------- |---------- |--------------------------------  |-------- |
 | v-model     | 需要被分类的对象数组           | array | — | — |
+| contextmenu-options | 右键快捷分类的选项，需包含`{name, value}`两个字段， `name`为展示的名称，`value`为分组索引，因为组件内部是通过索引来进行数据`拖动`的 | array | — | [ ] |
+| style-config    | 每个组的样式 `{common, groups}` `common`是组的公共样式, 假如你需要对第二个组进行样式定义，则传入 `{groups: {1: {width: 100px, ...style}}}`， 比如demo里对第二组定制了独立的背景色          | object | — | — |
 
 
 ### Slot
@@ -130,8 +138,10 @@
 |------|--------|
 | — | 描述 |
 | default | 自定义的拖动卡片组件 |
+| header | 每个组的头部 |
+| footer | 每个组的底部 |
 
 ### Events
 | 事件名称 | 说明 | 回调参数 |
 |---------- |-------- |---------- |
-| change | 拖动完成 | `orginalIndex`, `targetIndex`, `ids` 原组的索引和目标组的索引，且把被分类的id返回 |
+| change | 拖动完成 | `orginalIndex`, `targetIndex`, `ids` 原组的索引和目标组的索引，且把被分类的`项`的id返回 |

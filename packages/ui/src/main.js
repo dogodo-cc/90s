@@ -15,7 +15,6 @@ const install = function(Vue) {
   Vue.prototype.$hiLoading = Loading.service;
 };
 
-
 if (typeof window !== 'undefined' && window.Vue) {
   install(window.Vue);
 }

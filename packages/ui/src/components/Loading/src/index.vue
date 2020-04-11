@@ -1,5 +1,5 @@
 <template>
- <transition name="el-loading-fade" @after-leave="handleAfterLeave">
+ <transition name="hi-loading-fade" @after-leave="handleAfterLeave">
    <div
     v-show="visible"
     :class="[bem(), customClass, { 'is-fullscreen': fullscreen }]"

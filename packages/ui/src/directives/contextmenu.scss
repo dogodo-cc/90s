@@ -1,0 +1,24 @@
+
+/* 自定义指令 contextmenu  */
+.contextmenu {
+  .contextmenu-header {
+    font-weight:400;
+    color:rgba(144,147,153,1);
+    line-height:30px;
+    padding: 0 10px;
+    border-bottom:1px solid #F5F7FA;
+  }
+  .contextmenu-list {
+    font-size: 14px;
+    li {
+      padding: 0 10px;
+      line-height: 34px;
+      color: #303133;
+      cursor: pointer;
+      &:hover {
+        background:rgba(245,247,250,1);
+        color: #2254F4;
+      }
+    }
+  }
+}

@@ -1,13 +1,5 @@
 
-// Loading
-.hi-loading-parent--relative,
-.hi-popup-parent--relative {
-  position: relative;
-}
-.hi-loading-parent--hidden,
-.hi-popup-parent--hidden {
-  overflow: hidden;
-}
-
+@import './common/transition.scss';
 @import './loading.scss';
 @import './drag-sort.scss';
+@import '../../directives/contextmenu.scss';
