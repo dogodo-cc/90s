@@ -1,0 +1,11 @@
+.waterfall-wrap {
+  height: 400px;
+  overflow-y: auto;
+  .card {
+    background-color: #eee;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}

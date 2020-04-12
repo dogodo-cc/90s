@@ -1,9 +1,11 @@
 import Loading from './components/Loading/index';
 import DragSort from './components/DragSort/index';
+import WaterFall from './components/WaterFall/index';
 import dragSelect from './directives/drag-select.js';
 
 const components = {
-  DragSort
+  DragSort,
+  WaterFall
 };
 
 const install = function(Vue) {

@@ -6,5 +6,9 @@
   {
     "name": "DragSort",
     "title": "Drag 拖动分类"
+  },
+  {
+    "name": "WaterFall",
+    "title": "WaterFall 瀑布流"
   }
 ]

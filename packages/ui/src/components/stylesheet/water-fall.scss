@@ -1,0 +1,19 @@
+@import './mixins/mixins.scss';
+
+@include b(waterfall) {
+  &__groups {
+      display: flex;
+      justify-content: space-between;
+  }  
+  &__no-more {
+      text-align: center;
+  }
+  &__no-data {
+    text-align: center;
+  }
+  &__loading {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto;
+  }
+}

@@ -253,7 +253,7 @@ export default {
       const {
         styleConfig: { common, groups }
       } = this;
-      return Object.assign({}, common, groups[index] || null);
+      return Object.assign({}, common || null, groups[index] || null);
     }
   },
   mounted() {

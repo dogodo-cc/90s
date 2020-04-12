@@ -189,7 +189,7 @@
     }
   }
 
-  ul:not(.timeline) {
+  > ul:not(.timeline) {
     margin: 10px 0;
     padding: 0 0 0 20px;
     font-size: 14px;
