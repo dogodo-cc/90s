@@ -1,6 +1,6 @@
 <template>
   <div class="page page-home">
-    hello-ui 库.
+    设计工坊UI组件库，只是对ElementUI or AntUI的一个补充。
     
   <Loading></Loading>
 

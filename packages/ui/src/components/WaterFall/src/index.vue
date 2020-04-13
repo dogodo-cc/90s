@@ -5,7 +5,8 @@
         <p :class="bem('no-data')">暂无数据</p>
       </slot>
     </template>
-    <template v-else>
+    <!-- 这里使用了v-show 主要是为了保持loading 的IntersectionObserver 一直有效 -->
+    <div v-show="total">
       <div :class="bem('groups')">
         <ul
           :style="{width: colWidth + 'px'}"
@@ -31,7 +32,7 @@
           </slot>
         </template>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -121,10 +122,11 @@ export default {
   },
   methods: {
     getMore() {
-      this.triggerByClick && !this.isNoMore && this.$emit("getMore");
+      !this.isNoMore && this.$emit("getMore");
     }
   },
   mounted() {
+    // 有的时候不需要组件自动触发，而需要用户手动触发
     if (!this.triggerByClick) {
       const IO = new IntersectionObserver(el => {
         if (el[0].intersectionRatio <= 0) return;
