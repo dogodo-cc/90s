@@ -29,7 +29,5 @@ export default {
 .page-home {
   padding: 20px;
   font-size: 16px;
-  color: $colorMain;
-
 }
 </style>

@@ -9,12 +9,12 @@
   "scripts": {
     "dev": "webpack-dev-server --config ./build/webpack.dev.js",
     "build": "webpack --config ./build/webpack.prod.js",
-    "website": "cd scripts && node create-website-list.js",
-    "release": "if [ ! -d 'dist' ]; then echo '😢 dist 文件夹不存在' && mkdir dist; else echo '😄 正在往 dist 文件夹搬迁静态文件' && cd scripts && node release.js; fi"
+    "website": "node scripts/create-website-list.js",
+    "release": "if [ ! -d 'dist' ]; then echo '😢 dist 文件夹不存在' && mkdir dist; else echo '😄 正在往 dist 文件夹搬迁静态文件' && node scripts/release.js; fi"
   },
   "homepage": "https://www.90s.co",
   "dependencies": {
-    "90s-ui": "0.0.7",
+    "90s-ui": "0.0.11",
     "@90s/tools": "^0.0.1",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/polyfill": "^7.4.4",
