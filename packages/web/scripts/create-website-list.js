@@ -4,8 +4,9 @@ const fs = require('fs');
 const path = require('path');
 
 let list = [];
+const dirPath = path.resolve(__dirname, '../website');
 
-fs.readdirSync('../website').forEach(folder => {
+fs.readdirSync(dirPath).forEach(folder => {
   if (folder === ".DS_Store") return;
 
   const filePath = path.join(__dirname, '../website', folder);
