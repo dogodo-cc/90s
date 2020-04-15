@@ -19,14 +19,29 @@ const router = new VueRouter({
     {
       path: '/',
       component: Layout,
-      meta: {
-        title: '首页'
-      },
       children: [
         {
           path: '/',
           name: 'home',
           component:() => import('@/views/home/index.vue'),
+        }
+      ]
+    },
+    {
+      path: '/doc',
+      redirect: '/doc/search-mixin',
+      component: Layout,
+      meta: {
+        title: '文档'
+      },
+      children: [
+        {
+          path: '/doc/search-mixin',
+          name: 'searchMixin',
+          component:() => import('@/views/docs/search-mixin.md'),
+          meta: {
+            title: 'search-mixin'
+          },
         }
       ]
     },
