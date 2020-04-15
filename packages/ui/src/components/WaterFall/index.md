@@ -67,7 +67,7 @@
         window.setTimeout(() => {
           this.data.push(...r);
           this.loading = false;
-        }, 1000);
+        }, 600);
       },
       testNoData() {
         this.total = 0;
@@ -145,7 +145,7 @@
         window.setTimeout(() => {
           this.data.push(...r);
           this.loading = false;
-        }, 1000);
+        }, 600);
       }
     },
     created() {
