@@ -6,7 +6,7 @@
       :contextmenu-options="options"
       :styleConfig="styleConfig">
       <template #default="slotProps">
-        <component :is="getComponent(slotProps.data.sex)" :data="slotProps.data"></component>
+        <component :key="slotProps.data.id" :is="getComponent(slotProps.data.sex)" :data="slotProps.data"></component>
       </template>
     </hi-drag-sort>
   </div>
