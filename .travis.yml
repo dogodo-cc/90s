@@ -5,7 +5,7 @@ branches:
 cache:
   directories: node_modules
 install: yarn
-script: npm run deploy
+script: npm run build
 after_success:
   npm run release:web
 deploy:

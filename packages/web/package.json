@@ -10,7 +10,7 @@
     "dev": "webpack-dev-server --config ./build/webpack.dev.js",
     "build": "webpack --config ./build/webpack.prod.js",
     "website": "node scripts/create-website-list.js",
-    "release": "if [ ! -d 'dist' ]; then echo '😢 dist 文件夹不存在' && mkdir dist; else echo '😄 正在往 dist 文件夹搬迁静态文件' && node scripts/release.js; fi"
+    "deploy": "if [ ! -d 'dist' ]; then echo '😢 dist 文件夹不存在' && mkdir dist; else echo '😄 正在往 dist 文件夹搬迁静态文件' && node scripts/release.js; fi"
   },
   "homepage": "https://www.90s.co",
   "dependencies": {

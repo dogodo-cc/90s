@@ -58,7 +58,7 @@
 
 |   选项      |    说明              |  类型      | 可选值                           | 默认值  |
 |------------|--------------------- |---------- |--------------------------------  |-------- |
-|searchImmediately | `data`字段，表示是否立即搜索，有时候默认的搜索参数是通过异步获取的，需要等获取完筛选参数再进行搜索 | boolean | true、fasle  | true |
+|searchImmediately | `data`字段，表示是否立即搜索。有时候默认的搜索参数是通过异步获取的，需要等获取完筛选参数再进行搜索 | boolean | true、fasle  | true |
 |searchService | `data`字段，里面包含两个字段：`searchQueryDefault` 默认的请求参数，`searchQuery`请求参数，它的字段将和筛选区域的各个筛选组件的`value`一一对应。 | object | -  | - |
 |searchFetch | `methods`字段，发起api请求的函数 | function | -  | - |
 
