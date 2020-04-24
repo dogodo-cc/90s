@@ -11,7 +11,6 @@
     "dev:web": "lerna exec --scope @90s/web -- npm run dev",
     "dev:ui": "lerna exec --scope 90s-ui -- npm run dev",
     "dev:docs": "lerna exec --scope @90s/docs -- npm run dev",
-    "dev:image2html": "lerna exec --scope @90s/image2html -- npm run dev",
     "build:web": "lerna exec --scope @90s/web -- npm run build",
     "build:ui": "lerna exec --scope 90s-ui -- npm run build",
     "build:docs": "lerna exec --scope @90s/docs -- npm run build",
