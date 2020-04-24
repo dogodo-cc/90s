@@ -15,6 +15,18 @@
 - [cz-customizable](https://github.com/leonardoanalista/cz-customizable) 配置自定义交互提示
 - [commitlint](https://github.com/conventional-changelog/commitlint) 来验证提交是否符合规则
 
+```
+"config": {
+    "commitizen": {
+      "path": "./node_modules/cz-customizable",
+      "defaultType": "feat"
+    },
+    "cz-customizable": {
+      "config": "./.cz-config.js"
+    }
+},
+```
+
 ## 安装依赖
 ```base
 // 安装 vue（远程） 到 @90s/web

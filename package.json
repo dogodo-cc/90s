@@ -47,15 +47,6 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-customizable",
-      "defaultType": "feat"
-    },
-    "cz-customizable": {
-      "config": "./.cz-config.js"
-    }
-  },
   "lint-staged": {
     "packages/**/*.{js,vue,ts,tsx}": [
       "eslint --fix",
