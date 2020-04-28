@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>动态侧边栏 | 前端路上</title>
+    <meta name="description" content="www.90s.co">
+    <meta name="generator" content="VuePress 1.3.1">
+    
+    
+    <link rel="preload" href="/blog/assets/css/0.styles.b462d5f4.css" as="style"><link rel="preload" href="/blog/assets/js/app.6040b8c2.js" as="script"><link rel="preload" href="/blog/assets/js/2.1ce42cc6.js" as="script"><link rel="preload" href="/blog/assets/js/30.527b58c7.js" as="script"><link rel="prefetch" href="/blog/assets/js/10.23b8686d.js"><link rel="prefetch" href="/blog/assets/js/11.5c784ab7.js"><link rel="prefetch" href="/blog/assets/js/12.8344d8ff.js"><link rel="prefetch" href="/blog/assets/js/13.68f4ac2f.js"><link rel="prefetch" href="/blog/assets/js/14.a4a39483.js"><link rel="prefetch" href="/blog/assets/js/15.e1d5175e.js"><link rel="prefetch" href="/blog/assets/js/16.e835100c.js"><link rel="prefetch" href="/blog/assets/js/17.85cda59d.js"><link rel="prefetch" href="/blog/assets/js/18.cfd7bb8b.js"><link rel="prefetch" href="/blog/assets/js/19.eee12d33.js"><link rel="prefetch" href="/blog/assets/js/20.194f4d05.js"><link rel="prefetch" href="/blog/assets/js/21.ff0ede1c.js"><link rel="prefetch" href="/blog/assets/js/22.dcfdc049.js"><link rel="prefetch" href="/blog/assets/js/23.912ea9f2.js"><link rel="prefetch" href="/blog/assets/js/24.32a556dd.js"><link rel="prefetch" href="/blog/assets/js/25.d04d175c.js"><link rel="prefetch" href="/blog/assets/js/26.57581ee7.js"><link rel="prefetch" href="/blog/assets/js/27.ce7ab018.js"><link rel="prefetch" href="/blog/assets/js/28.24575ff3.js"><link rel="prefetch" href="/blog/assets/js/29.7e9e5886.js"><link rel="prefetch" href="/blog/assets/js/3.e5e2bf96.js"><link rel="prefetch" href="/blog/assets/js/31.1afbc8f0.js"><link rel="prefetch" href="/blog/assets/js/32.9ecd5160.js"><link rel="prefetch" href="/blog/assets/js/33.28a97777.js"><link rel="prefetch" href="/blog/assets/js/4.de9136cb.js"><link rel="prefetch" href="/blog/assets/js/5.47d9053a.js"><link rel="prefetch" href="/blog/assets/js/6.596c4cd0.js"><link rel="prefetch" href="/blog/assets/js/7.02642d37.js"><link rel="prefetch" href="/blog/assets/js/8.319fd2a4.js"><link rel="prefetch" href="/blog/assets/js/9.67f56c3a.js">
+    <link rel="stylesheet" href="/blog/assets/css/0.styles.b462d5f4.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/blog/" class="home-link router-link-active"><!----> <span class="site-name">前端路上</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/blog/project/" class="nav-link router-link-active">
+  项目
+</a></div><div class="nav-item"><a href="/blog/note/" class="nav-link">
+  笔记
+</a></div><div class="nav-item"><a href="/blog/article/" class="nav-link">
+  文字
+</a></div><div class="nav-item"><a href="https://github.com/dogodo-cc/90s" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  Github
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/blog/project/" class="nav-link router-link-active">
+  项目
+</a></div><div class="nav-item"><a href="/blog/note/" class="nav-link">
+  笔记
+</a></div><div class="nav-item"><a href="/blog/article/" class="nav-link">
+  文字
+</a></div><div class="nav-item"><a href="https://github.com/dogodo-cc/90s" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  Github
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg></a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group collapsable depth-0"><p class="sidebar-heading open"><span>项目记录</span> <span class="arrow down"></span></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/blog/project/动态侧边栏.html" class="active sidebar-link">动态侧边栏</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/blog/project/动态侧边栏.html#场景需求" class="sidebar-link">场景需求</a></li><li class="sidebar-sub-header"><a href="/blog/project/动态侧边栏.html#实现思路" class="sidebar-link">实现思路</a></li></ul></li><li><a href="/blog/project/神策埋点.html" class="sidebar-link">神策埋点</a></li><li><a href="/blog/project/自动生成树ID.html" class="sidebar-link">自动生成树ID</a></li></ul></section></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="动态侧边栏"><a href="#动态侧边栏" class="header-anchor">#</a> 动态侧边栏</h1> <p>电商项目的侧边栏针对不同的页面，有不同的功能需要呈现，统一在  <code>components/quick-link/index.uve</code> 组件下管理。</p> <h2 id="场景需求"><a href="#场景需求" class="header-anchor">#</a> 场景需求</h2> <ul><li>如果非特殊页面，则侧边栏显示默认的功能如：['Chat', 'FansGroup', 'QrCode', 'BackTop']</li> <li>如果是特殊页面，则需要显示特有的功能如装修工具页：['Chat', 'QrCode', 'ToolVideo', 'BackTop']</li> <li>特别页面根本无需显示侧边栏： [] 传入空数组</li></ul> <h2 id="实现思路"><a href="#实现思路" class="header-anchor">#</a> 实现思路</h2> <p>因为业务场景是根据页面去区分的，所以在路由配置是最佳的，我们约定在路由的<code>meta</code>字段里添加<code>quickLink</code>字段如下:</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code><span class="token punctuation">{</span>
+    name<span class="token operator">:</span> <span class="token string">'tools'</span><span class="token punctuation">,</span>
+    path<span class="token operator">:</span> <span class="token string">'/tools/:queryStr?'</span><span class="token punctuation">,</span>
+    component<span class="token operator">:</span> Tool<span class="token punctuation">,</span>
+    meta<span class="token operator">:</span> <span class="token punctuation">{</span>
+        lazyMeta<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        showNav<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+        link<span class="token operator">:</span> <span class="token string">'/tools'</span><span class="token punctuation">,</span>
+        title<span class="token operator">:</span> <span class="token string">'装修工具'</span><span class="token punctuation">,</span>
+        order<span class="token operator">:</span> <span class="token number">7</span><span class="token punctuation">,</span>
+        quickLink<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'Chat'</span><span class="token punctuation">,</span> <span class="token string">'FansGroup'</span><span class="token punctuation">,</span> <span class="token string">'QrCode'</span><span class="token punctuation">,</span> <span class="token string">'ToolVideo'</span><span class="token punctuation">,</span> <span class="token string">'BackTop'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre></div><p>然后在组件里监听当前路由，得到对应的配置</p> <div class="language-javascript extra-class"><pre class="language-javascript"><code>watch<span class="token operator">:</span> <span class="token punctuation">{</span>
+    $route<span class="token operator">:</span> <span class="token punctuation">{</span>
+        <span class="token function">handler</span><span class="token punctuation">(</span><span class="token parameter">v</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+            <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>fromTaobao<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword">this</span><span class="token punctuation">.</span>child <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'TaobaoChat'</span><span class="token punctuation">,</span> <span class="token string">'BackTop'</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token keyword">if</span> <span class="token punctuation">(</span>v<span class="token punctuation">.</span>meta <span class="token operator">&amp;&amp;</span> v<span class="token punctuation">.</span>meta<span class="token punctuation">.</span>quickLink<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+                <span class="token keyword">this</span><span class="token punctuation">.</span>child <span class="token operator">=</span> v<span class="token punctuation">.</span>meta<span class="token punctuation">.</span>quickLink<span class="token punctuation">;</span>
+            <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+                <span class="token keyword">this</span><span class="token punctuation">.</span>child <span class="token operator">=</span> defaultLinks<span class="token punctuation">;</span>
+            <span class="token punctuation">}</span>
+        <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        immediate<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span>
+</code></pre></div><p>然后再通过<code>this.child</code>得到我们真正需要的组件并通过<code>component</code>的<code>is</code>属性渲染出来。</p> <div class="language-vue extra-class"><pre class="language-vue"><code>// 得到真正的组件 childrens
+computed: {
+    childrens () {
+        return this.child.reduce((p, n) =&gt; {
+            if (links[n]) {
+                p.push(links[n]);
+            }
+            return p;
+        }, []);
+    },
+},
+
+// 渲染组件
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>quick-link</span> <span class="token attr-name">v-if</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>childrens.length &gt; 0<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>component</span>
+        <span class="token attr-name">:is</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>component<span class="token punctuation">&quot;</span></span>
+        <span class="token attr-name">:key</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>i<span class="token punctuation">&quot;</span></span>
+        <span class="token attr-name">v-for</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">&quot;</span>(component,i) in childrens<span class="token punctuation">&quot;</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>component</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>quick-link</span><span class="token punctuation">&gt;</span></span>
+</code></pre></div></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><!----> <span class="next"><a href="/blog/project/神策埋点.html">
+        神策埋点
+      </a>
+      →
+    </span></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/blog/assets/js/app.6040b8c2.js" defer></script><script src="/blog/assets/js/2.1ce42cc6.js" defer></script><script src="/blog/assets/js/30.527b58c7.js" defer></script>
+  </body>
+</html>
