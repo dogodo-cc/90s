@@ -21,7 +21,7 @@
       :class="{ 'is-fixed': fixedControl }"
       @click="isExpanded = !isExpanded">
       <transition name="arrow-slide">
-        <svg-icon :icon-class="iconClass" :class="{ 'hovering': hovering }"></svg-icon>
+        <svg-icon :name="iconClass" :class="{ 'hovering': hovering }"></svg-icon>
       </transition>
       <transition name="text-slide">
         <span v-show="hovering">{{ controlText }}</span>

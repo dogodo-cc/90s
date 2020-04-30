@@ -10,5 +10,9 @@
   {
     "name": "WaterFall",
     "title": "WaterFall 瀑布流"
+  },
+  {
+    "name": "Filters",
+    "title": "Filters 筛选"
   }
 ]

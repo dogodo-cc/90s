@@ -10,7 +10,7 @@ export default {
   name: 'svg-icon',
   mixins: [bem],
   props: {
-    iconClass: {
+    name: {
       type: String,
       required: true
     },
@@ -21,7 +21,7 @@ export default {
   },
   computed: {
     iconName() {
-      return `#icon-${this.iconClass}`
+      return `#icon-${this.name}`
     }
   }
 }

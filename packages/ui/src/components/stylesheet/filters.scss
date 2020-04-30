@@ -1,0 +1,57 @@
+@import './mixins/mixins.scss';
+
+@include b(filters) {
+  display: flex;
+    margin-bottom: 15px;
+    font-size: 14px;
+
+    &__title {
+        height: 28px;
+        line-height: 28px;
+        color: #999999;
+    }
+
+    // 列表
+    &__list {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0 20px;
+        overflow: hidden;
+        transition: height .4s ease;
+        &--close {
+            .will-hidden {
+                pointer-events: none;
+            }
+        }
+    }
+    &__item {
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: inherit;
+        padding: 0 10px;
+        border-radius: 4px;
+        height: 28px;
+        line-height: 28px;
+        color: #666666;
+        cursor: pointer;
+
+        &--active {
+            color: #2254F4;
+            background:rgba(245,247,250,1);;
+        }
+
+        &:hover {
+            color: #2254F4;
+        }
+    }
+
+    // 控制按钮
+    &__expansion {
+         color: #666666;
+         height: 28px;
+         line-height: 28px;
+         cursor: pointer;
+         user-select: none;
+    }
+}

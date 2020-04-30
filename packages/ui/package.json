@@ -1,6 +1,6 @@
 {
   "name": "90s-ui",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "个人的组件库，只为更好的管理业务上通用的组件",
   "main": "lib/hello-ui.js",
   "style": "lib/hello-ui.css",
