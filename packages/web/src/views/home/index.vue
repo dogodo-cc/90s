@@ -6,7 +6,6 @@
     <br>
     测试vuex: {{showAdminButton}} <el-button @click="emitSetAdminButton">click</el-button> {{count}}
     <br>
-    <el-button @click="download">下载</el-button>
 
     <el-slider style="width: 400px;" v-model="ratioW"></el-slider>
 
@@ -16,22 +15,26 @@
       </div>
     </div>
 
-    <el-button @click="downloadByLink">通过链接下载</el-button>
-    <el-button @click="loading = !loading">loading</el-button>
+    <div style="margin-top: 10px;">
+      <el-button @click="downloadByLink">链接下载</el-button>
+      <el-button @click="download">内容下载</el-button>
+      <el-button @click="loading = !loading">loading</el-button>
+    </div>
   </div>
 </template>
 <script>
+/* eslint-disable no-console */
 import { mapState, mapActions } from 'vuex'
-import { isPhone, downFile, downloadByLink } from '@90s/tools';
+import { isPhone, downloadByContent, downloadByLink, getImageSize } from '@90s/tools';
 const treeData = require('../../../scripts/tree.json');
-
+const imgLink = 'https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200419-223056-f167.png?x-oss-process=image/resize,w_675/interlace,1';
 export default {
   name: 'home',
   data() {
     return {
       isPhone,
       ratioW: 20,
-      loading: true
+      loading: false
     }
   },
   computed: {
@@ -40,14 +43,15 @@ export default {
   methods: {
     ...mapActions('test', ['emitSetAdminButton']),
     download() {
-      downFile('tree.json', JSON.stringify(treeData,null,2))
+      downloadByContent('tree.json', JSON.stringify(treeData,null,2));
     },
     downloadByLink() {
-      downloadByLink('https://st0.dancf.com/csc/3/fonts/55/20180421-115128-59.woff');
-      window.setTimeout(() => {
-        downloadByLink('https://st0.dancf.com/csc/3/fonts/55/20180421-115128-58.ttf');
-      }, 1000)
+      downloadByLink(imgLink);
     },
+  },
+  async created() {
+    const {width, height} = await getImageSize(imgLink);
+    console.log('image size: ', width, height);
   }
 }
 </script>

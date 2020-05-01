@@ -1,27 +1,28 @@
 module.exports = {
-    "env": {
-        "browser": true,
-        "commonjs": true,
-        "es6": true
-    },
-    "extends": [
-        "eslint:recommended",
-        "plugin:vue/essential" // recommended 太严格，受不了
-    ],
-    "globals": {
-        "Atomics": "readonly",
-        "SharedArrayBuffer": "readonly"
-    },
-    "parserOptions": {
-        "ecmaVersion": 9,
-        "sourceType": "module",
-        "parser": 'babel-eslint',
-    },
-    "plugins": [
-        "vue"
-    ],
-    "rules": {
-    }
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es6": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:vue/essential" // recommended 太严格，受不了
+  ],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 9,
+    "sourceType": "module",
+    "parser": 'babel-eslint',
+  },
+  "plugins": [
+    "vue"
+  ],
+  "rules": {
+    "indent": ['error', 2]
+  }
 };
 
 

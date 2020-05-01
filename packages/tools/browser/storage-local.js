@@ -1,9 +1,5 @@
 
-/**
- * storage
- */
-
-export const storeLocal = {
+export const local = {
   get(key) {
     return JSON.parse(window.localStorage.getItem(key));
   },

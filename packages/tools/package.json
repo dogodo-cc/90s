@@ -2,20 +2,8 @@
   "name": "@90s/tools",
   "version": "0.0.1",
   "description": "工具函数",
-  "main": "./dist/index.js",
+  "main": "./main.js",
   "author": "alan",
   "license": "MIT",
-  "private": true,
-  "scripts": {
-    "build": "npx rollup -c"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.5.5",
-    "rollup": "^1.19.4",
-    "rollup-plugin-babel": "^4.3.3",
-    "rollup-plugin-commonjs": "^10.0.2",
-    "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-node-resolve": "^5.2.0"
-  }
+  "private": false
 }

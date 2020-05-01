@@ -8,5 +8,5 @@ const isPhone = (() => {
 
 
 export {
-  isPhone
+  isPhone,
 }

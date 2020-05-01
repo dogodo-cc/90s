@@ -1,3 +1,8 @@
+export * from './download'
+export * from './platform'
+export * from './storage-local'
+export * from './storage-session'
+
 // 复制功能
 export function setClipboardText(text) {
   const id = 'mycustom-clipboard-textarea-hidden-id';
@@ -46,12 +51,3 @@ export function setClipboardText(text) {
     }
   });
 }
-
-// 判断浏览器是否支持webp格式
-export const isWebp = (() => {
-  try {
-      return (document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0);
-  } catch (err) {
-      return false;
-  }
-})();

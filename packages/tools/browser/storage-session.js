@@ -2,7 +2,7 @@
  * session
  */
 
-export const storeSession = {
+export const session = {
   get(key) {
     return JSON.parse(window.sessionStorage.getItem(key));
   },
