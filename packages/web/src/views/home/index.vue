@@ -46,7 +46,7 @@ export default {
       downloadByContent('tree.json', JSON.stringify(treeData,null,2));
     },
     downloadByLink() {
-      downloadByLink(imgLink);
+      downloadByLink(imgLink, '通过链接下载的图片.png');
     },
   },
   async created() {
