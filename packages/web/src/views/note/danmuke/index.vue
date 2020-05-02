@@ -22,10 +22,10 @@
 import Danmaku from "./components/danmaku.vue";
 import {danmakus,pic} from './danmuke.js';
 const stageMap = {
-        'full': [],
-        'up': [5, 6, 7],
-        'middle': [1, 2, 6, 7],
-        'down': [1, 2, 3]};
+  'full': [],
+  'up': [5, 6, 7],
+  'middle': [1, 2, 6, 7],
+  'down': [1, 2, 3]};
 
 export default {
   name: 'danmuke-page',

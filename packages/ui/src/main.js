@@ -6,6 +6,7 @@ import Filters from './components/Filters/index';
 // directives
 import dragSelect from './directives/drag-select.js';
 import hoverSlide from './directives/hover-slide.js';
+import mouseDirection from './directives/mouse-direction.js';
 
 const components = {
   DragSort,
@@ -15,7 +16,8 @@ const components = {
 
 const directives = {
   dragSelect,
-  hoverSlide
+  hoverSlide,
+  mouseDirection
 }
 
 const install = function(Vue) {

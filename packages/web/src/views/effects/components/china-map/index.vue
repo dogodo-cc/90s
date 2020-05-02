@@ -90,10 +90,10 @@ export default {
     this.$nextTick(() => {
       this.provinces = Array.from(document.querySelectorAll('circle')).map(v => {
         return {
-            top: v.getAttribute('cy'),
-            left: v.getAttribute('cx'),
-            name: v.dataset.title
-          }
+          top: v.getAttribute('cy'),
+          left: v.getAttribute('cx'),
+          name: v.dataset.title
+        }
       })
     })
   }

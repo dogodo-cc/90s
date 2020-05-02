@@ -11,5 +11,5 @@ module.exports = merge(common, {
       'process.env.NODE_ENV':JSON.stringify('production')
     })
   ],
-  stats: "minimal"
+  // stats: "minimal"
 })

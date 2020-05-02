@@ -41,15 +41,15 @@ export default {
   data(){
     return {
       navs: this.$router.options.routes.filter(item => {
-         if(item.children) {
-           item.children= item.children.filter(o => {
-             return o.meta && o.meta.title && !o.meta.hidden;
-           })
-         } else {
-           item.children = [];
-         } 
-         return item.meta && item.meta.title && !item.meta.hidden;
-       }),
+        if(item.children) {
+          item.children= item.children.filter(o => {
+            return o.meta && o.meta.title && !o.meta.hidden;
+          })
+        } else {
+          item.children = [];
+        } 
+        return item.meta && item.meta.title && !item.meta.hidden;
+      }),
       isPhone,
       showNav: false,
       blogLink: `${window.location.origin}/blog`,

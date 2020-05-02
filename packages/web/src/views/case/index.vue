@@ -9,11 +9,11 @@ export default {
   name: 'case',
   data() {
     const nav = list.map(v => {
-        return {
-          href: `https://www.90s.co/${v}/index.html`,
-          title: v
-          }
-      });
+      return {
+        href: `https://www.90s.co/${v}/index.html`,
+        title: v
+      }
+    });
     return {
       list: nav
     }

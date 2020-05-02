@@ -112,8 +112,8 @@ export default {
         if (freeWay.isFat) {
           const imgDanmukeIndex = danmakuGroup.findIndex(v => v.isImg);
           newDanmuke = imgDanmukeIndex === -1 ?
-                        danmakuGroup.shift() :
-                        danmakuGroup.splice(imgDanmukeIndex,1)[0]; 
+            danmakuGroup.shift() :
+            danmakuGroup.splice(imgDanmukeIndex,1)[0]; 
         } else {
           const txtDanmukeIndex = danmakuGroup.findIndex(v => !v.isImg);
           if (txtDanmukeIndex !== -1) {

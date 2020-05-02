@@ -9,36 +9,36 @@
 
 <script>
 export default {
-    name: 'icon',
+  name: 'icon',
 
-    props: {
-        name: String,
+  props: {
+    name: String,
 
-        width: [Number, String],
+    width: [Number, String],
 
-        height: [Number, String],
+    height: [Number, String],
 
-        color: String,
+    color: String,
 
-        spin: Boolean, // 是否添加旋转动画
+    spin: Boolean, // 是否添加旋转动画
+  },
+
+  computed: {
+    boxStyle() {
+      const { width: w, height: h, color } = this;
+      const box = {};
+      if (color) {
+        box.color = color;
+      }
+      if (w) {
+        box.width = typeof w === 'number' ? `${w}px` : w;
+      }
+      if (h) {
+        box.height = typeof h === 'number' ? `${h}px` : h;
+      }
+      return box;
     },
-
-    computed: {
-        boxStyle() {
-            const { width: w, height: h, color } = this;
-            const box = {};
-            if (color) {
-                box.color = color;
-            }
-            if (w) {
-                box.width = typeof w === 'number' ? `${w}px` : w;
-            }
-            if (h) {
-                box.height = typeof h === 'number' ? `${h}px` : h;
-            }
-            return box;
-        },
-    },
+  },
 };
 </script>
 

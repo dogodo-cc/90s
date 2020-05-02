@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Layout from '@/views/layout/index.vue';
+import Layout from '@/layout/index.vue';
 
 Vue.use(VueRouter)
 
@@ -9,8 +9,8 @@ const router = new VueRouter({
   base: '/',
   scrollBehavior() {
     return {
-        x: 0,
-        y: 0,
+      x: 0,
+      y: 0,
     };
   },
   routes: [
@@ -60,41 +60,6 @@ const router = new VueRouter({
           path: '/',
           component:() => import('@/views/effects/index.vue'),
         },
-        {
-          path: '/effects/china-map',
-          component:() => import('@/views/effects/china-map/index.vue'),
-          meta: {
-            title: '中国地图'
-          }
-        },
-        {
-          path: '/effects/svg-animals',
-          component:() => import('@/views/effects/svg-animals/index.vue'),
-          meta: {
-            title: 'SVG - 动物动画'
-          }
-        },
-        {
-          path: '/effects/loading',
-          component:() => import('@/views/effects/loading/index.vue'),
-          meta: {
-            title: '加载动画'
-          }
-        },
-        {
-          path: '/effects/mouse',
-          component:() => import('@/views/effects/mouse/index.vue'),
-          meta: {
-            title: '鼠标方向'
-          }
-        },
-        {
-          path: '/effects/danmuke',
-          component:() => import('@/views/effects/danmuke/index.vue'),
-          meta: {
-            title: '弹幕系统'
-          }
-        },
       ]
     },
     {
@@ -121,7 +86,14 @@ const router = new VueRouter({
           meta: {
             title: '拖动选择&分类'
           }
-        }
+        },
+        {
+          path: '/note/danmuke',
+          component:() => import('@/views/note/danmuke/index.vue'),
+          meta: {
+            title: '弹幕系统'
+          }
+        },
       ]
     },
     {
@@ -136,11 +108,11 @@ const router = new VueRouter({
           component:() => import('@/views/study/index.vue'),
         },
         {
-        path: '/study/svg-lesson-01',
-        component:() => import('@/views/study/svg/lesson-01/index.vue'),
-        meta: {
-          title: 'svg 第一节'
-        }
+          path: '/study/svg-lesson-01',
+          component:() => import('@/views/study/svg/lesson-01/index.vue'),
+          meta: {
+            title: 'svg 第一节'
+          }
         },
         {
           path: '/study/canvas-lesson-01',
@@ -157,15 +129,6 @@ const router = new VueRouter({
       meta: {
         title: '爱心表白',
         pageTitle: '我们结婚啦^_^',
-        hidden: true
-      }
-    },
-    {
-      path: '/uxms',
-      component:() => import('@/views/note/draw/turntable.vue'),
-      meta: {
-        title: '设计工坊年会',
-        pageTitle: '设计工坊年会',
         hidden: true
       }
     },
