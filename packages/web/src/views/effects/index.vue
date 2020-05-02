@@ -21,7 +21,7 @@ import SvgPath from './components/svg-path/index.vue';
 import HoverPress from './components/hover-press/index.vue';
 import ChinaMap from './components/china-map/index.vue';
 import DotRing from './components/dot-ring/index.vue';
-import Loading from './components/Loading/index.vue';
+import Loading from './components/loading/index.vue';
 import SvgAnimals from './components/svg-animals/index.vue';
 import HiUi from '90s-ui';
 const {mouseDirection} = HiUi;
