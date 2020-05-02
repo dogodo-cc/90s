@@ -85,16 +85,5 @@ export default {
         font-size: 16px;
       }
   }
-  .svg-box {
-    width: 130px;
-    height: 130px;
-    background-color: #eee;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    img {
-      max-width: 100%;
-    }
-  }
 }
 </style>
