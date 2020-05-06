@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= title %></title>
+</head>
+<body>
+    <h1>login</h1>
+    <form id="form" action="/login" method="post">
+        <p>username: <input name="name"></p>
+        <p>password: <input name="password" type="password"></p>
+        <p><input type="submit" value="login" id="btn"></p>
+     </form>
+</body>
+<script>
+   const btn = document.querySelector('#btn');
+   const form = document.querySelector('#form');
+   btn.addEventListener('click', () => {
+    form.submit();
+   }, false);
+</script>
+</html>

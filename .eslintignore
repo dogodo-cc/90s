@@ -7,3 +7,4 @@ dist
 website/
 node_modules/
 !.eslintrc.js
+node/

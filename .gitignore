@@ -66,8 +66,3 @@ lib
 # .ci-task-runner 的缓存
 .cache
 
-# @90s/tools 的生成文件
- packages/tools/index.js
-
- # 小程序的构建文件
- miniprogram_npm/

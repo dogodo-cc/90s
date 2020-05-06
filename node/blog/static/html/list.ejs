@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>博客列表</title>
+</head>
+<body>
+<ul>
+   <% for(var i=0;i<results.length;i++){%>
+    <li id="<%= results[i].id %>" class="<%= results[i].kind %>">
+        <a href="/blog/<%= results[i].id %>"><%= results[i].title %></a>
+    </li>
+    <%}%>
+</ul>
+</body>
+</html>
