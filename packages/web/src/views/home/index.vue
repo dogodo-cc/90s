@@ -20,16 +20,21 @@
       <el-button @click="download">内容下载</el-button>
       <el-button @click="loading = !loading">loading</el-button>
     </div>
+    <PrimesTotal></PrimesTotal>
   </div>
 </template>
 <script>
 /* eslint-disable no-console */
+import PrimesTotal from './components/math.vue';
 import { mapState, mapActions } from 'vuex'
 import { isPhone, downloadByContent, downloadByLink, getImageSize } from '@90s/tools';
 const treeData = require('../../../scripts/tree.json');
 const imgLink = 'https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200419-223056-f167.png?x-oss-process=image/resize,w_675/interlace,1';
 export default {
   name: 'home',
+  components: {
+    PrimesTotal
+  },
   data() {
     return {
       isPhone,
