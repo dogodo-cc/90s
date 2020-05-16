@@ -26,7 +26,7 @@
           <!-- <a
             target="_blank"
             :href="blogLink"
-          >笔记</a> -->
+          >笔记1</a> -->
           <a target="_blank" :href="uiLink">组件库</a>
         </div>
       </template>
