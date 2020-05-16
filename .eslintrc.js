@@ -6,7 +6,7 @@ module.exports = {
   },
   "extends": [
     "eslint:recommended",
-    "plugin:vue/essential" // recommended 太严格，受不了
+    "plugin:vue/recommended" // vue/essential vue/recommended 太严格，受不了
   ],
   "globals": {
     "Atomics": "readonly",
