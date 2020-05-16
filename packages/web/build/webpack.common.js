@@ -1,5 +1,3 @@
-/*eslint-disable*/
-
 const path = require('path');
 // const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -42,10 +40,10 @@ module.exports = {
           {
             loader: 'style-resources-loader',
             options: {
-                patterns: path.resolve(__dirname, '../src/styles/theme.scss'),
-                injector: 'prepend'
+              patterns: path.resolve(__dirname, '../src/styles/theme.scss'),
+              injector: 'prepend'
             }
-        }
+          }
         ]
       },
       {

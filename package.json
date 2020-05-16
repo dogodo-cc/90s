@@ -25,11 +25,11 @@
     "child-process-promise": "^2.2.1",
     "ci-task-runner": "^1.0.4",
     "commitizen": "^4.0.3",
-    "eslint": "^5.0.0",
-    "eslint-plugin-vue": "^5.2.3",
+    "eslint": "^7.0.0",
+    "eslint-plugin-vue": "^6.2.2",
     "husky": "^3.0.4",
     "lerna": "^3.20.2",
-    "lint-staged": "^9.2.3"
+    "lint-staged": "^10.2.2"
   },
   "bugs": {
     "url": "https://github.com/dogodo-cc/on-the-way/issues"
