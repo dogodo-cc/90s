@@ -1,45 +1,46 @@
 <template>
   <div :class="bem()" :style="dragLayout">
     <div
-      :class="[
-            bem(`group-${index}`),
-            bem('group'),
-            {empty: !group.childrens.length}
-        ]"
-      :style="getGroupStyle(index)"
       v-for="(group, index) in value"
       :key="index"
-      :data-origin-group-index="index"
-      @dragover="dragOver"
-      @drop="drop"
       v-DragSelect="{
         className: 'group-item',
         onlyElTriger: true,
         cb: dragSelect,
         clickCancel: true
-      }">
+      }"
+      :class="[
+        bem(`group-${index}`),
+        bem('group'),
+        {empty: !group.childrens.length}
+      ]"
+      :style="getGroupStyle(index)"
+      :data-origin-group-index="index"
+      @dragover="dragOver"
+      @drop="drop">
       <div :class="bem('group-header')">
-        <slot name="header" :group="group">{{group.title}}</slot>
+        <slot name="header" :group="group">
+          {{ group.title }}
+        </slot>
       </div>
       <div :class="bem('group-body')">
         <div
-          class="group-item"
-          draggable="true"
           v-for="item in group.childrens"
           :key="item.id"
+          v-contextmenuClick="{cb: moveToGroup, options: contextmenuOptions}"
+          class="group-item"
+          draggable="true"
+          :data-origin-group-index="index"
+          :data-id="item.id"
           @click.shift="select(item.id, index, true)"
           @click.exact.stop="select(item.id, index)"
           @dragstart="dragStart"
           @mouseenter="item.isHover = true"
-          @mouseleave="item.isHover = false"
-          :data-origin-group-index="index"
-          :data-id="item.id"
-          v-contextmenuClick="{cb: moveToGroup, options: contextmenuOptions}"
-        >
+          @mouseleave="item.isHover = false">
           <slot :data="item" :group="group" />
         </div>
         <div class="empty-tip">
-          <slot name="tip"></slot>
+          <slot name="tip" />
         </div>
       </div>
       <div :class="bem('group-footer')">
@@ -66,11 +67,11 @@ const cloneDeep = obj => {
 };
 export default {
   name: createComponentName("drag-sort"),
-  mixins: [bem],
   directives: {
     DragSelect,
     contextmenuClick
   },
+  mixins: [bem],
   props: {
     value: {
       type: Array,

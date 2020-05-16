@@ -21,7 +21,7 @@ import '@/styles/layout.scss';
 // plugins
 import './plugins/element.js'
 
-
+Vue.config.devtools = true;
 Vue.config.productionTip = false;
 
 Vue.prototype.$eventBus = eventBus;
