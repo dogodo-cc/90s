@@ -1,18 +1,15 @@
 module.exports = {
+  "root": true, // 如果是子项目需要特定的规则，用root:true 可以阻止往父级查找规则
   "env": {
     "browser": true,
     "commonjs": true,
     "es6": true,
-    "node": true
+    "node": true, // 这样在使用 __dirname 等变量的时候就不会报错
   },
   "extends": [
     "eslint:recommended",
-    "plugin:vue/recommended" // vue/essential vue/recommended 太严格，受不了
+    "plugin:vue/recommended" // essential or recommended
   ],
-  "globals": {
-    "Atomics": "readonly",
-    "SharedArrayBuffer": "readonly"
-  },
   "parserOptions": {
     "ecmaVersion": 9,
     "sourceType": "module",
@@ -22,7 +19,21 @@ module.exports = {
     "vue"
   ],
   "rules": {
-    "indent": ['error', 2]
+    "indent": ['error', 2],
+    "vue/html-closing-bracket-newline": ["error", {
+      "singleline": "never",
+      "multiline": "never"
+    }],
+    "vue/max-attributes-per-line": ["error", {
+      "singleline": 2, // 单行属性允许n个
+      "multiline": {
+        "max": 1,
+        "allowFirstLine": true
+      }
+    }],
+    "no-dupe-else-if": 'off',
+    "no-setter-return": 'off',
+    "no-import-assign": 'off',
   }
 };
 
