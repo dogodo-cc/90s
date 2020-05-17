@@ -133,17 +133,6 @@ const router = new VueRouter({
       }
     },
     {
-      path: '/case',
-      component: Layout,
-      meta: {
-        title: '优秀网页'
-      },
-      children: [{
-        path: '/',
-        component:() => import('@/views/case/index.vue'),
-      }]
-    },
-    {
       path: '*',
       name: '404',
       component:() => import(/* webpackChunkName: "404" */ '@/views/404/index.vue'),

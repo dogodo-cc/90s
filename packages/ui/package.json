@@ -21,14 +21,14 @@
   },
   "homepage": "https://www.90s.co/ui",
   "peerDependencies": {
-    "vue": "^2.5.17"
+    "vue": "^2.6.11"
   },
   "dependencies": {
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/polyfill": "^7.4.4",
     "@babel/runtime-corejs2": "^7.4.5",
     "normalize.css": "^8.0.1",
-    "vue": "^2.6.10",
+    "vue": "^2.6.11",
     "vue-router": "^3.0.7"
   },
   "devDependencies": {

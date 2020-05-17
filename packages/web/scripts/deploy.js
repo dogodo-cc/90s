@@ -26,10 +26,6 @@ exec('cp ./public/favicon.ico ./dist', {
   cwd: projectPath
 })
 
-exec('cp -R ./website/* ./dist', {
-  cwd: projectPath
-})
-
 // 90s-ui
 exec('cp -R ../ui/dist/ ./dist/ui', {
   cwd: projectPath

@@ -2,39 +2,44 @@
   <div class="page page-home">
     嗯哼，这是我的个人博客，没有UI设计，后面慢慢优化 . 
     <br>
-    手机模式：{{isPhone}}
+    手机模式：{{ isPhone }}
     <br>
-    测试vuex: {{showAdminButton}} <el-button @click="emitSetAdminButton">click</el-button> {{count}}
+    测试vuex: {{ showAdminButton }} <el-button @click="emitSetAdminButton">
+      click
+    </el-button> {{ count }}
     <br>
 
-    <el-slider style="width: 400px;" v-model="ratioW"></el-slider>
+    <el-slider v-model="ratioW" style="width: 400px;" />
 
-    <div class="ratio-16-9" v-hi-loading="loading" :style="{width: ratioW * 10 + 'px'}">
+    <div v-hi-loading="loading"
+         class="ratio-16-9"
+         :style="{width: ratioW * 10 + 'px'}">
       <div class="ratio-box">
         <span>16:9</span>
       </div>
     </div>
 
     <div style="margin-top: 10px;">
-      <el-button @click="downloadByLink">链接下载</el-button>
-      <el-button @click="download">内容下载</el-button>
-      <el-button @click="loading = !loading">loading</el-button>
+      <el-button @click="downloadByLink">
+        链接下载
+      </el-button>
+      <el-button @click="download">
+        内容下载
+      </el-button>
+      <el-button @click="loading = !loading">
+        loading
+      </el-button>
     </div>
-    <PrimesTotal></PrimesTotal>
   </div>
 </template>
 <script>
 /* eslint-disable no-console */
-import PrimesTotal from './components/math.vue';
 import { mapState, mapActions } from 'vuex'
 import { isPhone, downloadByContent, downloadByLink, getImageSize } from '@90s/tools';
 const treeData = require('../../../scripts/tree.json');
 const imgLink = 'https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200419-223056-f167.png?x-oss-process=image/resize,w_675/interlace,1';
 export default {
-  name: 'home',
-  components: {
-    PrimesTotal
-  },
+  name: 'Home',
   data() {
     return {
       isPhone,
@@ -45,6 +50,10 @@ export default {
   computed: {
     ...mapState('test', ['showAdminButton','count'])
   },
+  async created() {
+    const {width, height} = await getImageSize(imgLink);
+    console.log('image size: ', width, height);
+  },
   methods: {
     ...mapActions('test', ['emitSetAdminButton']),
     download() {
@@ -53,10 +62,6 @@ export default {
     downloadByLink() {
       downloadByLink(imgLink, '通过链接下载的图片.png');
     },
-  },
-  async created() {
-    const {width, height} = await getImageSize(imgLink);
-    console.log('image size: ', width, height);
   }
 }
 </script>
