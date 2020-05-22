@@ -5,9 +5,9 @@ const presets = [
       "useBuiltIns": "usage",
       "corejs": 2,
       targets: {
-        firefox: "65",
-        chrome: "70",
-        safari: "12",
+        firefox: "76",
+        chrome: "80",
+        safari: "13",
       },
     }
   ]
