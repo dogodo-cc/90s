@@ -11,6 +11,7 @@
 <body>
   <div id="app">网络不好怪我咯...</div>
   <script>
+    const basePath = location.hostname === 'localhost' ? '/' : 'https://github.com/dogodo-cc/90s/tree/gh-pages/blog/'; 
     window.$docsify = {
       name: '前端路上',
       repo: 'https://github.com/dogodo-cc/90s',
@@ -19,7 +20,8 @@
       subMaxLevel: 2,
       coverpage: true,
       auto2top: true,
-      basePath: '/blog/',
+      basePath,
+      relativePath: true
     }
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
