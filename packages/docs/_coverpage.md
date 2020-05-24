@@ -1,4 +1,4 @@
-# 前端路上 <small>元帅</small>
+# 前端路上
 
 > 假装这是一句非常有逼格的话.
 
@@ -6,4 +6,4 @@
 - Love what you do, Do what you love
 
 [GitHub](https://github.com/dogodo-cc/90s)
-[Get Started](/note)
+[Get Started](/note/)
