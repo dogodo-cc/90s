@@ -2,17 +2,14 @@
   "name": "@90s/docs",
   "version": "0.0.1",
   "private": true,
-  "description": "",
-  "main": "index.js",
+  "description": "笔记",
   "scripts": {
-    "dev": "npx vuepress dev docs",
-    "build": "npx vuepress build docs"
+    "dev": "npx docsify serve ."
   },
   "keywords": [],
   "author": "alan",
   "license": "ISC",
   "devDependencies": {
-    "cache-loader": "^4.1.0",
-    "vuepress": "^1.5.0"
+    "docsify": "^4.4.0"
   }
 }
