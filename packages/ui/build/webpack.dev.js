@@ -15,5 +15,6 @@ module.exports = merge(common, {
     hot: true,
     stats: "minimal",
     port: 8041,
+    disableHostCheck: true,
   }
 })
