@@ -7,17 +7,17 @@ const autoprefixer = require('gulp-autoprefixer');
 const cssmin = require('gulp-cssmin');
 
 function compile() {
-    return src(path.resolve(__dirname, '../src/components/stylesheet/hello-ui.scss'))
-        .pipe(sass.sync())
-        .pipe(autoprefixer())
-        .pipe(cssmin())
-        .pipe(dest(path.resolve(__dirname, '../lib/')));
+  return src(path.resolve(__dirname, '../src/components/stylesheet/hello-ui.scss'))
+    .pipe(sass.sync())
+    .pipe(autoprefixer())
+    .pipe(cssmin())
+    .pipe(dest(path.resolve(__dirname, '../lib/')));
 }
 
 function copyAssets() {
-    return src(path.resolve(__dirname, '../src/components/stylesheet/assets/**'))
-        .pipe(cssmin())
-        .pipe(dest(path.resolve(__dirname, '../lib/assets')));
+  return src(path.resolve(__dirname, '../src/components/stylesheet/assets/**'))
+    .pipe(cssmin())
+    .pipe(dest(path.resolve(__dirname, '../lib/assets')));
 }
 
 exports.build = series(compile, copyAssets);

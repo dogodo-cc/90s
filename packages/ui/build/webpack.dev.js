@@ -11,9 +11,9 @@ module.exports = merge(common, {
   ],
   devtool: 'inline-source-map',
   devServer: {
-    // eslint-disable-next-line
     contentBase: path.resolve(__dirname, '../dist'),
     hot: true,
-    stats: "minimal"
+    stats: "minimal",
+    port: 8041,
   }
 })

@@ -1,17 +1,20 @@
 <template>
   <div class="effect-page">
-    <SvgPath></SvgPath>
+    <SvgPath />
     <HoverPress>
-      <img width="400" height="300" src="https://cdn.dancf.com/uxms/www/image/3-5_e8021f69.png" alt="">
+      <img width="400"
+           height="300"
+           src="https://cdn.dancf.com/uxms/www/image/3-5_e8021f69.png"
+           alt="">
     </HoverPress>
-    <ChinaMap></ChinaMap>
-    <DotRing></DotRing>
-    <Loading></Loading>
-    <SvgAnimals></SvgAnimals>
+    <ChinaMap />
+    <DotRing />
+    <Loading />
+    <SvgAnimals />
     <div
       v-mouseDirection="{cb: cb}"
       class="mouse-direction">
-      {{mouseDirectionVal}}
+      {{ mouseDirectionVal }}
     </div>
   </div>
 </template>
@@ -27,7 +30,7 @@ import HiUi from '90s-ui';
 const {mouseDirection} = HiUi;
 
 export default {
-  name: 'effects',
+  name: 'Effects',
   directives: {
     mouseDirection
   },
