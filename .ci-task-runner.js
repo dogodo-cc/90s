@@ -1,7 +1,11 @@
 const ciTaskRunnerConfig = {
   "repository": "git",
   "cache": "cache/ci-task-runner/ci-task-runner.json",
-  "tasks": []
+  "tasks": [{
+    name: '构建hi-ui',
+    path: 'packages/ui/',
+    program: 'npm run deploy:ui'
+  }]
 }
 
 const buildTasks = [

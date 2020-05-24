@@ -1,5 +1,9 @@
 {
   "tasks": {
+    "构建hi-ui": {
+      "path": "../../../packages/ui",
+      "dirty": false
+    },
     "build_ui": {
       "path": "../../../packages/ui",
       "dirty": false
@@ -14,8 +18,8 @@
     }
   },
   "revision": {
-    "../../packages/web": "25962dd",
+    "../../packages/web": "ce7c8f2",
     "../../packages/tools": "6061dcd",
-    "../../packages/ui": "25962dd"
+    "../../packages/ui": "ce7c8f2"
   }
 }
