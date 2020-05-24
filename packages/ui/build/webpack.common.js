@@ -106,10 +106,6 @@ module.exports = {
         options: {
           symbolId: 'icon-[name]'
         }
-      },
-      {
-        test: /\.(eot|ttf|woff2|woff)/,
-        loader: 'file-loader'
       }
     ]
   },

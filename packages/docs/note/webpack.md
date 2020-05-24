@@ -23,3 +23,10 @@ this.iconList = require.context('@/icons/svg/',false,/\.svg$/).keys().map(v => {
   return v;
 });
 ```
+## 判断某个依赖是否存在
+```json
+ {
+   "prebuild": "if [ ! -x 'node_modules/.bin/ci-task-runner' ]; then echo 'install ci-task-runner...' && learn bootstrap; else echo 'ci-task-runner ready'; fi",
+    "build": "npx ci-task-runner --config .ci-task-runner.js"
+ }
+ ```
