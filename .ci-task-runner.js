@@ -3,22 +3,27 @@ const ciTaskRunnerConfig = {
   "cache": "cache/ci-task-runner/ci-task-runner.json",
   "tasks": [{
     name: 'install dependencies',
+    program: 'yarn',
     dependencies: ['packages/ui/packages.json', 'packages/web/packages.json'],
-    program: 'yarn'
   },{
     name: '构建 => hi-ui',
     path: 'packages/ui/',
     program: 'npm run publish:ui',
-    dependencies: ['packages/web/']
+    dependencies: ['packages/web/'], // 确保构建web的时候能引用到lib文件
+  },
+  {
+    name: '构建 => hi-ui 文档',
+    path: 'packages/ui/',
+    program: 'npm run build:ui',
+    dependencies: ['packages/web/'], // 确保在部署web的时候能复制dist文件
   }]
 }
 
 const buildTasks = [
-  {name: 'ui', dependencies: ['packages/ui/']},
-  {name: 'web', dependencies: ['packages/web/']},
+  {name: 'web', dependencies: ['packages/web/', 'packages/ui/']}
 ].map(m => {
   return {
-      name: `build_${m.name}`,
+      name: `构建 => ${m.name}`,
       path: `packages/${m.name}/`,
       dependencies: m.dependencies,
       program: `npm run build:${m.name}`

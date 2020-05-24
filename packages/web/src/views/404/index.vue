@@ -1,13 +1,17 @@
 <template>
   <div class="page-404">
-    <div class="pic"></div>
-    <p><router-link to="/">返回首页</router-link></p>
+    <div class="pic" />
+    <p>
+      <router-link to="/">
+        返回首页
+      </router-link>
+    </p>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'not-found'
+  name: 'NotFound'
 }
 </script>
 
