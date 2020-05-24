@@ -9,8 +9,7 @@
   "scripts": {
     "dev": "webpack-dev-server --config ./build/webpack.dev.js",
     "build": "webpack --config ./build/webpack.prod.js",
-    "deploy": "node ./scripts/deploy.js",
-    "copyDocs": "node ./scripts/copy-docs.js"
+    "deploy": "node ./scripts/deploy.js"
   },
   "homepage": "https://www.90s.co",
   "dependencies": {

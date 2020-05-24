@@ -8,7 +8,8 @@ const ciTaskRunnerConfig = {
   },{
     name: '构建 => hi-ui',
     path: 'packages/ui/',
-    program: 'npm run publish:ui'
+    program: 'npm run publish:ui',
+    dependencies: ['packages/web/']
   }]
 }
 
