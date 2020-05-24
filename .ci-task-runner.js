@@ -3,7 +3,7 @@ const ciTaskRunnerConfig = {
   "cache": "cache/ci-task-runner/ci-task-runner.json",
   "tasks": [{
     name: 'install dependencies',
-    dependencies: ['packages/ui/packages.json', 'packages/web/packages.json', 'packages/docs/packages.json'],
+    dependencies: ['packages/ui/packages.json', 'packages/web/packages.json'],
     program: 'yarn'
   },{
     name: '构建 => hi-ui',
@@ -15,7 +15,6 @@ const ciTaskRunnerConfig = {
 const buildTasks = [
   {name: 'ui', dependencies: ['packages/ui/']},
   {name: 'web', dependencies: ['packages/web/']},
-  {name: 'docs', dependencies: ['packages/docs/']},
 ].map(m => {
   return {
       name: `build_${m.name}`,
