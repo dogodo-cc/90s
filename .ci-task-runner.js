@@ -10,7 +10,7 @@ const ciTaskRunnerConfig = {
 
 const buildTasks = [
   {name: 'ui', dependencies: ['packages/ui/']},
-  {name: 'web', dependencies: ['packages/tools/']}, 
+  {name: 'web', dependencies: ['packages/web/']}, 
 ].map(m => {
   return {
       "name": `build_${m.name}`,
