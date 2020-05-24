@@ -4,13 +4,14 @@ const ciTaskRunnerConfig = {
   "tasks": [{
     name: '构建 => hi-ui',
     path: 'packages/ui/',
-    program: 'npm run deploy:ui'
+    program: 'npm run publish:ui'
   }]
 }
 
 const buildTasks = [
   {name: 'ui', dependencies: ['packages/ui/']},
-  {name: 'web', dependencies: ['packages/web/']}, 
+  {name: 'web', dependencies: ['packages/web/']},
+  {name: 'docs', dependencies: ['packages/docs/']},
 ].map(m => {
   return {
       "name": `build_${m.name}`,

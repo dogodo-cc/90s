@@ -15,7 +15,7 @@
     "dev": "webpack-dev-server --config ./build/webpack.dev.js",
     "build": "webpack --config ./build/webpack.prod.js",
     "build:css": "gulp build --gulpfile ./build/gulpfile.js",
-    "deploy": "npm run build:css && webpack --config ./build/webpack.component.js",
+    "publish": "npm run build:css && webpack --config ./build/webpack.component.js",
     "svgo": "svgo -f src/icons/svg --config=src/icons/svgo.yml"
   },
   "homepage": "https://www.90s.co/ui",

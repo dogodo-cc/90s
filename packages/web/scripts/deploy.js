@@ -1,7 +1,4 @@
 /* eslint-disable no-console */
-/* eslint-disable no-undef */
-
-// if [ ! -d 'dist' ]; then echo '😢 dist 文件夹不存在' && mkdir dist; else echo '😄 正在往 dist 文件夹搬迁静态文件' && node scripts/deploy.js; fi
 
 const path = require("path");
 const fs = require('fs');

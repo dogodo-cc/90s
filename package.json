@@ -13,9 +13,10 @@
     "dev:docs": "lerna exec --scope @90s/docs -- npm run dev",
     "build:web": "lerna exec --scope @90s/web -- npm run build",
     "build:ui": "lerna exec --scope 90s-ui -- npm run build",
-    "deploy:ui": "lerna exec --scope 90s-ui -- npm run deploy",
+    "build:docs": "lerna exec --scope @90s/web -- npm run copyDocs",
+    "publish:ui": "lerna exec --scope 90s-ui -- npm run publish",
     "deploy:web": "lerna exec --scope @90s/web -- npm run deploy",
-    "build": "npx ci-task-runner --config .ci-task-runner.js"
+    "go": "npx ci-task-runner --config .ci-task-runner.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.1.0",
