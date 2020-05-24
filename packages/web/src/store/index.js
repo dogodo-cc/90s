@@ -9,9 +9,9 @@ Vue.use(Vuex);
  * @link https://vuex.vuejs.org/zh/guide/modules.html
  */
 export default new Vuex.Store({
-    // eslint-disable-next-line
+  // eslint-disable-next-line
     strict: process.env.NODE_ENV !== 'production',
-    modules: {
-        test
-    }
+  modules: {
+    test
+  }
 });
