@@ -1,0 +1,15 @@
+{
+  "name": "@90s/docs",
+  "version": "0.0.1",
+  "private": true,
+  "description": "笔记",
+  "scripts": {
+    "dev": "npx docsify serve ."
+  },
+  "keywords": [],
+  "author": "alan",
+  "license": "ISC",
+  "devDependencies": {
+    "docsify": "^4.4.0"
+  }
+}
