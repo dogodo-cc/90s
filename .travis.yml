@@ -2,9 +2,8 @@ language: node_js
 node_js: '12'
 branches:
   only: master
-cache:
-  directories: node_modules
-install: yarn
+cache: yarn
+install: echo 'pass the install step'
 script: npm run go
 after_success:
   npm run deploy:web
