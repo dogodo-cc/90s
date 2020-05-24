@@ -31,7 +31,7 @@ exec('cp -R ../ui/dist/ ./dist/ui', {
   cwd: projectPath
 })
 
-exec('cp -R ../docs/docs/.vuepress/dist/ ./dist/blog', {
+exec('cp -R ../docs/ ./dist/blog', {
   cwd: projectPath
 }).then(() => {
   console.log('😄 静态文件复制完成！');
