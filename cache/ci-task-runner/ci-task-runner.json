@@ -1,15 +1,27 @@
 {
   "tasks": {
-    "构建hi-ui": {
+    "构建 => hi-ui": {
       "path": "../../../packages/ui",
-      "dirty": false
+      "dirty": true
     },
     "build_ui": {
       "path": "../../../packages/ui",
-      "dirty": false
+      "dirty": true
     },
     "build_web": {
       "path": "../../../packages/web",
+      "dirty": true
+    },
+    "build_docs": {
+      "path": "../../../packages/docs",
+      "dirty": true
+    },
+    "install dependencies": {
+      "path": "../../../install dependencies",
+      "dirty": true
+    },
+    "构建hi-ui": {
+      "path": "../../../packages/ui",
       "dirty": false
     },
     "build_tools": {
@@ -18,8 +30,13 @@
     }
   },
   "revision": {
-    "../../packages/web": "ce7c8f2",
+    "../../packages/web": "43f71ae",
     "../../packages/tools": "6061dcd",
-    "../../packages/ui": "44d4457"
+    "../../packages/ui": "43f71ae",
+    "../../install dependencies": "",
+    "../../packages/docs": "c19bb02",
+    "../../packages/docs/packages.json": "",
+    "../../packages/web/packages.json": "",
+    "../../packages/ui/packages.json": ""
   }
 }
