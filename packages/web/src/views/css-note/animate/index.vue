@@ -1,6 +1,6 @@
 <template>
   <div class="page page-css-animate">
-    <div class="animate-step"></div>
+    <div class="animate-step" />
   </div>
 </template>
 

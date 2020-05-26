@@ -1,13 +1,13 @@
 <template>
   <div class="note">
-    <Draw></Draw>
+    <Draw />
   </div>
 </template>
 
 <script>
 import Draw from './draw/index.vue'
 export default {
-  name: 'note',
+  name: 'Note',
   components: {
     Draw
   }

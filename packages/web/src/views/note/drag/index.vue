@@ -1,7 +1,7 @@
 <template>
   <div class="page page-drag">
-    <DragSortDemo></DragSortDemo>
-    <DragSelectDemo></DragSelectDemo>
+    <DragSortDemo />
+    <DragSelectDemo />
   </div>
 </template>
 <script>
@@ -9,7 +9,7 @@ import DragSelectDemo from './components/drag-select-demo.vue'
 import DragSortDemo from './components/drag-sort-demo.vue';
 
 export default {
-  name: 'drap',
+  name: 'Drap',
   components: {
     DragSelectDemo,
     DragSortDemo,
