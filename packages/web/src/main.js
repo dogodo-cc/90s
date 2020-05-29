@@ -26,10 +26,7 @@ Vue.config.productionTip = false;
 
 Vue.prototype.$eventBus = eventBus;
 
-console.error(5566);
-
-// eslint-disable-next-line 
-const app = new Vue({
+new Vue({
   router,
   store,
   render: h => h(App),
