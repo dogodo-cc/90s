@@ -4,6 +4,7 @@ const ciTaskRunnerConfig = {
   "tasks": [{
     name: 'install dependencies',
     program: 'yarn',
+    path: 'package.json',
     dependencies: ['packages/ui/packages.json', 'packages/web/packages.json'],
   },{
     name: '构建 => hi-ui',
