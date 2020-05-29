@@ -2,6 +2,8 @@ import Loading from './components/Loading/index';
 import DragSort from './components/DragSort/index';
 import WaterFall from './components/WaterFall/index';
 import Filters from './components/Filters/index';
+import Tabs from './components/Tabs/index';
+import TabPanel from './components/Tab-panel/index';
 
 // directives
 import dragSelect from './directives/drag-select.js';
@@ -11,7 +13,9 @@ import mouseDirection from './directives/mouse-direction.js';
 const components = {
   DragSort,
   WaterFall,
-  Filters
+  Filters,
+  Tabs,
+  TabPanel
 };
 
 const directives = {

@@ -10,7 +10,16 @@ const cloneDeep = (obj) => {
   return JSON.parse(JSON.stringify(obj));
 };
 
+const isEmptyElement = (c) => {
+  return !(c.tag || (c.text && c.text.trim() !== ''));
+}
+
+const filterEmpty = (children = []) => {
+  return children.filter(c => !isEmptyElement(c));
+}
+
 export {
   kebabCase,
-  cloneDeep
+  cloneDeep,
+  filterEmpty
 }

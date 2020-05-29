@@ -14,5 +14,9 @@
   {
     "name": "Filters",
     "title": "Filters 筛选"
+  },
+  {
+    "name": "Tabs",
+    "title": "Tabs 切换"
   }
 ]

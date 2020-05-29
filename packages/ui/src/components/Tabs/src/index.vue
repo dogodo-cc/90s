@@ -20,10 +20,11 @@
 </template>
 
 <script>
-import bem from '@/mixins/bem.js';
-import {filterEmpty} from './util';
+import bem from "../../../mixins/bem";
+import { createComponentName } from "../../../utils/component";
+import {filterEmpty} from '@/utils/';
 export default {
-  name: 'Tabs',
+  name: createComponentName('tabs'),
   mixins: [bem],
   props: {
     value: {
@@ -80,60 +81,3 @@ export default {
   }
 }
 </script>
-
-<style lang="scss">
-.Tabs {
-  &.is-top {
-    .Tabs__bar {
-      display: flex;
-      border-bottom: 1px solid #dadde1;
-    }
-    .Tabs__line {
-      height: 4px;
-      width: 0;
-      left: 0;
-      bottom: -1px;
-    }
-  }
-  &.is-left {
-    display: flex;
-    .Tabs__bar {
-      border-right: 1px solid #dadde1;
-    }
-    .Tabs__line {
-      top: 0;
-      right: -1px;
-    }
-    .Tabs__content {
-      flex: 1;
-    }
-  }
-  &__bar {
-    position: relative;
-  }
-  &__line {
-      position: absolute;
-      width: 4px;
-      height: 40px;
-      border-radius: 1px;
-      background-color: #2254f4;
-      z-index: 1;
-      transform-origin: 0 0;
-      transition: transform .3s cubic-bezier(.645, .045, .355, 1),
-      width .3s cubic-bezier(.645, .045, .355, 1),
-      top .3s cubic-bezier(.645, .045, .355, 1),
-      left .3s cubic-bezier(.645, .045, .355, 1);
-  }
-  &__tab {
-    color: #444950;
-    font-size: 14px;
-    cursor: pointer;
-    margin-right: 24px;
-    padding: 12px 0;
-    &.active {
-      color: #000;
-      font-weight: 700;
-    }
-  }
-}
-</style>
