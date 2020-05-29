@@ -48,7 +48,7 @@
       <hi-tab-panel name="second" label="选项二">
         5678
       </hi-tab-panel>
-      <hi-tab-panel name="third" label="选项gaoding">
+      <hi-tab-panel name="third" label="选项三">
         99fs9dfasfsf
       </hi-tab-panel>
     </hi-tabs>
