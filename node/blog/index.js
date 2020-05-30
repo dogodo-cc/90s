@@ -6,7 +6,7 @@ const views = require('koa-views');
 const router = require('./middleware/route');
 const valiteCookie = require('./middleware/validateCookie');
 const upload = require('./middleware/upload');
-const {resolve, join} = require('path');
+const {join} = require('path');
 const app = new koa();
 
 //app.keys = ['keys'];
