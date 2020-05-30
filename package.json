@@ -46,9 +46,6 @@
   "lint-staged": {
     "packages/**/*.{js,vue,ts,tsx}": [
       "eslint --fix --config .eslintrc.pro.js"
-    ],
-    "node/**/*.{js}": [
-      "eslint --fix --config .eslintrc.pro.js"
     ]
   }
 }

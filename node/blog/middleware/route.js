@@ -2,7 +2,7 @@ const router = require('koa-router')();
 const dealUpload = require('./upload');
 const dbAPI = require('./db');
 
-router.get('/', async (ctx, next) => {
+router.get('/', async (ctx) => {
   ctx.redirect('/blogs');
 });
 
