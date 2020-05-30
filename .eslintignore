@@ -4,7 +4,5 @@ postcss.config.js
 /node_modules/*
 .idea
 dist
-website/
 node_modules/
 !.eslintrc.js
-node/
