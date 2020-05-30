@@ -16,8 +16,8 @@
     "90s-ui": "0.0.13",
     "@90s/tools": "^0.0.1",
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
-    "@babel/polyfill": "^7.8.7",
-    "@babel/runtime-corejs2": "^7.9.6",
+    "@babel/polyfill": "^7.10.1",
+    "@babel/runtime-corejs2": "^7.10.1",
     "animejs": "^3.0.1",
     "core-js": "^3.1.4",
     "element-ui": "^2.10.1",
@@ -27,9 +27,9 @@
     "vuex": "^3.1.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.9.6",
-    "@babel/plugin-transform-runtime": "^7.9.6",
-    "@babel/preset-env": "^7.9.6",
+    "@babel/core": "^7.10.1",
+    "@babel/plugin-transform-runtime": "^7.10.1",
+    "@babel/preset-env": "^7.10.1",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.1.0",
     "babel-plugin-component": "^1.1.1",
