@@ -43,7 +43,7 @@
 /******/
 /******/ 	// script path function
 /******/ 	function jsonpScriptSrc(chunkId) {
-/******/ 		return __webpack_require__.p + "" + ({}[chunkId]||chunkId) + "." + "dd18435bb1fad5a1d106" + ".js"
+/******/ 		return __webpack_require__.p + "" + ({}[chunkId]||chunkId) + "." + "cc61b4b6a8c876530a25" + ".js"
 /******/ 	}
 /******/
 /******/ 	// The require function
@@ -196,7 +196,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 352);
+/******/ 	return __webpack_require__(__webpack_require__.s = 355);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -8045,7 +8045,7 @@ if (inBrowser) {
 
 /* harmony default export */ __webpack_exports__["a"] = (Vue);
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(18), __webpack_require__(274).setImmediate))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(18), __webpack_require__(278).setImmediate))
 
 /***/ }),
 /* 1 */
@@ -8117,7 +8117,12 @@ function normalizeComponent (
     options._ssrRegister = hook
   } else if (injectStyles) {
     hook = shadowMode
-      ? function () { injectStyles.call(this, this.$root.$options.shadowRoot) }
+      ? function () {
+        injectStyles.call(
+          this,
+          (options.functional ? this.parent : this).$root.$options.shadowRoot
+        )
+      }
       : injectStyles
   }
 
@@ -8126,7 +8131,7 @@ function normalizeComponent (
       // for template-only hot-reload because in that case the render fn doesn't
       // go through the normalizer
       options._injectStyles = hook
-      // register for functioal component in vue file
+      // register for functional component in vue file
       var originalRender = options.render
       options.render = function renderWithStyleInjection (h, context) {
         hook.call(context)
@@ -9122,7 +9127,7 @@ var locationChangeAngularEmitter = function (eventName) {
   }]);
 };
 
-var defaultSelector = 'linearGradient, radialGradient, pattern';
+var defaultSelector = 'linearGradient, radialGradient, pattern, mask, clipPath';
 
 /**
  * @param {Element} svg
@@ -9344,7 +9349,7 @@ var BrowserSprite = (function (Sprite$$1) {
     }
 
     if (typeof cfg.locationChangeAngularEmitter === 'undefined') {
-      config.locationChangeAngularEmitter = 'angular' in window;
+        config.locationChangeAngularEmitter = typeof window.angular !== 'undefined';
     }
 
     if (typeof cfg.moveGradientsOutsideSymbol === 'undefined') {
@@ -9643,6 +9648,281 @@ if (typeof __g == 'number') __g = global; // eslint-disable-line no-undef
 "use strict";
 
 
+var isOldIE = function isOldIE() {
+  var memo;
+  return function memorize() {
+    if (typeof memo === 'undefined') {
+      // Test for IE <= 9 as proposed by Browserhacks
+      // @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+      // Tests for existence of standard globals is to allow style-loader
+      // to operate correctly into non-standard environments
+      // @see https://github.com/webpack-contrib/style-loader/issues/177
+      memo = Boolean(window && document && document.all && !window.atob);
+    }
+
+    return memo;
+  };
+}();
+
+var getTarget = function getTarget() {
+  var memo = {};
+  return function memorize(target) {
+    if (typeof memo[target] === 'undefined') {
+      var styleTarget = document.querySelector(target); // Special case to return head of iframe instead of iframe itself
+
+      if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
+        try {
+          // This will throw an exception if access to iframe is blocked
+          // due to cross-origin restrictions
+          styleTarget = styleTarget.contentDocument.head;
+        } catch (e) {
+          // istanbul ignore next
+          styleTarget = null;
+        }
+      }
+
+      memo[target] = styleTarget;
+    }
+
+    return memo[target];
+  };
+}();
+
+var stylesInDom = [];
+
+function getIndexByIdentifier(identifier) {
+  var result = -1;
+
+  for (var i = 0; i < stylesInDom.length; i++) {
+    if (stylesInDom[i].identifier === identifier) {
+      result = i;
+      break;
+    }
+  }
+
+  return result;
+}
+
+function modulesToDom(list, options) {
+  var idCountMap = {};
+  var identifiers = [];
+
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var id = options.base ? item[0] + options.base : item[0];
+    var count = idCountMap[id] || 0;
+    var identifier = "".concat(id, " ").concat(count);
+    idCountMap[id] = count + 1;
+    var index = getIndexByIdentifier(identifier);
+    var obj = {
+      css: item[1],
+      media: item[2],
+      sourceMap: item[3]
+    };
+
+    if (index !== -1) {
+      stylesInDom[index].references++;
+      stylesInDom[index].updater(obj);
+    } else {
+      stylesInDom.push({
+        identifier: identifier,
+        updater: addStyle(obj, options),
+        references: 1
+      });
+    }
+
+    identifiers.push(identifier);
+  }
+
+  return identifiers;
+}
+
+function insertStyleElement(options) {
+  var style = document.createElement('style');
+  var attributes = options.attributes || {};
+
+  if (typeof attributes.nonce === 'undefined') {
+    var nonce =  true ? __webpack_require__.nc : undefined;
+
+    if (nonce) {
+      attributes.nonce = nonce;
+    }
+  }
+
+  Object.keys(attributes).forEach(function (key) {
+    style.setAttribute(key, attributes[key]);
+  });
+
+  if (typeof options.insert === 'function') {
+    options.insert(style);
+  } else {
+    var target = getTarget(options.insert || 'head');
+
+    if (!target) {
+      throw new Error("Couldn't find a style target. This probably means that the value for the 'insert' parameter is invalid.");
+    }
+
+    target.appendChild(style);
+  }
+
+  return style;
+}
+
+function removeStyleElement(style) {
+  // istanbul ignore if
+  if (style.parentNode === null) {
+    return false;
+  }
+
+  style.parentNode.removeChild(style);
+}
+/* istanbul ignore next  */
+
+
+var replaceText = function replaceText() {
+  var textStore = [];
+  return function replace(index, replacement) {
+    textStore[index] = replacement;
+    return textStore.filter(Boolean).join('\n');
+  };
+}();
+
+function applyToSingletonTag(style, index, remove, obj) {
+  var css = remove ? '' : obj.media ? "@media ".concat(obj.media, " {").concat(obj.css, "}") : obj.css; // For old IE
+
+  /* istanbul ignore if  */
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = replaceText(index, css);
+  } else {
+    var cssNode = document.createTextNode(css);
+    var childNodes = style.childNodes;
+
+    if (childNodes[index]) {
+      style.removeChild(childNodes[index]);
+    }
+
+    if (childNodes.length) {
+      style.insertBefore(cssNode, childNodes[index]);
+    } else {
+      style.appendChild(cssNode);
+    }
+  }
+}
+
+function applyToTag(style, options, obj) {
+  var css = obj.css;
+  var media = obj.media;
+  var sourceMap = obj.sourceMap;
+
+  if (media) {
+    style.setAttribute('media', media);
+  } else {
+    style.removeAttribute('media');
+  }
+
+  if (sourceMap && btoa) {
+    css += "\n/*# sourceMappingURL=data:application/json;base64,".concat(btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))), " */");
+  } // For old IE
+
+  /* istanbul ignore if  */
+
+
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    while (style.firstChild) {
+      style.removeChild(style.firstChild);
+    }
+
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+var singleton = null;
+var singletonCounter = 0;
+
+function addStyle(obj, options) {
+  var style;
+  var update;
+  var remove;
+
+  if (options.singleton) {
+    var styleIndex = singletonCounter++;
+    style = singleton || (singleton = insertStyleElement(options));
+    update = applyToSingletonTag.bind(null, style, styleIndex, false);
+    remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+  } else {
+    style = insertStyleElement(options);
+    update = applyToTag.bind(null, style, options);
+
+    remove = function remove() {
+      removeStyleElement(style);
+    };
+  }
+
+  update(obj);
+  return function updateStyle(newObj) {
+    if (newObj) {
+      if (newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap) {
+        return;
+      }
+
+      update(obj = newObj);
+    } else {
+      remove();
+    }
+  };
+}
+
+module.exports = function (list, options) {
+  options = options || {}; // Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+  // tags it will allow on a page
+
+  if (!options.singleton && typeof options.singleton !== 'boolean') {
+    options.singleton = isOldIE();
+  }
+
+  list = list || [];
+  var lastIdentifiers = modulesToDom(list, options);
+  return function update(newList) {
+    newList = newList || [];
+
+    if (Object.prototype.toString.call(newList) !== '[object Array]') {
+      return;
+    }
+
+    for (var i = 0; i < lastIdentifiers.length; i++) {
+      var identifier = lastIdentifiers[i];
+      var index = getIndexByIdentifier(identifier);
+      stylesInDom[index].references--;
+    }
+
+    var newLastIdentifiers = modulesToDom(newList, options);
+
+    for (var _i = 0; _i < lastIdentifiers.length; _i++) {
+      var _identifier = lastIdentifiers[_i];
+
+      var _index = getIndexByIdentifier(_identifier);
+
+      if (stylesInDom[_index].references === 0) {
+        stylesInDom[_index].updater();
+
+        stylesInDom.splice(_index, 1);
+      }
+    }
+
+    lastIdentifiers = newLastIdentifiers;
+  };
+};
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 /*
   MIT License http://www.opensource.org/licenses/mit-license.php
   Author Tobias Koppers @sokra
@@ -9737,410 +10017,6 @@ function toComment(sourceMap) {
 }
 
 /***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/*
-	MIT License http://www.opensource.org/licenses/mit-license.php
-	Author Tobias Koppers @sokra
-*/
-
-var stylesInDom = {};
-
-var	memoize = function (fn) {
-	var memo;
-
-	return function () {
-		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
-		return memo;
-	};
-};
-
-var isOldIE = memoize(function () {
-	// Test for IE <= 9 as proposed by Browserhacks
-	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
-	// Tests for existence of standard globals is to allow style-loader
-	// to operate correctly into non-standard environments
-	// @see https://github.com/webpack-contrib/style-loader/issues/177
-	return window && document && document.all && !window.atob;
-});
-
-var getTarget = function (target, parent) {
-  if (parent){
-    return parent.querySelector(target);
-  }
-  return document.querySelector(target);
-};
-
-var getElement = (function (fn) {
-	var memo = {};
-
-	return function(target, parent) {
-                // If passing function in options, then use it for resolve "head" element.
-                // Useful for Shadow Root style i.e
-                // {
-                //   insertInto: function () { return document.querySelector("#foo").shadowRoot }
-                // }
-                if (typeof target === 'function') {
-                        return target();
-                }
-                if (typeof memo[target] === "undefined") {
-			var styleTarget = getTarget.call(this, target, parent);
-			// Special case to return head of iframe instead of iframe itself
-			if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
-				try {
-					// This will throw an exception if access to iframe is blocked
-					// due to cross-origin restrictions
-					styleTarget = styleTarget.contentDocument.head;
-				} catch(e) {
-					styleTarget = null;
-				}
-			}
-			memo[target] = styleTarget;
-		}
-		return memo[target]
-	};
-})();
-
-var singleton = null;
-var	singletonCounter = 0;
-var	stylesInsertedAtTop = [];
-
-var	fixUrls = __webpack_require__(280);
-
-module.exports = function(list, options) {
-	if (typeof DEBUG !== "undefined" && DEBUG) {
-		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
-	}
-
-	options = options || {};
-
-	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
-
-	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-	// tags it will allow on a page
-	if (!options.singleton && typeof options.singleton !== "boolean") options.singleton = isOldIE();
-
-	// By default, add <style> tags to the <head> element
-        if (!options.insertInto) options.insertInto = "head";
-
-	// By default, add <style> tags to the bottom of the target
-	if (!options.insertAt) options.insertAt = "bottom";
-
-	var styles = listToStyles(list, options);
-
-	addStylesToDom(styles, options);
-
-	return function update (newList) {
-		var mayRemove = [];
-
-		for (var i = 0; i < styles.length; i++) {
-			var item = styles[i];
-			var domStyle = stylesInDom[item.id];
-
-			domStyle.refs--;
-			mayRemove.push(domStyle);
-		}
-
-		if(newList) {
-			var newStyles = listToStyles(newList, options);
-			addStylesToDom(newStyles, options);
-		}
-
-		for (var i = 0; i < mayRemove.length; i++) {
-			var domStyle = mayRemove[i];
-
-			if(domStyle.refs === 0) {
-				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
-
-				delete stylesInDom[domStyle.id];
-			}
-		}
-	};
-};
-
-function addStylesToDom (styles, options) {
-	for (var i = 0; i < styles.length; i++) {
-		var item = styles[i];
-		var domStyle = stylesInDom[item.id];
-
-		if(domStyle) {
-			domStyle.refs++;
-
-			for(var j = 0; j < domStyle.parts.length; j++) {
-				domStyle.parts[j](item.parts[j]);
-			}
-
-			for(; j < item.parts.length; j++) {
-				domStyle.parts.push(addStyle(item.parts[j], options));
-			}
-		} else {
-			var parts = [];
-
-			for(var j = 0; j < item.parts.length; j++) {
-				parts.push(addStyle(item.parts[j], options));
-			}
-
-			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
-		}
-	}
-}
-
-function listToStyles (list, options) {
-	var styles = [];
-	var newStyles = {};
-
-	for (var i = 0; i < list.length; i++) {
-		var item = list[i];
-		var id = options.base ? item[0] + options.base : item[0];
-		var css = item[1];
-		var media = item[2];
-		var sourceMap = item[3];
-		var part = {css: css, media: media, sourceMap: sourceMap};
-
-		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
-		else newStyles[id].parts.push(part);
-	}
-
-	return styles;
-}
-
-function insertStyleElement (options, style) {
-	var target = getElement(options.insertInto)
-
-	if (!target) {
-		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
-	}
-
-	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
-
-	if (options.insertAt === "top") {
-		if (!lastStyleElementInsertedAtTop) {
-			target.insertBefore(style, target.firstChild);
-		} else if (lastStyleElementInsertedAtTop.nextSibling) {
-			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
-		} else {
-			target.appendChild(style);
-		}
-		stylesInsertedAtTop.push(style);
-	} else if (options.insertAt === "bottom") {
-		target.appendChild(style);
-	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
-		var nextSibling = getElement(options.insertAt.before, target);
-		target.insertBefore(style, nextSibling);
-	} else {
-		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
-	}
-}
-
-function removeStyleElement (style) {
-	if (style.parentNode === null) return false;
-	style.parentNode.removeChild(style);
-
-	var idx = stylesInsertedAtTop.indexOf(style);
-	if(idx >= 0) {
-		stylesInsertedAtTop.splice(idx, 1);
-	}
-}
-
-function createStyleElement (options) {
-	var style = document.createElement("style");
-
-	if(options.attrs.type === undefined) {
-		options.attrs.type = "text/css";
-	}
-
-	if(options.attrs.nonce === undefined) {
-		var nonce = getNonce();
-		if (nonce) {
-			options.attrs.nonce = nonce;
-		}
-	}
-
-	addAttrs(style, options.attrs);
-	insertStyleElement(options, style);
-
-	return style;
-}
-
-function createLinkElement (options) {
-	var link = document.createElement("link");
-
-	if(options.attrs.type === undefined) {
-		options.attrs.type = "text/css";
-	}
-	options.attrs.rel = "stylesheet";
-
-	addAttrs(link, options.attrs);
-	insertStyleElement(options, link);
-
-	return link;
-}
-
-function addAttrs (el, attrs) {
-	Object.keys(attrs).forEach(function (key) {
-		el.setAttribute(key, attrs[key]);
-	});
-}
-
-function getNonce() {
-	if (false) {}
-
-	return __webpack_require__.nc;
-}
-
-function addStyle (obj, options) {
-	var style, update, remove, result;
-
-	// If a transform function was defined, run it on the css
-	if (options.transform && obj.css) {
-	    result = typeof options.transform === 'function'
-		 ? options.transform(obj.css) 
-		 : options.transform.default(obj.css);
-
-	    if (result) {
-	    	// If transform returns a value, use that instead of the original css.
-	    	// This allows running runtime transformations on the css.
-	    	obj.css = result;
-	    } else {
-	    	// If the transform function returns a falsy value, don't add this css.
-	    	// This allows conditional loading of css
-	    	return function() {
-	    		// noop
-	    	};
-	    }
-	}
-
-	if (options.singleton) {
-		var styleIndex = singletonCounter++;
-
-		style = singleton || (singleton = createStyleElement(options));
-
-		update = applyToSingletonTag.bind(null, style, styleIndex, false);
-		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
-
-	} else if (
-		obj.sourceMap &&
-		typeof URL === "function" &&
-		typeof URL.createObjectURL === "function" &&
-		typeof URL.revokeObjectURL === "function" &&
-		typeof Blob === "function" &&
-		typeof btoa === "function"
-	) {
-		style = createLinkElement(options);
-		update = updateLink.bind(null, style, options);
-		remove = function () {
-			removeStyleElement(style);
-
-			if(style.href) URL.revokeObjectURL(style.href);
-		};
-	} else {
-		style = createStyleElement(options);
-		update = applyToTag.bind(null, style);
-		remove = function () {
-			removeStyleElement(style);
-		};
-	}
-
-	update(obj);
-
-	return function updateStyle (newObj) {
-		if (newObj) {
-			if (
-				newObj.css === obj.css &&
-				newObj.media === obj.media &&
-				newObj.sourceMap === obj.sourceMap
-			) {
-				return;
-			}
-
-			update(obj = newObj);
-		} else {
-			remove();
-		}
-	};
-}
-
-var replaceText = (function () {
-	var textStore = [];
-
-	return function (index, replacement) {
-		textStore[index] = replacement;
-
-		return textStore.filter(Boolean).join('\n');
-	};
-})();
-
-function applyToSingletonTag (style, index, remove, obj) {
-	var css = remove ? "" : obj.css;
-
-	if (style.styleSheet) {
-		style.styleSheet.cssText = replaceText(index, css);
-	} else {
-		var cssNode = document.createTextNode(css);
-		var childNodes = style.childNodes;
-
-		if (childNodes[index]) style.removeChild(childNodes[index]);
-
-		if (childNodes.length) {
-			style.insertBefore(cssNode, childNodes[index]);
-		} else {
-			style.appendChild(cssNode);
-		}
-	}
-}
-
-function applyToTag (style, obj) {
-	var css = obj.css;
-	var media = obj.media;
-
-	if(media) {
-		style.setAttribute("media", media)
-	}
-
-	if(style.styleSheet) {
-		style.styleSheet.cssText = css;
-	} else {
-		while(style.firstChild) {
-			style.removeChild(style.firstChild);
-		}
-
-		style.appendChild(document.createTextNode(css));
-	}
-}
-
-function updateLink (link, options, obj) {
-	var css = obj.css;
-	var sourceMap = obj.sourceMap;
-
-	/*
-		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
-		and there is no publicPath defined then lets turn convertToAbsoluteUrls
-		on by default.  Otherwise default to the convertToAbsoluteUrls option
-		directly
-	*/
-	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
-
-	if (options.convertToAbsoluteUrls || autoFixUrls) {
-		css = fixUrls(css);
-	}
-
-	if (sourceMap) {
-		// http://stackoverflow.com/a/26603875
-		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
-	}
-
-	var blob = new Blob([css], { type: "text/css" });
-
-	var oldSrc = link.href;
-
-	link.href = URL.createObjectURL(blob);
-
-	if(oldSrc) URL.revokeObjectURL(oldSrc);
-}
-
-
-/***/ }),
 /* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -10158,21 +10034,21 @@ module.exports = __webpack_require__(28) ? function (object, key, value) {
 /* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(288);
+module.exports = __webpack_require__(291);
 
 /***/ }),
 /* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(298);
+module.exports = __webpack_require__(301);
 
 /***/ }),
 /* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(21);
-var IE8_DOM_DEFINE = __webpack_require__(283);
-var toPrimitive = __webpack_require__(284);
+var IE8_DOM_DEFINE = __webpack_require__(286);
+var toPrimitive = __webpack_require__(287);
 var dP = Object.defineProperty;
 
 exports.f = __webpack_require__(9) ? Object.defineProperty : function defineProperty(O, P, Attributes) {
@@ -10284,7 +10160,7 @@ module.exports = function (it, key) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
-var $keys = __webpack_require__(285);
+var $keys = __webpack_require__(288);
 var enumBugKeys = __webpack_require__(61);
 
 module.exports = Object.keys || function keys(O) {
@@ -10318,7 +10194,7 @@ module.exports = function (it) {
 /* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(304);
+module.exports = __webpack_require__(307);
 
 /***/ }),
 /* 28 */
@@ -10344,63 +10220,61 @@ module.exports = function (it, key) {
 /* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var api = __webpack_require__(12);
+            var content = __webpack_require__(283);
 
-var content = __webpack_require__(279);
+            content = content.__esModule ? content.default : content;
 
-if(typeof content === 'string') content = [[module.i, content, '']];
+            if (typeof content === 'string') {
+              content = [[module.i, content, '']];
+            }
 
-var transform;
-var insertInto;
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = api(content, options);
 
 
 
-var options = {"hmr":true}
-
-options.transform = transform
-options.insertInto = undefined;
-
-var update = __webpack_require__(13)(content, options);
-
-if(content.locals) module.exports = content.locals;
-
-if(false) {}
+module.exports = content.locals || {};
 
 /***/ }),
 /* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(291);
+module.exports = __webpack_require__(294);
 
 /***/ }),
 /* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(295);
+module.exports = __webpack_require__(298);
 
 /***/ }),
 /* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var api = __webpack_require__(12);
+            var content = __webpack_require__(343);
 
-var content = __webpack_require__(340);
+            content = content.__esModule ? content.default : content;
 
-if(typeof content === 'string') content = [[module.i, content, '']];
+            if (typeof content === 'string') {
+              content = [[module.i, content, '']];
+            }
 
-var transform;
-var insertInto;
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = api(content, options);
 
 
 
-var options = {"hmr":true}
-
-options.transform = transform
-options.insertInto = undefined;
-
-var update = __webpack_require__(13)(content, options);
-
-if(content.locals) module.exports = content.locals;
-
-if(false) {}
+module.exports = content.locals || {};
 
 /***/ }),
 /* 34 */
@@ -10572,7 +10446,7 @@ src_component.options.__file = "src/components/Loading/src/index.vue"
 /* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(305);
+module.exports = __webpack_require__(308);
 
 /***/ }),
 /* 36 */
@@ -10692,8 +10566,8 @@ module.exports = function (key) {
 /***/ (function(module, exports, __webpack_require__) {
 
 var anObject = __webpack_require__(47);
-var IE8_DOM_DEFINE = __webpack_require__(319);
-var toPrimitive = __webpack_require__(320);
+var IE8_DOM_DEFINE = __webpack_require__(322);
+var toPrimitive = __webpack_require__(323);
 var dP = Object.defineProperty;
 
 exports.f = __webpack_require__(28) ? Object.defineProperty : function defineProperty(O, P, Attributes) {
@@ -10741,7 +10615,7 @@ module.exports = {};
 /***/ (function(module, exports, __webpack_require__) {
 
 // to indexed object, toObject with fallback for non-array-like ES3 strings
-var IObject = __webpack_require__(322);
+var IObject = __webpack_require__(325);
 var defined = __webpack_require__(68);
 module.exports = function (it) {
   return IObject(defined(it));
@@ -10756,7 +10630,7 @@ var global = __webpack_require__(10);
 var hide = __webpack_require__(14);
 var has = __webpack_require__(29);
 var SRC = __webpack_require__(45)('src');
-var $toString = __webpack_require__(326);
+var $toString = __webpack_require__(329);
 var TO_STRING = 'toString';
 var TPL = ('' + $toString).split(TO_STRING);
 
@@ -10996,7 +10870,7 @@ module.exports = function (it) {
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 / 15.2.3.14 Object.keys(O)
-var $keys = __webpack_require__(332);
+var $keys = __webpack_require__(335);
 var enumBugKeys = __webpack_require__(71);
 
 module.exports = Object.keys || function keys(O) {
@@ -11054,182 +10928,186 @@ hljs.registerLanguage('angelscript', __webpack_require__(94));
 hljs.registerLanguage('apache', __webpack_require__(95));
 hljs.registerLanguage('applescript', __webpack_require__(96));
 hljs.registerLanguage('arcade', __webpack_require__(97));
-hljs.registerLanguage('cpp', __webpack_require__(98));
-hljs.registerLanguage('arduino', __webpack_require__(99));
-hljs.registerLanguage('armasm', __webpack_require__(100));
-hljs.registerLanguage('xml', __webpack_require__(101));
-hljs.registerLanguage('asciidoc', __webpack_require__(102));
-hljs.registerLanguage('aspectj', __webpack_require__(103));
-hljs.registerLanguage('autohotkey', __webpack_require__(104));
-hljs.registerLanguage('autoit', __webpack_require__(105));
-hljs.registerLanguage('avrasm', __webpack_require__(106));
-hljs.registerLanguage('awk', __webpack_require__(107));
-hljs.registerLanguage('axapta', __webpack_require__(108));
-hljs.registerLanguage('bash', __webpack_require__(109));
-hljs.registerLanguage('basic', __webpack_require__(110));
-hljs.registerLanguage('bnf', __webpack_require__(111));
-hljs.registerLanguage('brainfuck', __webpack_require__(112));
-hljs.registerLanguage('cal', __webpack_require__(113));
-hljs.registerLanguage('capnproto', __webpack_require__(114));
-hljs.registerLanguage('ceylon', __webpack_require__(115));
-hljs.registerLanguage('clean', __webpack_require__(116));
-hljs.registerLanguage('clojure', __webpack_require__(117));
-hljs.registerLanguage('clojure-repl', __webpack_require__(118));
-hljs.registerLanguage('cmake', __webpack_require__(119));
-hljs.registerLanguage('coffeescript', __webpack_require__(120));
-hljs.registerLanguage('coq', __webpack_require__(121));
-hljs.registerLanguage('cos', __webpack_require__(122));
-hljs.registerLanguage('crmsh', __webpack_require__(123));
-hljs.registerLanguage('crystal', __webpack_require__(124));
-hljs.registerLanguage('cs', __webpack_require__(125));
-hljs.registerLanguage('csp', __webpack_require__(126));
-hljs.registerLanguage('css', __webpack_require__(127));
-hljs.registerLanguage('d', __webpack_require__(128));
-hljs.registerLanguage('markdown', __webpack_require__(129));
-hljs.registerLanguage('dart', __webpack_require__(130));
-hljs.registerLanguage('delphi', __webpack_require__(131));
-hljs.registerLanguage('diff', __webpack_require__(132));
-hljs.registerLanguage('django', __webpack_require__(133));
-hljs.registerLanguage('dns', __webpack_require__(134));
-hljs.registerLanguage('dockerfile', __webpack_require__(135));
-hljs.registerLanguage('dos', __webpack_require__(136));
-hljs.registerLanguage('dsconfig', __webpack_require__(137));
-hljs.registerLanguage('dts', __webpack_require__(138));
-hljs.registerLanguage('dust', __webpack_require__(139));
-hljs.registerLanguage('ebnf', __webpack_require__(140));
-hljs.registerLanguage('elixir', __webpack_require__(141));
-hljs.registerLanguage('elm', __webpack_require__(142));
-hljs.registerLanguage('ruby', __webpack_require__(143));
-hljs.registerLanguage('erb', __webpack_require__(144));
-hljs.registerLanguage('erlang-repl', __webpack_require__(145));
-hljs.registerLanguage('erlang', __webpack_require__(146));
-hljs.registerLanguage('excel', __webpack_require__(147));
-hljs.registerLanguage('fix', __webpack_require__(148));
-hljs.registerLanguage('flix', __webpack_require__(149));
-hljs.registerLanguage('fortran', __webpack_require__(150));
-hljs.registerLanguage('fsharp', __webpack_require__(151));
-hljs.registerLanguage('gams', __webpack_require__(152));
-hljs.registerLanguage('gauss', __webpack_require__(153));
-hljs.registerLanguage('gcode', __webpack_require__(154));
-hljs.registerLanguage('gherkin', __webpack_require__(155));
-hljs.registerLanguage('glsl', __webpack_require__(156));
-hljs.registerLanguage('gml', __webpack_require__(157));
-hljs.registerLanguage('go', __webpack_require__(158));
-hljs.registerLanguage('golo', __webpack_require__(159));
-hljs.registerLanguage('gradle', __webpack_require__(160));
-hljs.registerLanguage('groovy', __webpack_require__(161));
-hljs.registerLanguage('haml', __webpack_require__(162));
-hljs.registerLanguage('handlebars', __webpack_require__(163));
-hljs.registerLanguage('haskell', __webpack_require__(164));
-hljs.registerLanguage('haxe', __webpack_require__(165));
-hljs.registerLanguage('hsp', __webpack_require__(166));
-hljs.registerLanguage('htmlbars', __webpack_require__(167));
-hljs.registerLanguage('http', __webpack_require__(168));
-hljs.registerLanguage('hy', __webpack_require__(169));
-hljs.registerLanguage('inform7', __webpack_require__(170));
-hljs.registerLanguage('ini', __webpack_require__(171));
-hljs.registerLanguage('irpf90', __webpack_require__(172));
-hljs.registerLanguage('isbl', __webpack_require__(173));
-hljs.registerLanguage('java', __webpack_require__(174));
-hljs.registerLanguage('javascript', __webpack_require__(175));
-hljs.registerLanguage('jboss-cli', __webpack_require__(176));
-hljs.registerLanguage('json', __webpack_require__(177));
-hljs.registerLanguage('julia', __webpack_require__(178));
-hljs.registerLanguage('julia-repl', __webpack_require__(179));
-hljs.registerLanguage('kotlin', __webpack_require__(180));
-hljs.registerLanguage('lasso', __webpack_require__(181));
-hljs.registerLanguage('ldif', __webpack_require__(182));
-hljs.registerLanguage('leaf', __webpack_require__(183));
-hljs.registerLanguage('less', __webpack_require__(184));
-hljs.registerLanguage('lisp', __webpack_require__(185));
-hljs.registerLanguage('livecodeserver', __webpack_require__(186));
-hljs.registerLanguage('livescript', __webpack_require__(187));
-hljs.registerLanguage('llvm', __webpack_require__(188));
-hljs.registerLanguage('lsl', __webpack_require__(189));
-hljs.registerLanguage('lua', __webpack_require__(190));
-hljs.registerLanguage('makefile', __webpack_require__(191));
-hljs.registerLanguage('mathematica', __webpack_require__(192));
-hljs.registerLanguage('matlab', __webpack_require__(193));
-hljs.registerLanguage('maxima', __webpack_require__(194));
-hljs.registerLanguage('mel', __webpack_require__(195));
-hljs.registerLanguage('mercury', __webpack_require__(196));
-hljs.registerLanguage('mipsasm', __webpack_require__(197));
-hljs.registerLanguage('mizar', __webpack_require__(198));
-hljs.registerLanguage('perl', __webpack_require__(199));
-hljs.registerLanguage('mojolicious', __webpack_require__(200));
-hljs.registerLanguage('monkey', __webpack_require__(201));
-hljs.registerLanguage('moonscript', __webpack_require__(202));
-hljs.registerLanguage('n1ql', __webpack_require__(203));
-hljs.registerLanguage('nginx', __webpack_require__(204));
-hljs.registerLanguage('nimrod', __webpack_require__(205));
-hljs.registerLanguage('nix', __webpack_require__(206));
-hljs.registerLanguage('nsis', __webpack_require__(207));
-hljs.registerLanguage('objectivec', __webpack_require__(208));
-hljs.registerLanguage('ocaml', __webpack_require__(209));
-hljs.registerLanguage('openscad', __webpack_require__(210));
-hljs.registerLanguage('oxygene', __webpack_require__(211));
-hljs.registerLanguage('parser3', __webpack_require__(212));
-hljs.registerLanguage('pf', __webpack_require__(213));
-hljs.registerLanguage('pgsql', __webpack_require__(214));
-hljs.registerLanguage('php', __webpack_require__(215));
-hljs.registerLanguage('plaintext', __webpack_require__(216));
-hljs.registerLanguage('pony', __webpack_require__(217));
-hljs.registerLanguage('powershell', __webpack_require__(218));
-hljs.registerLanguage('processing', __webpack_require__(219));
-hljs.registerLanguage('profile', __webpack_require__(220));
-hljs.registerLanguage('prolog', __webpack_require__(221));
-hljs.registerLanguage('properties', __webpack_require__(222));
-hljs.registerLanguage('protobuf', __webpack_require__(223));
-hljs.registerLanguage('puppet', __webpack_require__(224));
-hljs.registerLanguage('purebasic', __webpack_require__(225));
-hljs.registerLanguage('python', __webpack_require__(226));
-hljs.registerLanguage('q', __webpack_require__(227));
-hljs.registerLanguage('qml', __webpack_require__(228));
-hljs.registerLanguage('r', __webpack_require__(229));
-hljs.registerLanguage('reasonml', __webpack_require__(230));
-hljs.registerLanguage('rib', __webpack_require__(231));
-hljs.registerLanguage('roboconf', __webpack_require__(232));
-hljs.registerLanguage('routeros', __webpack_require__(233));
-hljs.registerLanguage('rsl', __webpack_require__(234));
-hljs.registerLanguage('ruleslanguage', __webpack_require__(235));
-hljs.registerLanguage('rust', __webpack_require__(236));
-hljs.registerLanguage('sas', __webpack_require__(237));
-hljs.registerLanguage('scala', __webpack_require__(238));
-hljs.registerLanguage('scheme', __webpack_require__(239));
-hljs.registerLanguage('scilab', __webpack_require__(240));
-hljs.registerLanguage('scss', __webpack_require__(241));
-hljs.registerLanguage('shell', __webpack_require__(242));
-hljs.registerLanguage('smali', __webpack_require__(243));
-hljs.registerLanguage('smalltalk', __webpack_require__(244));
-hljs.registerLanguage('sml', __webpack_require__(245));
-hljs.registerLanguage('sqf', __webpack_require__(246));
-hljs.registerLanguage('sql', __webpack_require__(247));
-hljs.registerLanguage('stan', __webpack_require__(248));
-hljs.registerLanguage('stata', __webpack_require__(249));
-hljs.registerLanguage('step21', __webpack_require__(250));
-hljs.registerLanguage('stylus', __webpack_require__(251));
-hljs.registerLanguage('subunit', __webpack_require__(252));
-hljs.registerLanguage('swift', __webpack_require__(253));
-hljs.registerLanguage('taggerscript', __webpack_require__(254));
-hljs.registerLanguage('yaml', __webpack_require__(255));
-hljs.registerLanguage('tap', __webpack_require__(256));
-hljs.registerLanguage('tcl', __webpack_require__(257));
-hljs.registerLanguage('tex', __webpack_require__(258));
-hljs.registerLanguage('thrift', __webpack_require__(259));
-hljs.registerLanguage('tp', __webpack_require__(260));
-hljs.registerLanguage('twig', __webpack_require__(261));
-hljs.registerLanguage('typescript', __webpack_require__(262));
-hljs.registerLanguage('vala', __webpack_require__(263));
-hljs.registerLanguage('vbnet', __webpack_require__(264));
-hljs.registerLanguage('vbscript', __webpack_require__(265));
-hljs.registerLanguage('vbscript-html', __webpack_require__(266));
-hljs.registerLanguage('verilog', __webpack_require__(267));
-hljs.registerLanguage('vhdl', __webpack_require__(268));
-hljs.registerLanguage('vim', __webpack_require__(269));
-hljs.registerLanguage('x86asm', __webpack_require__(270));
-hljs.registerLanguage('xl', __webpack_require__(271));
-hljs.registerLanguage('xquery', __webpack_require__(272));
-hljs.registerLanguage('zephir', __webpack_require__(273));
+hljs.registerLanguage('c-like', __webpack_require__(98));
+hljs.registerLanguage('cpp', __webpack_require__(99));
+hljs.registerLanguage('arduino', __webpack_require__(100));
+hljs.registerLanguage('armasm', __webpack_require__(101));
+hljs.registerLanguage('xml', __webpack_require__(102));
+hljs.registerLanguage('asciidoc', __webpack_require__(103));
+hljs.registerLanguage('aspectj', __webpack_require__(104));
+hljs.registerLanguage('autohotkey', __webpack_require__(105));
+hljs.registerLanguage('autoit', __webpack_require__(106));
+hljs.registerLanguage('avrasm', __webpack_require__(107));
+hljs.registerLanguage('awk', __webpack_require__(108));
+hljs.registerLanguage('axapta', __webpack_require__(109));
+hljs.registerLanguage('bash', __webpack_require__(110));
+hljs.registerLanguage('basic', __webpack_require__(111));
+hljs.registerLanguage('bnf', __webpack_require__(112));
+hljs.registerLanguage('brainfuck', __webpack_require__(113));
+hljs.registerLanguage('c', __webpack_require__(114));
+hljs.registerLanguage('cal', __webpack_require__(115));
+hljs.registerLanguage('capnproto', __webpack_require__(116));
+hljs.registerLanguage('ceylon', __webpack_require__(117));
+hljs.registerLanguage('clean', __webpack_require__(118));
+hljs.registerLanguage('clojure', __webpack_require__(119));
+hljs.registerLanguage('clojure-repl', __webpack_require__(120));
+hljs.registerLanguage('cmake', __webpack_require__(121));
+hljs.registerLanguage('coffeescript', __webpack_require__(122));
+hljs.registerLanguage('coq', __webpack_require__(123));
+hljs.registerLanguage('cos', __webpack_require__(124));
+hljs.registerLanguage('crmsh', __webpack_require__(125));
+hljs.registerLanguage('crystal', __webpack_require__(126));
+hljs.registerLanguage('csharp', __webpack_require__(127));
+hljs.registerLanguage('csp', __webpack_require__(128));
+hljs.registerLanguage('css', __webpack_require__(129));
+hljs.registerLanguage('d', __webpack_require__(130));
+hljs.registerLanguage('markdown', __webpack_require__(131));
+hljs.registerLanguage('dart', __webpack_require__(132));
+hljs.registerLanguage('delphi', __webpack_require__(133));
+hljs.registerLanguage('diff', __webpack_require__(134));
+hljs.registerLanguage('django', __webpack_require__(135));
+hljs.registerLanguage('dns', __webpack_require__(136));
+hljs.registerLanguage('dockerfile', __webpack_require__(137));
+hljs.registerLanguage('dos', __webpack_require__(138));
+hljs.registerLanguage('dsconfig', __webpack_require__(139));
+hljs.registerLanguage('dts', __webpack_require__(140));
+hljs.registerLanguage('dust', __webpack_require__(141));
+hljs.registerLanguage('ebnf', __webpack_require__(142));
+hljs.registerLanguage('elixir', __webpack_require__(143));
+hljs.registerLanguage('elm', __webpack_require__(144));
+hljs.registerLanguage('ruby', __webpack_require__(145));
+hljs.registerLanguage('erb', __webpack_require__(146));
+hljs.registerLanguage('erlang-repl', __webpack_require__(147));
+hljs.registerLanguage('erlang', __webpack_require__(148));
+hljs.registerLanguage('excel', __webpack_require__(149));
+hljs.registerLanguage('fix', __webpack_require__(150));
+hljs.registerLanguage('flix', __webpack_require__(151));
+hljs.registerLanguage('fortran', __webpack_require__(152));
+hljs.registerLanguage('fsharp', __webpack_require__(153));
+hljs.registerLanguage('gams', __webpack_require__(154));
+hljs.registerLanguage('gauss', __webpack_require__(155));
+hljs.registerLanguage('gcode', __webpack_require__(156));
+hljs.registerLanguage('gherkin', __webpack_require__(157));
+hljs.registerLanguage('glsl', __webpack_require__(158));
+hljs.registerLanguage('gml', __webpack_require__(159));
+hljs.registerLanguage('go', __webpack_require__(160));
+hljs.registerLanguage('golo', __webpack_require__(161));
+hljs.registerLanguage('gradle', __webpack_require__(162));
+hljs.registerLanguage('groovy', __webpack_require__(163));
+hljs.registerLanguage('haml', __webpack_require__(164));
+hljs.registerLanguage('handlebars', __webpack_require__(165));
+hljs.registerLanguage('haskell', __webpack_require__(166));
+hljs.registerLanguage('haxe', __webpack_require__(167));
+hljs.registerLanguage('hsp', __webpack_require__(168));
+hljs.registerLanguage('htmlbars', __webpack_require__(169));
+hljs.registerLanguage('http', __webpack_require__(170));
+hljs.registerLanguage('hy', __webpack_require__(171));
+hljs.registerLanguage('inform7', __webpack_require__(172));
+hljs.registerLanguage('ini', __webpack_require__(173));
+hljs.registerLanguage('irpf90', __webpack_require__(174));
+hljs.registerLanguage('isbl', __webpack_require__(175));
+hljs.registerLanguage('java', __webpack_require__(176));
+hljs.registerLanguage('javascript', __webpack_require__(177));
+hljs.registerLanguage('jboss-cli', __webpack_require__(178));
+hljs.registerLanguage('json', __webpack_require__(179));
+hljs.registerLanguage('julia', __webpack_require__(180));
+hljs.registerLanguage('julia-repl', __webpack_require__(181));
+hljs.registerLanguage('kotlin', __webpack_require__(182));
+hljs.registerLanguage('lasso', __webpack_require__(183));
+hljs.registerLanguage('latex', __webpack_require__(184));
+hljs.registerLanguage('ldif', __webpack_require__(185));
+hljs.registerLanguage('leaf', __webpack_require__(186));
+hljs.registerLanguage('less', __webpack_require__(187));
+hljs.registerLanguage('lisp', __webpack_require__(188));
+hljs.registerLanguage('livecodeserver', __webpack_require__(189));
+hljs.registerLanguage('livescript', __webpack_require__(190));
+hljs.registerLanguage('llvm', __webpack_require__(191));
+hljs.registerLanguage('lsl', __webpack_require__(192));
+hljs.registerLanguage('lua', __webpack_require__(193));
+hljs.registerLanguage('makefile', __webpack_require__(194));
+hljs.registerLanguage('mathematica', __webpack_require__(195));
+hljs.registerLanguage('matlab', __webpack_require__(196));
+hljs.registerLanguage('maxima', __webpack_require__(197));
+hljs.registerLanguage('mel', __webpack_require__(198));
+hljs.registerLanguage('mercury', __webpack_require__(199));
+hljs.registerLanguage('mipsasm', __webpack_require__(200));
+hljs.registerLanguage('mizar', __webpack_require__(201));
+hljs.registerLanguage('perl', __webpack_require__(202));
+hljs.registerLanguage('mojolicious', __webpack_require__(203));
+hljs.registerLanguage('monkey', __webpack_require__(204));
+hljs.registerLanguage('moonscript', __webpack_require__(205));
+hljs.registerLanguage('n1ql', __webpack_require__(206));
+hljs.registerLanguage('nginx', __webpack_require__(207));
+hljs.registerLanguage('nim', __webpack_require__(208));
+hljs.registerLanguage('nix', __webpack_require__(209));
+hljs.registerLanguage('nsis', __webpack_require__(210));
+hljs.registerLanguage('objectivec', __webpack_require__(211));
+hljs.registerLanguage('ocaml', __webpack_require__(212));
+hljs.registerLanguage('openscad', __webpack_require__(213));
+hljs.registerLanguage('oxygene', __webpack_require__(214));
+hljs.registerLanguage('parser3', __webpack_require__(215));
+hljs.registerLanguage('pf', __webpack_require__(216));
+hljs.registerLanguage('pgsql', __webpack_require__(217));
+hljs.registerLanguage('php', __webpack_require__(218));
+hljs.registerLanguage('php-template', __webpack_require__(219));
+hljs.registerLanguage('plaintext', __webpack_require__(220));
+hljs.registerLanguage('pony', __webpack_require__(221));
+hljs.registerLanguage('powershell', __webpack_require__(222));
+hljs.registerLanguage('processing', __webpack_require__(223));
+hljs.registerLanguage('profile', __webpack_require__(224));
+hljs.registerLanguage('prolog', __webpack_require__(225));
+hljs.registerLanguage('properties', __webpack_require__(226));
+hljs.registerLanguage('protobuf', __webpack_require__(227));
+hljs.registerLanguage('puppet', __webpack_require__(228));
+hljs.registerLanguage('purebasic', __webpack_require__(229));
+hljs.registerLanguage('python', __webpack_require__(230));
+hljs.registerLanguage('python-repl', __webpack_require__(231));
+hljs.registerLanguage('q', __webpack_require__(232));
+hljs.registerLanguage('qml', __webpack_require__(233));
+hljs.registerLanguage('r', __webpack_require__(234));
+hljs.registerLanguage('reasonml', __webpack_require__(235));
+hljs.registerLanguage('rib', __webpack_require__(236));
+hljs.registerLanguage('roboconf', __webpack_require__(237));
+hljs.registerLanguage('routeros', __webpack_require__(238));
+hljs.registerLanguage('rsl', __webpack_require__(239));
+hljs.registerLanguage('ruleslanguage', __webpack_require__(240));
+hljs.registerLanguage('rust', __webpack_require__(241));
+hljs.registerLanguage('sas', __webpack_require__(242));
+hljs.registerLanguage('scala', __webpack_require__(243));
+hljs.registerLanguage('scheme', __webpack_require__(244));
+hljs.registerLanguage('scilab', __webpack_require__(245));
+hljs.registerLanguage('scss', __webpack_require__(246));
+hljs.registerLanguage('shell', __webpack_require__(247));
+hljs.registerLanguage('smali', __webpack_require__(248));
+hljs.registerLanguage('smalltalk', __webpack_require__(249));
+hljs.registerLanguage('sml', __webpack_require__(250));
+hljs.registerLanguage('sqf', __webpack_require__(251));
+hljs.registerLanguage('sql', __webpack_require__(252));
+hljs.registerLanguage('stan', __webpack_require__(253));
+hljs.registerLanguage('stata', __webpack_require__(254));
+hljs.registerLanguage('step21', __webpack_require__(255));
+hljs.registerLanguage('stylus', __webpack_require__(256));
+hljs.registerLanguage('subunit', __webpack_require__(257));
+hljs.registerLanguage('swift', __webpack_require__(258));
+hljs.registerLanguage('taggerscript', __webpack_require__(259));
+hljs.registerLanguage('yaml', __webpack_require__(260));
+hljs.registerLanguage('tap', __webpack_require__(261));
+hljs.registerLanguage('tcl', __webpack_require__(262));
+hljs.registerLanguage('thrift', __webpack_require__(263));
+hljs.registerLanguage('tp', __webpack_require__(264));
+hljs.registerLanguage('twig', __webpack_require__(265));
+hljs.registerLanguage('typescript', __webpack_require__(266));
+hljs.registerLanguage('vala', __webpack_require__(267));
+hljs.registerLanguage('vbnet', __webpack_require__(268));
+hljs.registerLanguage('vbscript', __webpack_require__(269));
+hljs.registerLanguage('vbscript-html', __webpack_require__(270));
+hljs.registerLanguage('verilog', __webpack_require__(271));
+hljs.registerLanguage('vhdl', __webpack_require__(272));
+hljs.registerLanguage('vim', __webpack_require__(273));
+hljs.registerLanguage('x86asm', __webpack_require__(274));
+hljs.registerLanguage('xl', __webpack_require__(275));
+hljs.registerLanguage('xquery', __webpack_require__(276));
+hljs.registerLanguage('zephir', __webpack_require__(277));
 
 module.exports = hljs;
 
@@ -11243,13 +11121,13 @@ module.exports = JSON.parse("[{\"name\":\"Loading\",\"title\":\"Loading 加载\"
 /* 75 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(281);
+module.exports = __webpack_require__(284);
 
 /***/ }),
 /* 76 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(302);
+module.exports = __webpack_require__(305);
 
 /***/ }),
 /* 77 */
@@ -11294,7 +11172,7 @@ module.exports = function (isEntries) {
 
 "use strict";
 
-var $at = __webpack_require__(306)(true);
+var $at = __webpack_require__(309)(true);
 
 // 21.1.3.27 String.prototype[@@iterator]()
 __webpack_require__(80)(String, 'String', function (iterated) {
@@ -11320,12 +11198,12 @@ __webpack_require__(80)(String, 'String', function (iterated) {
 
 var LIBRARY = __webpack_require__(56);
 var $export = __webpack_require__(5);
-var redefine = __webpack_require__(307);
+var redefine = __webpack_require__(310);
 var hide = __webpack_require__(22);
 var Iterators = __webpack_require__(38);
-var $iterCreate = __webpack_require__(308);
+var $iterCreate = __webpack_require__(311);
 var setToStringTag = __webpack_require__(57);
-var getPrototypeOf = __webpack_require__(311);
+var getPrototypeOf = __webpack_require__(314);
 var ITERATOR = __webpack_require__(8)('iterator');
 var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
 var FF_ITERATOR = '@@iterator';
@@ -11503,107 +11381,938 @@ module.exports = function (exec, skipClosing) {
 /* 87 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "e290bfcf53f86434e216fa0fadd24f6b.png";
+module.exports = __webpack_require__.p + "7e2953ef7bef4711415d4dea2eb74ca7.png";
 
 /***/ }),
 /* 88 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+// https://github.com/substack/deep-freeze/blob/master/index.js
+function deepFreeze (o) {
+  Object.freeze(o);
+
+  var objIsFunction = typeof o === 'function';
+
+  Object.getOwnPropertyNames(o).forEach(function (prop) {
+    if (o.hasOwnProperty(prop)
+    && o[prop] !== null
+    && (typeof o[prop] === "object" || typeof o[prop] === "function")
+    // IE11 fix: https://github.com/highlightjs/highlight.js/issues/2318
+    // TODO: remove in the future
+    && (objIsFunction ? prop !== 'caller' && prop !== 'callee' && prop !== 'arguments' : true)
+    && !Object.isFrozen(o[prop])) {
+      deepFreeze(o[prop]);
+    }
+  });
+
+  return o;
+}
+
+function escapeHTML(value) {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+
+/**
+ * performs a shallow merge of multiple objects into one
+ *
+ * @arguments list of objects with properties to merge
+ * @returns a single new object
+ */
+function inherit(parent) {  // inherit(parent, override_obj, override_obj, ...)
+  var key;
+  var result = {};
+  var objects = Array.prototype.slice.call(arguments, 1);
+
+  for (key in parent)
+    result[key] = parent[key];
+  objects.forEach(function(obj) {
+    for (key in obj)
+      result[key] = obj[key];
+  });
+  return result;
+}
+
+/* Stream merging */
+
+
+function tag(node) {
+  return node.nodeName.toLowerCase();
+}
+
+
+function nodeStream(node) {
+  var result = [];
+  (function _nodeStream(node, offset) {
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      if (child.nodeType === 3)
+        offset += child.nodeValue.length;
+      else if (child.nodeType === 1) {
+        result.push({
+          event: 'start',
+          offset: offset,
+          node: child
+        });
+        offset = _nodeStream(child, offset);
+        // Prevent void elements from having an end tag that would actually
+        // double them in the output. There are more void elements in HTML
+        // but we list only those realistically expected in code display.
+        if (!tag(child).match(/br|hr|img|input/)) {
+          result.push({
+            event: 'stop',
+            offset: offset,
+            node: child
+          });
+        }
+      }
+    }
+    return offset;
+  })(node, 0);
+  return result;
+}
+
+function mergeStreams(original, highlighted, value) {
+  var processed = 0;
+  var result = '';
+  var nodeStack = [];
+
+  function selectStream() {
+    if (!original.length || !highlighted.length) {
+      return original.length ? original : highlighted;
+    }
+    if (original[0].offset !== highlighted[0].offset) {
+      return (original[0].offset < highlighted[0].offset) ? original : highlighted;
+    }
+
+    /*
+    To avoid starting the stream just before it should stop the order is
+    ensured that original always starts first and closes last:
+
+    if (event1 == 'start' && event2 == 'start')
+      return original;
+    if (event1 == 'start' && event2 == 'stop')
+      return highlighted;
+    if (event1 == 'stop' && event2 == 'start')
+      return original;
+    if (event1 == 'stop' && event2 == 'stop')
+      return highlighted;
+
+    ... which is collapsed to:
+    */
+    return highlighted[0].event === 'start' ? original : highlighted;
+  }
+
+  function open(node) {
+    function attr_str(a) {
+      return ' ' + a.nodeName + '="' + escapeHTML(a.value).replace(/"/g, '&quot;') + '"';
+    }
+    result += '<' + tag(node) + [].map.call(node.attributes, attr_str).join('') + '>';
+  }
+
+  function close(node) {
+    result += '</' + tag(node) + '>';
+  }
+
+  function render(event) {
+    (event.event === 'start' ? open : close)(event.node);
+  }
+
+  while (original.length || highlighted.length) {
+    var stream = selectStream();
+    result += escapeHTML(value.substring(processed, stream[0].offset));
+    processed = stream[0].offset;
+    if (stream === original) {
+      /*
+      On any opening or closing tag of the original markup we first close
+      the entire highlighted node stack, then render the original tag along
+      with all the following original tags at the same offset and then
+      reopen all the tags on the highlighted stack.
+      */
+      nodeStack.reverse().forEach(close);
+      do {
+        render(stream.splice(0, 1)[0]);
+        stream = selectStream();
+      } while (stream === original && stream.length && stream[0].offset === processed);
+      nodeStack.reverse().forEach(open);
+    } else {
+      if (stream[0].event === 'start') {
+        nodeStack.push(stream[0].node);
+      } else {
+        nodeStack.pop();
+      }
+      render(stream.splice(0, 1)[0]);
+    }
+  }
+  return result + escapeHTML(value.substr(processed));
+}
+
+var utils = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  escapeHTML: escapeHTML,
+  inherit: inherit,
+  nodeStream: nodeStream,
+  mergeStreams: mergeStreams
+});
+
+const SPAN_CLOSE = '</span>';
+
+const emitsWrappingTags = (node) => {
+  return !!node.kind;
+};
+
+class HTMLRenderer {
+  constructor(tree, options) {
+    this.buffer = "";
+    this.classPrefix = options.classPrefix;
+    tree.walk(this);
+  }
+
+  // renderer API
+
+  addText(text) {
+    this.buffer += escapeHTML(text);
+  }
+
+  openNode(node) {
+    if (!emitsWrappingTags(node)) return;
+
+    let className = node.kind;
+    if (!node.sublanguage)
+      className = `${this.classPrefix}${className}`;
+    this.span(className);
+  }
+
+  closeNode(node) {
+    if (!emitsWrappingTags(node)) return;
+
+    this.buffer += SPAN_CLOSE;
+  }
+
+  // helpers
+
+  span(className) {
+    this.buffer += `<span class="${className}">`;
+  }
+
+  value() {
+    return this.buffer;
+  }
+}
+
+class TokenTree {
+  constructor() {
+    this.rootNode = { children: [] };
+    this.stack = [ this.rootNode ];
+  }
+
+  get top() {
+    return this.stack[this.stack.length - 1];
+  }
+
+  get root() { return this.rootNode };
+
+  add(node) {
+    this.top.children.push(node);
+  }
+
+  openNode(kind) {
+    let node = { kind, children: [] };
+    this.add(node);
+    this.stack.push(node);
+  }
+
+  closeNode() {
+    if (this.stack.length > 1)
+      return this.stack.pop();
+  }
+
+  closeAllNodes() {
+    while (this.closeNode());
+  }
+
+  toJSON() {
+    return JSON.stringify(this.rootNode, null, 4);
+  }
+
+  walk(builder) {
+    return this.constructor._walk(builder, this.rootNode);
+  }
+
+  static _walk(builder, node) {
+    if (typeof node === "string") {
+      builder.addText(node);
+    } else if (node.children) {
+      builder.openNode(node);
+      node.children.forEach((child) => this._walk(builder, child));
+      builder.closeNode(node);
+    }
+    return builder;
+  }
+
+  static _collapse(node) {
+    if (!node.children) {
+      return;
+    }
+    if (node.children.every(el => typeof el === "string")) {
+      node.text = node.children.join("");
+      delete node["children"];
+    } else {
+      node.children.forEach((child) => {
+        if (typeof child === "string") return;
+        TokenTree._collapse(child);
+      });
+    }
+  }
+}
+
+/**
+  Currently this is all private API, but this is the minimal API necessary
+  that an Emitter must implement to fully support the parser.
+
+  Minimal interface:
+
+  - addKeyword(text, kind)
+  - addText(text)
+  - addSublanguage(emitter, subLangaugeName)
+  - finalize()
+  - openNode(kind)
+  - closeNode()
+  - closeAllNodes()
+  - toHTML()
+
+*/
+class TokenTreeEmitter extends TokenTree {
+  constructor(options) {
+    super();
+    this.options = options;
+  }
+
+  addKeyword(text, kind) {
+    if (text === "") { return; }
+
+    this.openNode(kind);
+    this.addText(text);
+    this.closeNode();
+  }
+
+  addText(text) {
+    if (text === "") { return; }
+
+    this.add(text);
+  }
+
+  addSublanguage(emitter, name) {
+    let node = emitter.root;
+    node.kind = name;
+    node.sublanguage = true;
+    this.add(node);
+  }
+
+  toHTML() {
+    let renderer = new HTMLRenderer(this, this.options);
+    return renderer.value();
+  }
+
+  finalize() {
+    return;
+  }
+
+}
+
+function escape(value) {
+  return new RegExp(value.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'm');
+}
+
+function source(re) {
+  // if it's a regex get it's source,
+  // otherwise it's a string already so just return it
+  return (re && re.source) || re;
+}
+
+function countMatchGroups(re) {
+  return (new RegExp(re.toString() + '|')).exec('').length - 1;
+}
+
+function startsWith(re, lexeme) {
+  var match = re && re.exec(lexeme);
+  return match && match.index === 0;
+}
+
+// join logically computes regexps.join(separator), but fixes the
+// backreferences so they continue to match.
+// it also places each individual regular expression into it's own
+// match group, keeping track of the sequencing of those match groups
+// is currently an exercise for the caller. :-)
+function join(regexps, separator) {
+  // backreferenceRe matches an open parenthesis or backreference. To avoid
+  // an incorrect parse, it additionally matches the following:
+  // - [...] elements, where the meaning of parentheses and escapes change
+  // - other escape sequences, so we do not misparse escape sequences as
+  //   interesting elements
+  // - non-matching or lookahead parentheses, which do not capture. These
+  //   follow the '(' with a '?'.
+  var backreferenceRe = /\[(?:[^\\\]]|\\.)*\]|\(\??|\\([1-9][0-9]*)|\\./;
+  var numCaptures = 0;
+  var ret = '';
+  for (var i = 0; i < regexps.length; i++) {
+    numCaptures += 1;
+    var offset = numCaptures;
+    var re = source(regexps[i]);
+    if (i > 0) {
+      ret += separator;
+    }
+    ret += "(";
+    while (re.length > 0) {
+      var match = backreferenceRe.exec(re);
+      if (match == null) {
+        ret += re;
+        break;
+      }
+      ret += re.substring(0, match.index);
+      re = re.substring(match.index + match[0].length);
+      if (match[0][0] == '\\' && match[1]) {
+        // Adjust the backreference.
+        ret += '\\' + String(Number(match[1]) + offset);
+      } else {
+        ret += match[0];
+        if (match[0] == '(') {
+          numCaptures++;
+        }
+      }
+    }
+    ret += ")";
+  }
+  return ret;
+}
+
+// Common regexps
+const IDENT_RE = '[a-zA-Z]\\w*';
+const UNDERSCORE_IDENT_RE = '[a-zA-Z_]\\w*';
+const NUMBER_RE = '\\b\\d+(\\.\\d+)?';
+const C_NUMBER_RE = '(-?)(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)'; // 0x..., 0..., decimal, float
+const BINARY_NUMBER_RE = '\\b(0b[01]+)'; // 0b...
+const RE_STARTERS_RE = '!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|-|-=|/=|/|:|;|<<|<<=|<=|<|===|==|=|>>>=|>>=|>=|>>>|>>|>|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~';
+
+// Common modes
+const BACKSLASH_ESCAPE = {
+  begin: '\\\\[\\s\\S]', relevance: 0
+};
+const APOS_STRING_MODE = {
+  className: 'string',
+  begin: '\'', end: '\'',
+  illegal: '\\n',
+  contains: [BACKSLASH_ESCAPE]
+};
+const QUOTE_STRING_MODE = {
+  className: 'string',
+  begin: '"', end: '"',
+  illegal: '\\n',
+  contains: [BACKSLASH_ESCAPE]
+};
+const PHRASAL_WORDS_MODE = {
+  begin: /\b(a|an|the|are|I'm|isn't|don't|doesn't|won't|but|just|should|pretty|simply|enough|gonna|going|wtf|so|such|will|you|your|they|like|more)\b/
+};
+const COMMENT = function (begin, end, inherits) {
+  var mode = inherit(
+    {
+      className: 'comment',
+      begin: begin, end: end,
+      contains: []
+    },
+    inherits || {}
+  );
+  mode.contains.push(PHRASAL_WORDS_MODE);
+  mode.contains.push({
+    className: 'doctag',
+    begin: '(?:TODO|FIXME|NOTE|BUG|XXX):',
+    relevance: 0
+  });
+  return mode;
+};
+const C_LINE_COMMENT_MODE = COMMENT('//', '$');
+const C_BLOCK_COMMENT_MODE = COMMENT('/\\*', '\\*/');
+const HASH_COMMENT_MODE = COMMENT('#', '$');
+const NUMBER_MODE = {
+  className: 'number',
+  begin: NUMBER_RE,
+  relevance: 0
+};
+const C_NUMBER_MODE = {
+  className: 'number',
+  begin: C_NUMBER_RE,
+  relevance: 0
+};
+const BINARY_NUMBER_MODE = {
+  className: 'number',
+  begin: BINARY_NUMBER_RE,
+  relevance: 0
+};
+const CSS_NUMBER_MODE = {
+  className: 'number',
+  begin: NUMBER_RE + '(' +
+    '%|em|ex|ch|rem'  +
+    '|vw|vh|vmin|vmax' +
+    '|cm|mm|in|pt|pc|px' +
+    '|deg|grad|rad|turn' +
+    '|s|ms' +
+    '|Hz|kHz' +
+    '|dpi|dpcm|dppx' +
+    ')?',
+  relevance: 0
+};
+const REGEXP_MODE = {
+  // this outer rule makes sure we actually have a WHOLE regex and not simply
+  // an expression such as:
+  //
+  //     3 / something
+  //
+  // (which will then blow up when regex's `illegal` sees the newline)
+  begin: /(?=\/[^\/\n]*\/)/,
+  contains: [{
+    className: 'regexp',
+    begin: /\//, end: /\/[gimuy]*/,
+    illegal: /\n/,
+    contains: [
+      BACKSLASH_ESCAPE,
+      {
+        begin: /\[/, end: /\]/,
+        relevance: 0,
+        contains: [BACKSLASH_ESCAPE]
+      }
+    ]
+  }]
+};
+const TITLE_MODE = {
+  className: 'title',
+  begin: IDENT_RE,
+  relevance: 0
+};
+const UNDERSCORE_TITLE_MODE = {
+  className: 'title',
+  begin: UNDERSCORE_IDENT_RE,
+  relevance: 0
+};
+const METHOD_GUARD = {
+  // excludes method names from keyword processing
+  begin: '\\.\\s*' + UNDERSCORE_IDENT_RE,
+  relevance: 0
+};
+
+var MODES = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  IDENT_RE: IDENT_RE,
+  UNDERSCORE_IDENT_RE: UNDERSCORE_IDENT_RE,
+  NUMBER_RE: NUMBER_RE,
+  C_NUMBER_RE: C_NUMBER_RE,
+  BINARY_NUMBER_RE: BINARY_NUMBER_RE,
+  RE_STARTERS_RE: RE_STARTERS_RE,
+  BACKSLASH_ESCAPE: BACKSLASH_ESCAPE,
+  APOS_STRING_MODE: APOS_STRING_MODE,
+  QUOTE_STRING_MODE: QUOTE_STRING_MODE,
+  PHRASAL_WORDS_MODE: PHRASAL_WORDS_MODE,
+  COMMENT: COMMENT,
+  C_LINE_COMMENT_MODE: C_LINE_COMMENT_MODE,
+  C_BLOCK_COMMENT_MODE: C_BLOCK_COMMENT_MODE,
+  HASH_COMMENT_MODE: HASH_COMMENT_MODE,
+  NUMBER_MODE: NUMBER_MODE,
+  C_NUMBER_MODE: C_NUMBER_MODE,
+  BINARY_NUMBER_MODE: BINARY_NUMBER_MODE,
+  CSS_NUMBER_MODE: CSS_NUMBER_MODE,
+  REGEXP_MODE: REGEXP_MODE,
+  TITLE_MODE: TITLE_MODE,
+  UNDERSCORE_TITLE_MODE: UNDERSCORE_TITLE_MODE,
+  METHOD_GUARD: METHOD_GUARD
+});
+
+// keywords that should have no default relevance value
+var COMMON_KEYWORDS = 'of and for in not or if then'.split(' ');
+
+// compilation
+
+function compileLanguage(language) {
+
+  function langRe(value, global) {
+    return new RegExp(
+      source(value),
+      'm' + (language.case_insensitive ? 'i' : '') + (global ? 'g' : '')
+    );
+  }
+
+  /**
+    Stores multiple regular expressions and allows you to quickly search for
+    them all in a string simultaneously - returning the first match.  It does
+    this by creating a huge (a|b|c) regex - each individual item wrapped with ()
+    and joined by `|` - using match groups to track position.  When a match is
+    found checking which position in the array has content allows us to figure
+    out which of the original regexes / match groups triggered the match.
+
+    The match object itself (the result of `Regex.exec`) is returned but also
+    enhanced by merging in any meta-data that was registered with the regex.
+    This is how we keep track of which mode matched, and what type of rule
+    (`illegal`, `begin`, end, etc).
+  */
+  class MultiRegex {
+    constructor() {
+      this.matchIndexes = {};
+      this.regexes = [];
+      this.matchAt = 1;
+      this.position = 0;
+    }
+
+    addRule(re, opts) {
+      opts.position = this.position++;
+      this.matchIndexes[this.matchAt] = opts;
+      this.regexes.push([opts, re]);
+      this.matchAt += countMatchGroups(re) + 1;
+    }
+
+    compile() {
+      if (this.regexes.length === 0) {
+        // avoids the need to check length every time exec is called
+        this.exec = () => null;
+      }
+      let terminators = this.regexes.map(el => el[1]);
+      this.matcherRe = langRe(join(terminators, '|'), true);
+      this.lastIndex = 0;
+    }
+
+    exec(s) {
+      this.matcherRe.lastIndex = this.lastIndex;
+      let match = this.matcherRe.exec(s);
+      if (!match) { return null; }
+
+      let i = match.findIndex((el, i) => i>0 && el!=undefined);
+      let matchData = this.matchIndexes[i];
+
+      return Object.assign(match, matchData);
+    }
+  }
+
+  /*
+    Created to solve the key deficiently with MultiRegex - there is no way to
+    test for multiple matches at a single location.  Why would we need to do
+    that?  In the future a more dynamic engine will allow certain matches to be
+    ignored.  An example: if we matched say the 3rd regex in a large group but
+    decided to ignore it - we'd need to started testing again at the 4th
+    regex... but MultiRegex itself gives us no real way to do that.
+
+    So what this class creates MultiRegexs on the fly for whatever search
+    position they are needed.
+
+    NOTE: These additional MultiRegex objects are created dynamically.  For most
+    grammars most of the time we will never actually need anything more than the
+    first MultiRegex - so this shouldn't have too much overhead.
+
+    Say this is our search group, and we match regex3, but wish to ignore it.
+
+      regex1 | regex2 | regex3 | regex4 | regex5    ' ie, startAt = 0
+
+    What we need is a new MultiRegex that only includes the remaining
+    possibilities:
+
+      regex4 | regex5                               ' ie, startAt = 3
+
+    This class wraps all that complexity up in a simple API... `startAt` decides
+    where in the array of expressions to start doing the matching. It
+    auto-increments, so if a match is found at position 2, then startAt will be
+    set to 3.  If the end is reached startAt will return to 0.
+
+    MOST of the time the parser will be setting startAt manually to 0.
+  */
+  class ResumableMultiRegex {
+    constructor() {
+      this.rules = [];
+      this.multiRegexes = [];
+      this.count = 0;
+
+      this.lastIndex = 0;
+      this.regexIndex = 0;
+    }
+
+    getMatcher(index) {
+      if (this.multiRegexes[index]) return this.multiRegexes[index];
+
+      let matcher = new MultiRegex();
+      this.rules.slice(index).forEach(([re, opts])=> matcher.addRule(re,opts));
+      matcher.compile();
+      this.multiRegexes[index] = matcher;
+      return matcher;
+    }
+
+    considerAll() {
+      this.regexIndex = 0;
+    }
+
+    addRule(re, opts) {
+      this.rules.push([re, opts]);
+      if (opts.type==="begin") this.count++;
+    }
+
+    exec(s) {
+      let m = this.getMatcher(this.regexIndex);
+      m.lastIndex = this.lastIndex;
+      let result = m.exec(s);
+      if (result) {
+        this.regexIndex += result.position + 1;
+        if (this.regexIndex === this.count) // wrap-around
+          this.regexIndex = 0;
+      }
+
+      // this.regexIndex = 0;
+      return result;
+    }
+  }
+
+  function buildModeRegex(mode) {
+
+    let mm = new ResumableMultiRegex();
+
+    mode.contains.forEach(term => mm.addRule(term.begin, {rule: term, type: "begin" }));
+
+    if (mode.terminator_end)
+      mm.addRule(mode.terminator_end, {type: "end"} );
+    if (mode.illegal)
+      mm.addRule(mode.illegal, {type: "illegal"} );
+
+    return mm;
+  }
+
+  // TODO: We need negative look-behind support to do this properly
+  function skipIfhasPrecedingOrTrailingDot(match) {
+    let before = match.input[match.index-1];
+    let after = match.input[match.index + match[0].length];
+    if (before === "." || after === ".") {
+      return {ignoreMatch: true };
+    }
+  }
+
+  /** skip vs abort vs ignore
+   *
+   * @skip   - The mode is still entered and exited normally (and contains rules apply),
+   *           but all content is held and added to the parent buffer rather than being
+   *           output when the mode ends.  Mostly used with `sublanguage` to build up
+   *           a single large buffer than can be parsed by sublanguage.
+   *
+   *             - The mode begin ands ends normally.
+   *             - Content matched is added to the parent mode buffer.
+   *             - The parser cursor is moved forward normally.
+   *
+   * @abort  - A hack placeholder until we have ignore.  Aborts the mode (as if it
+   *           never matched) but DOES NOT continue to match subsequent `contains`
+   *           modes.  Abort is bad/suboptimal because it can result in modes
+   *           farther down not getting applied because an earlier rule eats the
+   *           content but then aborts.
+   *
+   *             - The mode does not begin.
+   *             - Content matched by `begin` is added to the mode buffer.
+   *             - The parser cursor is moved forward accordingly.
+   *
+   * @ignore - Ignores the mode (as if it never matched) and continues to match any
+   *           subsequent `contains` modes.  Ignore isn't technically possible with
+   *           the current parser implementation.
+   *
+   *             - The mode does not begin.
+   *             - Content matched by `begin` is ignored.
+   *             - The parser cursor is not moved forward.
+   */
+
+  function compileMode(mode, parent) {
+    if (mode.compiled)
+      return;
+    mode.compiled = true;
+
+    // __onBegin is considered private API, internal use only
+    mode.__onBegin = null;
+
+    mode.keywords = mode.keywords || mode.beginKeywords;
+    if (mode.keywords)
+      mode.keywords = compileKeywords(mode.keywords, language.case_insensitive);
+
+    mode.lexemesRe = langRe(mode.lexemes || /\w+/, true);
+
+    if (parent) {
+      if (mode.beginKeywords) {
+        // for languages with keywords that include non-word characters checking for
+        // a word boundary is not sufficient, so instead we check for a word boundary
+        // or whitespace - this does no harm in any case since our keyword engine
+        // doesn't allow spaces in keywords anyways and we still check for the boundary
+        // first
+        mode.begin = '\\b(' + mode.beginKeywords.split(' ').join('|') + ')(?=\\b|\\s)';
+        mode.__onBegin = skipIfhasPrecedingOrTrailingDot;
+      }
+      if (!mode.begin)
+        mode.begin = /\B|\b/;
+      mode.beginRe = langRe(mode.begin);
+      if (mode.endSameAsBegin)
+        mode.end = mode.begin;
+      if (!mode.end && !mode.endsWithParent)
+        mode.end = /\B|\b/;
+      if (mode.end)
+        mode.endRe = langRe(mode.end);
+      mode.terminator_end = source(mode.end) || '';
+      if (mode.endsWithParent && parent.terminator_end)
+        mode.terminator_end += (mode.end ? '|' : '') + parent.terminator_end;
+    }
+    if (mode.illegal)
+      mode.illegalRe = langRe(mode.illegal);
+    if (mode.relevance == null)
+      mode.relevance = 1;
+    if (!mode.contains) {
+      mode.contains = [];
+    }
+    mode.contains = [].concat(...mode.contains.map(function(c) {
+      return expand_or_clone_mode(c === 'self' ? mode : c);
+    }));
+    mode.contains.forEach(function(c) {compileMode(c, mode);});
+
+    if (mode.starts) {
+      compileMode(mode.starts, parent);
+    }
+
+    mode.matcher = buildModeRegex(mode);
+  }
+
+  // self is not valid at the top-level
+  if (language.contains && language.contains.includes('self')) {
+    throw new Error("ERR: contains `self` is not supported at the top-level of a language.  See documentation.")
+  }
+  compileMode(language);
+}
+
+function dependencyOnParent(mode) {
+  if (!mode) return false;
+
+  return mode.endsWithParent || dependencyOnParent(mode.starts);
+}
+
+function expand_or_clone_mode(mode) {
+  if (mode.variants && !mode.cached_variants) {
+    mode.cached_variants = mode.variants.map(function(variant) {
+      return inherit(mode, {variants: null}, variant);
+    });
+  }
+
+  // EXPAND
+  // if we have variants then essentially "replace" the mode with the variants
+  // this happens in compileMode, where this function is called from
+  if (mode.cached_variants)
+    return mode.cached_variants;
+
+  // CLONE
+  // if we have dependencies on parents then we need a unique
+  // instance of ourselves, so we can be reused with many
+  // different parents without issue
+  if (dependencyOnParent(mode))
+    return inherit(mode, { starts: mode.starts ? inherit(mode.starts) : null });
+
+  if (Object.isFrozen(mode))
+    return inherit(mode);
+
+  // no special dependency issues, just return ourselves
+  return mode;
+}
+
+
+// keywords
+
+function compileKeywords(rawKeywords, case_insensitive) {
+  var compiled_keywords = {};
+
+  if (typeof rawKeywords === 'string') { // string
+    splitAndCompile('keyword', rawKeywords);
+  } else {
+    Object.keys(rawKeywords).forEach(function (className) {
+      splitAndCompile(className, rawKeywords[className]);
+    });
+  }
+return compiled_keywords;
+
+// ---
+
+function splitAndCompile(className, str) {
+  if (case_insensitive) {
+    str = str.toLowerCase();
+  }
+  str.split(' ').forEach(function(keyword) {
+    var pair = keyword.split('|');
+    compiled_keywords[pair[0]] = [className, scoreForKeyword(pair[0], pair[1])];
+  });
+}
+}
+
+function scoreForKeyword(keyword, providedScore) {
+// manual scores always win over common keywords
+// so you can force a score of 1 if you really insist
+if (providedScore)
+  return Number(providedScore);
+
+return commonKeyword(keyword) ? 0 : 1;
+}
+
+function commonKeyword(word) {
+return COMMON_KEYWORDS.includes(word.toLowerCase());
+}
+
+var version = "10.0.3";
+
+/*
 Syntax highlighting with language autodetection.
 https://highlightjs.org/
 */
 
-(function(factory) {
+const escape$1 = escapeHTML;
+const inherit$1 = inherit;
 
-  // Find the global object for export to both the browser and web workers.
-  var globalObject = typeof window === 'object' && window ||
-                     typeof self === 'object' && self;
+const { nodeStream: nodeStream$1, mergeStreams: mergeStreams$1 } = utils;
 
-  // Setup highlight.js for different environments. First is Node.js or
-  // CommonJS.
-  // `nodeType` is checked to ensure that `exports` is not a HTML element.
-  if( true && !exports.nodeType) {
-    factory(exports);
-  } else if(globalObject) {
-    // Export hljs globally even when using AMD for cases when this script
-    // is loaded with others that may still expect a global hljs.
-    globalObject.hljs = factory({});
 
-    // Finally register the global hljs with AMD.
-    if(true) {
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = (function() {
-        return globalObject.hljs;
-      }).apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    }
-  }
+const HLJS = function(hljs) {
 
-}(function(hljs) {
   // Convenience variables for build-in objects
-  var ArrayProto = [],
-      objectKeys = Object.keys;
+  var ArrayProto = [];
 
   // Global internal variables used within the highlight.js library.
   var languages = {},
-      aliases   = {};
+      aliases   = {},
+      plugins   = [];
 
   // safe/production mode - swallows more errors, tries to keep running
   // even if a single syntax or parse hits a fatal error
   var SAFE_MODE = true;
 
   // Regular expressions used throughout the highlight.js library.
-  var noHighlightRe    = /^(no-?highlight|plain|text)$/i,
-      languagePrefixRe = /\blang(?:uage)?-([\w-]+)\b/i,
-      fixMarkupRe      = /((^(<[^>]+>|\t|)+|(?:\n)))/gm;
+  var fixMarkupRe      = /((^(<[^>]+>|\t|)+|(?:\n)))/gm;
 
-  // The object will be assigned by the build tool. It used to synchronize API
-  // of external language files with minified version of the highlight.js library.
-  var API_REPLACES;
-
-  var spanEndTag = '</span>';
   var LANGUAGE_NOT_FOUND = "Could not find the language '{}', did you forget to load/include a language module?";
 
   // Global options used when within external APIs. This is modified when
   // calling the `hljs.configure` function.
   var options = {
+    noHighlightRe: /^(no-?highlight)$/i,
+    languageDetectRe: /\blang(?:uage)?-([\w-]+)\b/i,
     classPrefix: 'hljs-',
     tabReplace: null,
     useBR: false,
-    languages: undefined
+    languages: undefined,
+    // beta configuration options, subject to change, welcome to discuss
+    // https://github.com/highlightjs/highlight.js/issues/1086
+    __emitter: TokenTreeEmitter
   };
-
-  // keywords that should have no default relevance value
-  var COMMON_KEYWORDS = 'of and for in not or if then'.split(' ');
-
 
   /* Utility functions */
 
-  function escape(value) {
-    return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-
-  function tag(node) {
-    return node.nodeName.toLowerCase();
-  }
-
-  function testRe(re, lexeme) {
-    var match = re && re.exec(lexeme);
-    return match && match.index === 0;
-  }
-
-  function isNotHighlighted(language) {
-    return noHighlightRe.test(language);
+  function shouldNotHighlight(language) {
+    return options.noHighlightRe.test(language);
   }
 
   function blockLanguage(block) {
-    var i, match, length, _class;
+    var match;
     var classes = block.className + ' ';
 
     classes += block.parentNode ? block.parentNode.className : '';
 
     // language-* takes precedence over non-prefixed class names.
-    match = languagePrefixRe.exec(classes);
+    match = options.languageDetectRe.exec(classes);
     if (match) {
       var language = getLanguage(match[1]);
       if (!language) {
@@ -11613,418 +12322,10 @@ https://highlightjs.org/
       return language ? match[1] : 'no-highlight';
     }
 
-    classes = classes.split(/\s+/);
-
-    for (i = 0, length = classes.length; i < length; i++) {
-      _class = classes[i];
-
-      if (isNotHighlighted(_class) || getLanguage(_class)) {
-        return _class;
-      }
-    }
+    return classes
+      .split(/\s+/)
+      .find((_class) => shouldNotHighlight(_class) || getLanguage(_class));
   }
-
-  /**
-   * performs a shallow merge of multiple objects into one
-   *
-   * @arguments list of objects with properties to merge
-   * @returns a single new object
-   */
-  function inherit(parent) {  // inherit(parent, override_obj, override_obj, ...)
-    var key;
-    var result = {};
-    var objects = Array.prototype.slice.call(arguments, 1);
-
-    for (key in parent)
-      result[key] = parent[key];
-    objects.forEach(function(obj) {
-      for (key in obj)
-        result[key] = obj[key];
-    });
-    return result;
-  }
-
-  /* Stream merging */
-
-  function nodeStream(node) {
-    var result = [];
-    (function _nodeStream(node, offset) {
-      for (var child = node.firstChild; child; child = child.nextSibling) {
-        if (child.nodeType === 3)
-          offset += child.nodeValue.length;
-        else if (child.nodeType === 1) {
-          result.push({
-            event: 'start',
-            offset: offset,
-            node: child
-          });
-          offset = _nodeStream(child, offset);
-          // Prevent void elements from having an end tag that would actually
-          // double them in the output. There are more void elements in HTML
-          // but we list only those realistically expected in code display.
-          if (!tag(child).match(/br|hr|img|input/)) {
-            result.push({
-              event: 'stop',
-              offset: offset,
-              node: child
-            });
-          }
-        }
-      }
-      return offset;
-    })(node, 0);
-    return result;
-  }
-
-  function mergeStreams(original, highlighted, value) {
-    var processed = 0;
-    var result = '';
-    var nodeStack = [];
-
-    function selectStream() {
-      if (!original.length || !highlighted.length) {
-        return original.length ? original : highlighted;
-      }
-      if (original[0].offset !== highlighted[0].offset) {
-        return (original[0].offset < highlighted[0].offset) ? original : highlighted;
-      }
-
-      /*
-      To avoid starting the stream just before it should stop the order is
-      ensured that original always starts first and closes last:
-
-      if (event1 == 'start' && event2 == 'start')
-        return original;
-      if (event1 == 'start' && event2 == 'stop')
-        return highlighted;
-      if (event1 == 'stop' && event2 == 'start')
-        return original;
-      if (event1 == 'stop' && event2 == 'stop')
-        return highlighted;
-
-      ... which is collapsed to:
-      */
-      return highlighted[0].event === 'start' ? original : highlighted;
-    }
-
-    function open(node) {
-      function attr_str(a) {
-        return ' ' + a.nodeName + '="' + escape(a.value).replace(/"/g, '&quot;') + '"';
-      }
-      result += '<' + tag(node) + ArrayProto.map.call(node.attributes, attr_str).join('') + '>';
-    }
-
-    function close(node) {
-      result += '</' + tag(node) + '>';
-    }
-
-    function render(event) {
-      (event.event === 'start' ? open : close)(event.node);
-    }
-
-    while (original.length || highlighted.length) {
-      var stream = selectStream();
-      result += escape(value.substring(processed, stream[0].offset));
-      processed = stream[0].offset;
-      if (stream === original) {
-        /*
-        On any opening or closing tag of the original markup we first close
-        the entire highlighted node stack, then render the original tag along
-        with all the following original tags at the same offset and then
-        reopen all the tags on the highlighted stack.
-        */
-        nodeStack.reverse().forEach(close);
-        do {
-          render(stream.splice(0, 1)[0]);
-          stream = selectStream();
-        } while (stream === original && stream.length && stream[0].offset === processed);
-        nodeStack.reverse().forEach(open);
-      } else {
-        if (stream[0].event === 'start') {
-          nodeStack.push(stream[0].node);
-        } else {
-          nodeStack.pop();
-        }
-        render(stream.splice(0, 1)[0]);
-      }
-    }
-    return result + escape(value.substr(processed));
-  }
-
-  /* Initialization */
-
-  function dependencyOnParent(mode) {
-    if (!mode) return false;
-
-    return mode.endsWithParent || dependencyOnParent(mode.starts);
-  }
-
-  function expand_or_clone_mode(mode) {
-    if (mode.variants && !mode.cached_variants) {
-      mode.cached_variants = mode.variants.map(function(variant) {
-        return inherit(mode, {variants: null}, variant);
-      });
-    }
-
-    // EXPAND
-    // if we have variants then essentially "replace" the mode with the variants
-    // this happens in compileMode, where this function is called from
-    if (mode.cached_variants)
-      return mode.cached_variants;
-
-    // CLONE
-    // if we have dependencies on parents then we need a unique
-    // instance of ourselves, so we can be reused with many
-    // different parents without issue
-    if (dependencyOnParent(mode))
-      return [inherit(mode, { starts: mode.starts ? inherit(mode.starts) : null })];
-
-    if (Object.isFrozen(mode))
-      return [inherit(mode)];
-
-    // no special dependency issues, just return ourselves
-    return [mode];
-  }
-
-  function restoreLanguageApi(obj) {
-    if(API_REPLACES && !obj.langApiRestored) {
-      obj.langApiRestored = true;
-      for(var key in API_REPLACES) {
-        if (obj[key]) {
-          obj[API_REPLACES[key]] = obj[key];
-        }
-      }
-      (obj.contains || []).concat(obj.variants || []).forEach(restoreLanguageApi);
-    }
-  }
-
-  function compileKeywords(rawKeywords, case_insensitive) {
-      var compiled_keywords = {};
-
-      if (typeof rawKeywords === 'string') { // string
-        splitAndCompile('keyword', rawKeywords);
-      } else {
-        objectKeys(rawKeywords).forEach(function (className) {
-          splitAndCompile(className, rawKeywords[className]);
-        });
-      }
-    return compiled_keywords;
-
-    // ---
-
-    function splitAndCompile(className, str) {
-      if (case_insensitive) {
-        str = str.toLowerCase();
-      }
-      str.split(' ').forEach(function(keyword) {
-        var pair = keyword.split('|');
-        compiled_keywords[pair[0]] = [className, scoreForKeyword(pair[0], pair[1])];
-      });
-    }
-  }
-
-  function scoreForKeyword(keyword, providedScore) {
-    // manual scores always win over common keywords
-    // so you can force a score of 1 if you really insist
-    if (providedScore)
-      return Number(providedScore);
-
-    return commonKeyword(keyword) ? 0 : 1;
-  }
-
-  function commonKeyword(word) {
-    return COMMON_KEYWORDS.indexOf(word.toLowerCase()) != -1;
-  }
-
-  function compileLanguage(language) {
-
-    function reStr(re) {
-        return (re && re.source) || re;
-    }
-
-    function langRe(value, global) {
-      return new RegExp(
-        reStr(value),
-        'm' + (language.case_insensitive ? 'i' : '') + (global ? 'g' : '')
-      );
-    }
-
-    function reCountMatchGroups(re) {
-      return (new RegExp(re.toString() + '|')).exec('').length - 1;
-    }
-
-    // joinRe logically computes regexps.join(separator), but fixes the
-    // backreferences so they continue to match.
-    // it also places each individual regular expression into it's own
-    // match group, keeping track of the sequencing of those match groups
-    // is currently an exercise for the caller. :-)
-    function joinRe(regexps, separator) {
-      // backreferenceRe matches an open parenthesis or backreference. To avoid
-      // an incorrect parse, it additionally matches the following:
-      // - [...] elements, where the meaning of parentheses and escapes change
-      // - other escape sequences, so we do not misparse escape sequences as
-      //   interesting elements
-      // - non-matching or lookahead parentheses, which do not capture. These
-      //   follow the '(' with a '?'.
-      var backreferenceRe = /\[(?:[^\\\]]|\\.)*\]|\(\??|\\([1-9][0-9]*)|\\./;
-      var numCaptures = 0;
-      var ret = '';
-      for (var i = 0; i < regexps.length; i++) {
-        numCaptures += 1;
-        var offset = numCaptures;
-        var re = reStr(regexps[i]);
-        if (i > 0) {
-          ret += separator;
-        }
-        ret += "(";
-        while (re.length > 0) {
-          var match = backreferenceRe.exec(re);
-          if (match == null) {
-            ret += re;
-            break;
-          }
-          ret += re.substring(0, match.index);
-          re = re.substring(match.index + match[0].length);
-          if (match[0][0] == '\\' && match[1]) {
-            // Adjust the backreference.
-            ret += '\\' + String(Number(match[1]) + offset);
-          } else {
-            ret += match[0];
-            if (match[0] == '(') {
-              numCaptures++;
-            }
-          }
-        }
-        ret += ")";
-      }
-      return ret;
-    }
-
-    function buildModeRegex(mode) {
-
-      var matchIndexes = {};
-      var matcherRe;
-      var regexes = [];
-      var matcher = {};
-      var matchAt = 1;
-
-      function addRule(rule, regex) {
-        matchIndexes[matchAt] = rule;
-        regexes.push([rule, regex]);
-        matchAt += reCountMatchGroups(regex) + 1;
-      }
-
-      var term;
-      for (var i=0; i < mode.contains.length; i++) {
-        var re;
-        term = mode.contains[i];
-        if (term.beginKeywords) {
-          re = '\\.?(?:' + term.begin + ')\\.?';
-        } else {
-          re = term.begin;
-        }
-        addRule(term, re);
-      }
-      if (mode.terminator_end)
-        addRule("end", mode.terminator_end);
-      if (mode.illegal)
-        addRule("illegal", mode.illegal);
-
-      var terminators = regexes.map(function(el) { return el[1]; });
-      matcherRe = langRe(joinRe(terminators, '|'), true);
-
-      matcher.lastIndex = 0;
-      matcher.exec = function(s) {
-        var rule;
-
-        if( regexes.length === 0) return null;
-
-        matcherRe.lastIndex = matcher.lastIndex;
-        var match = matcherRe.exec(s);
-        if (!match) { return null; }
-
-        for(var i = 0; i<match.length; i++) {
-          if (match[i] != undefined && matchIndexes["" +i] != undefined ) {
-            rule = matchIndexes[""+i];
-            break;
-          }
-        }
-
-        // illegal or end match
-        if (typeof rule === "string") {
-          match.type = rule;
-          match.extra = [mode.illegal, mode.terminator_end];
-        } else {
-          match.type = "begin";
-          match.rule = rule;
-        }
-        return match;
-      };
-
-      return matcher;
-    }
-
-    function compileMode(mode, parent) {
-      if (mode.compiled)
-        return;
-      mode.compiled = true;
-
-      mode.keywords = mode.keywords || mode.beginKeywords;
-      if (mode.keywords)
-        mode.keywords = compileKeywords(mode.keywords, language.case_insensitive);
-
-      mode.lexemesRe = langRe(mode.lexemes || /\w+/, true);
-
-      if (parent) {
-        if (mode.beginKeywords) {
-          mode.begin = '\\b(' + mode.beginKeywords.split(' ').join('|') + ')\\b';
-        }
-        if (!mode.begin)
-          mode.begin = /\B|\b/;
-        mode.beginRe = langRe(mode.begin);
-        if (mode.endSameAsBegin)
-          mode.end = mode.begin;
-        if (!mode.end && !mode.endsWithParent)
-          mode.end = /\B|\b/;
-        if (mode.end)
-          mode.endRe = langRe(mode.end);
-        mode.terminator_end = reStr(mode.end) || '';
-        if (mode.endsWithParent && parent.terminator_end)
-          mode.terminator_end += (mode.end ? '|' : '') + parent.terminator_end;
-      }
-      if (mode.illegal)
-        mode.illegalRe = langRe(mode.illegal);
-      if (mode.relevance == null)
-        mode.relevance = 1;
-      if (!mode.contains) {
-        mode.contains = [];
-      }
-      mode.contains = Array.prototype.concat.apply([], mode.contains.map(function(c) {
-        return expand_or_clone_mode(c === 'self' ? mode : c);
-      }));
-      mode.contains.forEach(function(c) {compileMode(c, mode);});
-
-      if (mode.starts) {
-        compileMode(mode.starts, parent);
-      }
-
-      mode.terminators = buildModeRegex(mode);
-    }
-
-    // self is not valid at the top-level
-    if (language.contains && language.contains.indexOf('self') != -1) {
-      if (!SAFE_MODE) {
-        throw new Error("ERR: contains `self` is not supported at the top-level of a language.  See documentation.")
-      } else {
-        // silently remove the broken rule (effectively ignoring it), this has historically
-        // been the behavior in the past, so this removal preserves compatibility with broken
-        // grammars when running in Safe Mode
-        language.contains = language.contains.filter(function(mode) { return mode != 'self'; });
-      }
-    }
-    compileMode(language);
-  }
-
 
   /**
    * Core highlighting function.
@@ -12038,18 +12339,38 @@ https://highlightjs.org/
    * @property {string} language - the language name
    * @property {number} relevance - the relevance score
    * @property {string} value - the highlighted HTML code
+   * @property {string} code - the original raw code
    * @property {mode} top - top of the current mode stack
    * @property {boolean} illegal - indicates whether any illegal matches were found
   */
   function highlight(languageName, code, ignore_illegals, continuation) {
+    var context = {
+      code,
+      language: languageName
+    };
+    // the plugin can change the desired language or the code to be highlighted
+    // just be changing the object it was passed
+    fire("before:highlight", context);
+
+    // a before plugin can usurp the result completely by providing it's own
+    // in which case we don't even need to call highlight
+    var result = context.result ?
+      context.result :
+      _highlight(context.language, context.code, ignore_illegals, continuation);
+
+    result.code = context.code;
+    // the plugin can change anything in result to suite it
+    fire("after:highlight", result);
+
+    return result;
+  }
+
+  // private highlight that's used internally and does not fire callbacks
+  function _highlight(languageName, code, ignore_illegals, continuation) {
     var codeToHighlight = code;
 
-    function escapeRe(value) {
-      return new RegExp(value.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'm');
-    }
-
     function endOfMode(mode, lexeme) {
-      if (testRe(mode.endRe, lexeme)) {
+      if (startsWith(mode.endRe, lexeme)) {
         while (mode.endsParent && mode.parent) {
           mode = mode.parent;
         }
@@ -12065,53 +12386,52 @@ https://highlightjs.org/
       return mode.keywords.hasOwnProperty(match_str) && mode.keywords[match_str];
     }
 
-    function buildSpan(className, insideSpan, leaveOpen, noPrefix) {
-      if (!leaveOpen && insideSpan === '') return '';
-      if (!className) return insideSpan;
-
-      var classPrefix = noPrefix ? '' : options.classPrefix,
-          openSpan    = '<span class="' + classPrefix,
-          closeSpan   = leaveOpen ? '' : spanEndTag;
-
-      openSpan += className + '">';
-
-      return openSpan + insideSpan + closeSpan;
-    }
-
     function processKeywords() {
-      var keyword_match, last_index, match, result;
+      var keyword_match, last_index, match, buf;
 
-      if (!top.keywords)
-        return escape(mode_buffer);
+      if (!top.keywords) {
+        emitter.addText(mode_buffer);
+        return;
+      }
 
-      result = '';
       last_index = 0;
       top.lexemesRe.lastIndex = 0;
       match = top.lexemesRe.exec(mode_buffer);
+      buf = "";
 
       while (match) {
-        result += escape(mode_buffer.substring(last_index, match.index));
+        buf += mode_buffer.substring(last_index, match.index);
         keyword_match = keywordMatch(top, match);
+        var kind = null;
         if (keyword_match) {
+          emitter.addText(buf);
+          buf = "";
+
           relevance += keyword_match[1];
-          result += buildSpan(keyword_match[0], escape(match[0]));
+          kind = keyword_match[0];
+          emitter.addKeyword(match[0], kind);
         } else {
-          result += escape(match[0]);
+          buf += match[0];
         }
         last_index = top.lexemesRe.lastIndex;
         match = top.lexemesRe.exec(mode_buffer);
       }
-      return result + escape(mode_buffer.substr(last_index));
+      buf += mode_buffer.substr(last_index);
+      emitter.addText(buf);
     }
 
     function processSubLanguage() {
+      if (mode_buffer === "") return;
+
       var explicit = typeof top.subLanguage === 'string';
+
       if (explicit && !languages[top.subLanguage]) {
-        return escape(mode_buffer);
+        emitter.addText(mode_buffer);
+        return;
       }
 
       var result = explicit ?
-                   highlight(top.subLanguage, mode_buffer, true, continuations[top.subLanguage]) :
+                   _highlight(top.subLanguage, mode_buffer, true, continuations[top.subLanguage]) :
                    highlightAuto(mode_buffer, top.subLanguage.length ? top.subLanguage : undefined);
 
       // Counting embedded language score towards the host language may be disabled
@@ -12124,26 +12444,50 @@ https://highlightjs.org/
       if (explicit) {
         continuations[top.subLanguage] = result.top;
       }
-      return buildSpan(result.language, result.value, false, true);
+      emitter.addSublanguage(result.emitter, result.language);
     }
 
     function processBuffer() {
-      result += (top.subLanguage != null ? processSubLanguage() : processKeywords());
+      if (top.subLanguage != null)
+        processSubLanguage();
+      else
+        processKeywords();
       mode_buffer = '';
     }
 
     function startNewMode(mode) {
-      result += mode.className? buildSpan(mode.className, '', true): '';
+      if (mode.className) {
+        emitter.openNode(mode.className);
+      }
       top = Object.create(mode, {parent: {value: top}});
     }
 
+    function doIgnore(lexeme) {
+      if (top.matcher.regexIndex === 0) {
+        // no more regexs to potentially match here, so we move the cursor forward one
+        // space
+        mode_buffer += lexeme[0];
+        return 1;
+      } else {
+        // no need to move the cursor, we still have additional regexes to try and
+        // match at this very spot
+        continueScanAtSamePosition = true;
+        return 0;
+      }
+    }
 
     function doBeginMatch(match) {
       var lexeme = match[0];
       var new_mode = match.rule;
 
+      if (new_mode.__onBegin) {
+        let res = new_mode.__onBegin(match) || {};
+        if (res.ignoreMatch)
+          return doIgnore(lexeme);
+      }
+
       if (new_mode && new_mode.endSameAsBegin) {
-        new_mode.endRe = escapeRe( lexeme );
+        new_mode.endRe = escape( lexeme );
       }
 
       if (new_mode.skip) {
@@ -12181,7 +12525,7 @@ https://highlightjs.org/
       }
       do {
         if (top.className) {
-          result += spanEndTag;
+          emitter.closeNode();
         }
         if (!top.skip && !top.subLanguage) {
           relevance += top.relevance;
@@ -12197,9 +12541,20 @@ https://highlightjs.org/
       return origin.returnEnd ? 0 : lexeme.length;
     }
 
+    function processContinuations() {
+      var list = [];
+      for(var current = top; current !== language; current = current.parent) {
+        if (current.className) {
+          list.unshift(current.className);
+        }
+      }
+      list.forEach(item => emitter.openNode(item));
+    }
+
     var lastMatch = {};
     function processLexeme(text_before_match, match) {
 
+      var err;
       var lexeme = match && match[0];
 
       // add non-matched text to the current mode buffer
@@ -12210,6 +12565,8 @@ https://highlightjs.org/
         return 0;
       }
 
+
+
       // we've found a 0 width match and we're stuck, so we need to advance
       // this happens when we have badly behaved rules that have optional matchers to the degree that
       // sometimes they can end up matching nothing at all
@@ -12217,6 +12574,12 @@ https://highlightjs.org/
       if (lastMatch.type=="begin" && match.type=="end" && lastMatch.index == match.index && lexeme === "") {
         // spit the "skipped" character that our regex choked on back into the output sequence
         mode_buffer += codeToHighlight.slice(match.index, match.index + 1);
+        if (!SAFE_MODE) {
+          err = new Error('0 width match regex');
+          err.languageName = languageName;
+          err.badRule = lastMatch.rule;
+          throw(err);
+        }
         return 1;
       }
       lastMatch = match;
@@ -12225,11 +12588,30 @@ https://highlightjs.org/
         return doBeginMatch(match);
       } else if (match.type==="illegal" && !ignore_illegals) {
         // illegal match, we do not continue processing
-        throw new Error('Illegal lexeme "' + lexeme + '" for mode "' + (top.className || '<unnamed>') + '"');
+        err = new Error('Illegal lexeme "' + lexeme + '" for mode "' + (top.className || '<unnamed>') + '"');
+        err.mode = top;
+        throw err;
       } else if (match.type==="end") {
         var processed = doEndMatch(match);
         if (processed != undefined)
           return processed;
+      }
+
+      // edge case for when illegal matches $ (end of line) which is technically
+      // a 0 width match but not a begin/end match so it's not caught by the
+      // first handler (when ignoreIllegals is true)
+      if (match.type === "illegal" && lexeme === "") {
+        // advance so we aren't stuck in an infinite loop
+        return 1;
+      }
+
+      // infinite loops are BAD, this is a last ditch catch all. if we have a
+      // decent number of iterations yet our index (cursor position in our
+      // parsing) still 3x behind our index then something is very wrong
+      // so we bail
+      if (iterations > 100000 && iterations > match.index * 3) {
+        const err = new Error('potential infinite loop, way more iterations than matches');
+        throw err;
       }
 
       /*
@@ -12257,48 +12639,70 @@ https://highlightjs.org/
     compileLanguage(language);
     var top = continuation || language;
     var continuations = {}; // keep continuations for sub-languages
-    var result = '', current;
-    for(current = top; current !== language; current = current.parent) {
-      if (current.className) {
-        result = buildSpan(current.className, '', true) + result;
-      }
-    }
+    var result;
+    var emitter = new options.__emitter(options);
+    processContinuations();
     var mode_buffer = '';
     var relevance = 0;
+    var match;
+    var processedCount;
+    var index = 0;
+    var iterations = 0;
+    var continueScanAtSamePosition = false;
+
     try {
-      var match, count, index = 0;
-      while (true) {
-        top.terminators.lastIndex = index;
-        match = top.terminators.exec(codeToHighlight);
+      top.matcher.considerAll();
+
+      for (;;) {
+        iterations++;
+        if (continueScanAtSamePosition) {
+          continueScanAtSamePosition = false;
+          // only regexes not matched previously will now be
+          // considered for a potential match
+        } else {
+          top.matcher.lastIndex = index;
+          top.matcher.considerAll();
+        }
+        match = top.matcher.exec(codeToHighlight);
+        // console.log("match", match[0], match.rule && match.rule.begin)
         if (!match)
           break;
-        count = processLexeme(codeToHighlight.substring(index, match.index), match);
-        index = match.index + count;
+        let beforeMatch = codeToHighlight.substring(index, match.index);
+        processedCount = processLexeme(beforeMatch, match);
+        index = match.index + processedCount;
       }
       processLexeme(codeToHighlight.substr(index));
-      for(current = top; current.parent; current = current.parent) { // close dangling modes
-        if (current.className) {
-          result += spanEndTag;
-        }
-      }
+      emitter.closeAllNodes();
+      emitter.finalize();
+      result = emitter.toHTML();
+
       return {
         relevance: relevance,
         value: result,
-        illegal:false,
         language: languageName,
+        illegal: false,
+        emitter: emitter,
         top: top
       };
     } catch (err) {
-      if (err.message && err.message.indexOf('Illegal') !== -1) {
+      if (err.message && err.message.includes('Illegal')) {
         return {
           illegal: true,
+          illegalBy: {
+            msg: err.message,
+            context: codeToHighlight.slice(index-100,index+100),
+            mode: err.mode
+          },
+          sofar: result,
           relevance: 0,
-          value: escape(codeToHighlight)
+          value: escape$1(codeToHighlight),
+          emitter: emitter,
         };
       } else if (SAFE_MODE) {
         return {
           relevance: 0,
-          value: escape(codeToHighlight),
+          value: escape$1(codeToHighlight),
+          emitter: emitter,
           language: languageName,
           top: top,
           errorRaised: err
@@ -12307,6 +12711,22 @@ https://highlightjs.org/
         throw err;
       }
     }
+  }
+
+  // returns a valid highlight result, without actually
+  // doing any actual work, auto highlight starts with
+  // this and it's possible for small snippets that
+  // auto-detection may not find a better match
+  function justTextHighlightResult(code) {
+    const result = {
+      relevance: 0,
+      emitter: new options.__emitter(options),
+      value: escape$1(code),
+      illegal: false,
+      top: PLAINTEXT_LANGUAGE
+    };
+    result.emitter.addText(code);
+    return result;
   }
 
   /*
@@ -12321,14 +12741,11 @@ https://highlightjs.org/
 
   */
   function highlightAuto(code, languageSubset) {
-    languageSubset = languageSubset || options.languages || objectKeys(languages);
-    var result = {
-      relevance: 0,
-      value: escape(code)
-    };
+    languageSubset = languageSubset || options.languages || Object.keys(languages);
+    var result = justTextHighlightResult(code);
     var second_best = result;
     languageSubset.filter(getLanguage).filter(autoDetection).forEach(function(name) {
-      var current = highlight(name, code, false);
+      var current = _highlight(name, code, false);
       current.language = name;
       if (current.relevance > second_best.relevance) {
         second_best = current;
@@ -12374,7 +12791,7 @@ https://highlightjs.org/
       result.push('hljs');
     }
 
-    if (prevClassName.indexOf(language) === -1) {
+    if (!prevClassName.includes(language)) {
       result.push(language);
     }
 
@@ -12389,8 +12806,11 @@ https://highlightjs.org/
     var node, originalStream, result, resultNode, text;
     var language = blockLanguage(block);
 
-    if (isNotHighlighted(language))
+    if (shouldNotHighlight(language))
         return;
+
+    fire("before:highlightBlock",
+      { block: block, language: language});
 
     if (options.useBR) {
       node = document.createElement('div');
@@ -12401,13 +12821,15 @@ https://highlightjs.org/
     text = node.textContent;
     result = language ? highlight(language, text, true) : highlightAuto(text);
 
-    originalStream = nodeStream(node);
+    originalStream = nodeStream$1(node);
     if (originalStream.length) {
       resultNode = document.createElement('div');
       resultNode.innerHTML = result.value;
-      result.value = mergeStreams(originalStream, nodeStream(resultNode), text);
+      result.value = mergeStreams$1(originalStream, nodeStream$1(resultNode), text);
     }
     result.value = fixMarkup(result.value);
+
+    fire("after:highlightBlock", { block: block, result: result});
 
     block.innerHTML = result.value;
     block.className = buildClassName(block.className, language, result.language);
@@ -12427,7 +12849,7 @@ https://highlightjs.org/
   Updates highlight.js global options with values passed in the form of an object.
   */
   function configure(user_options) {
-    options = inherit(options, user_options);
+    options = inherit$1(options, user_options);
   }
 
   /*
@@ -12447,10 +12869,9 @@ https://highlightjs.org/
   */
   function initHighlightingOnLoad() {
     window.addEventListener('DOMContentLoaded', initHighlighting, false);
-    window.addEventListener('load', initHighlighting, false);
   }
 
-  var PLAINTEXT_LANGUAGE = { disableAutodetect: true };
+  const PLAINTEXT_LANGUAGE = { disableAutodetect: true, name: 'Plain text' };
 
   function registerLanguage(name, language) {
     var lang;
@@ -12465,8 +12886,10 @@ https://highlightjs.org/
       // entire highlighter
       lang = PLAINTEXT_LANGUAGE;
     }
+    // give it a temporary name if it doesn't have one in the meta-data
+    if (!lang.name)
+      lang.name = name;
     languages[name] = lang;
-    restoreLanguageApi(lang);
     lang.rawDefinition = language.bind(null,hljs);
 
     if (lang.aliases) {
@@ -12475,7 +12898,7 @@ https://highlightjs.org/
   }
 
   function listLanguages() {
-    return objectKeys(languages);
+    return Object.keys(languages);
   }
 
   /*
@@ -12502,182 +12925,75 @@ https://highlightjs.org/
     return lang && !lang.disableAutodetect;
   }
 
+  function addPlugin(plugin, options) {
+    plugins.push(plugin);
+  }
+
+  function fire(event, args) {
+    var cb = event;
+    plugins.forEach(function (plugin) {
+      if (plugin[cb]) {
+        plugin[cb](args);
+      }
+    });
+  }
+
   /* Interface definition */
 
-  hljs.highlight = highlight;
-  hljs.highlightAuto = highlightAuto;
-  hljs.fixMarkup = fixMarkup;
-  hljs.highlightBlock = highlightBlock;
-  hljs.configure = configure;
-  hljs.initHighlighting = initHighlighting;
-  hljs.initHighlightingOnLoad = initHighlightingOnLoad;
-  hljs.registerLanguage = registerLanguage;
-  hljs.listLanguages = listLanguages;
-  hljs.getLanguage = getLanguage;
-  hljs.requireLanguage = requireLanguage;
-  hljs.autoDetection = autoDetection;
-  hljs.inherit = inherit;
-  hljs.debugMode = function() { SAFE_MODE = false; }
+  Object.assign(hljs,{
+    highlight,
+    highlightAuto,
+    fixMarkup,
+    highlightBlock,
+    configure,
+    initHighlighting,
+    initHighlightingOnLoad,
+    registerLanguage,
+    listLanguages,
+    getLanguage,
+    requireLanguage,
+    autoDetection,
+    inherit: inherit$1,
+    addPlugin
+  });
 
-  // Common regexps
-  hljs.IDENT_RE = '[a-zA-Z]\\w*';
-  hljs.UNDERSCORE_IDENT_RE = '[a-zA-Z_]\\w*';
-  hljs.NUMBER_RE = '\\b\\d+(\\.\\d+)?';
-  hljs.C_NUMBER_RE = '(-?)(\\b0[xX][a-fA-F0-9]+|(\\b\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)'; // 0x..., 0..., decimal, float
-  hljs.BINARY_NUMBER_RE = '\\b(0b[01]+)'; // 0b...
-  hljs.RE_STARTERS_RE = '!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|-|-=|/=|/|:|;|<<|<<=|<=|<|===|==|=|>>>=|>>=|>=|>>>|>>|>|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~';
+  hljs.debugMode = function() { SAFE_MODE = false; };
+  hljs.safeMode = function() { SAFE_MODE = true; };
+  hljs.versionString = version;
 
-  // Common modes
-  hljs.BACKSLASH_ESCAPE = {
-    begin: '\\\\[\\s\\S]', relevance: 0
-  };
-  hljs.APOS_STRING_MODE = {
-    className: 'string',
-    begin: '\'', end: '\'',
-    illegal: '\\n',
-    contains: [hljs.BACKSLASH_ESCAPE]
-  };
-  hljs.QUOTE_STRING_MODE = {
-    className: 'string',
-    begin: '"', end: '"',
-    illegal: '\\n',
-    contains: [hljs.BACKSLASH_ESCAPE]
-  };
-  hljs.PHRASAL_WORDS_MODE = {
-    begin: /\b(a|an|the|are|I'm|isn't|don't|doesn't|won't|but|just|should|pretty|simply|enough|gonna|going|wtf|so|such|will|you|your|they|like|more)\b/
-  };
-  hljs.COMMENT = function (begin, end, inherits) {
-    var mode = hljs.inherit(
-      {
-        className: 'comment',
-        begin: begin, end: end,
-        contains: []
-      },
-      inherits || {}
-    );
-    mode.contains.push(hljs.PHRASAL_WORDS_MODE);
-    mode.contains.push({
-      className: 'doctag',
-      begin: '(?:TODO|FIXME|NOTE|BUG|XXX):',
-      relevance: 0
-    });
-    return mode;
-  };
-  hljs.C_LINE_COMMENT_MODE = hljs.COMMENT('//', '$');
-  hljs.C_BLOCK_COMMENT_MODE = hljs.COMMENT('/\\*', '\\*/');
-  hljs.HASH_COMMENT_MODE = hljs.COMMENT('#', '$');
-  hljs.NUMBER_MODE = {
-    className: 'number',
-    begin: hljs.NUMBER_RE,
-    relevance: 0
-  };
-  hljs.C_NUMBER_MODE = {
-    className: 'number',
-    begin: hljs.C_NUMBER_RE,
-    relevance: 0
-  };
-  hljs.BINARY_NUMBER_MODE = {
-    className: 'number',
-    begin: hljs.BINARY_NUMBER_RE,
-    relevance: 0
-  };
-  hljs.CSS_NUMBER_MODE = {
-    className: 'number',
-    begin: hljs.NUMBER_RE + '(' +
-      '%|em|ex|ch|rem'  +
-      '|vw|vh|vmin|vmax' +
-      '|cm|mm|in|pt|pc|px' +
-      '|deg|grad|rad|turn' +
-      '|s|ms' +
-      '|Hz|kHz' +
-      '|dpi|dpcm|dppx' +
-      ')?',
-    relevance: 0
-  };
-  hljs.REGEXP_MODE = {
-    className: 'regexp',
-    begin: /\//, end: /\/[gimuy]*/,
-    illegal: /\n/,
-    contains: [
-      hljs.BACKSLASH_ESCAPE,
-      {
-        begin: /\[/, end: /\]/,
-        relevance: 0,
-        contains: [hljs.BACKSLASH_ESCAPE]
-      }
-    ]
-  };
-  hljs.TITLE_MODE = {
-    className: 'title',
-    begin: hljs.IDENT_RE,
-    relevance: 0
-  };
-  hljs.UNDERSCORE_TITLE_MODE = {
-    className: 'title',
-    begin: hljs.UNDERSCORE_IDENT_RE,
-    relevance: 0
-  };
-  hljs.METHOD_GUARD = {
-    // excludes method names from keyword processing
-    begin: '\\.\\s*' + hljs.UNDERSCORE_IDENT_RE,
-    relevance: 0
-  };
+  for (const key in MODES) {
+    if (typeof MODES[key] === "object")
+      deepFreeze(MODES[key]);
+  }
 
-  var constants = [
-    hljs.BACKSLASH_ESCAPE,
-    hljs.APOS_STRING_MODE,
-    hljs.QUOTE_STRING_MODE,
-    hljs.PHRASAL_WORDS_MODE,
-    hljs.COMMENT,
-    hljs.C_LINE_COMMENT_MODE,
-    hljs.C_BLOCK_COMMENT_MODE,
-    hljs.HASH_COMMENT_MODE,
-    hljs.NUMBER_MODE,
-    hljs.C_NUMBER_MODE,
-    hljs.BINARY_NUMBER_MODE,
-    hljs.CSS_NUMBER_MODE,
-    hljs.REGEXP_MODE,
-    hljs.TITLE_MODE,
-    hljs.UNDERSCORE_TITLE_MODE,
-    hljs.METHOD_GUARD
-  ]
-  constants.forEach(function(obj) { deepFreeze(obj); });
-
-  // https://github.com/substack/deep-freeze/blob/master/index.js
-  function deepFreeze (o) {
-    Object.freeze(o);
-
-    var objIsFunction = typeof o === 'function';
-
-    Object.getOwnPropertyNames(o).forEach(function (prop) {
-      if (o.hasOwnProperty(prop)
-      && o[prop] !== null
-      && (typeof o[prop] === "object" || typeof o[prop] === "function")
-      // IE11 fix: https://github.com/highlightjs/highlight.js/issues/2318
-      // TODO: remove in the future
-      && (objIsFunction ? prop !== 'caller' && prop !== 'callee' && prop !== 'arguments' : true)
-      && !Object.isFrozen(o[prop])) {
-        deepFreeze(o[prop]);
-      }
-    });
-
-    return o;
-  };
-
+  // merge all the modes/regexs into our main object
+  Object.assign(hljs, MODES);
 
   return hljs;
-}));
+};
+
+// export an "instance" of the highlighter
+var highlight = HLJS({});
+
+module.exports = highlight;
 
 
 /***/ }),
 /* 89 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs){
+/*
+Language: 1C:Enterprise
+Author: Stanislav Belov <stbelov@gmail.com>
+Description: built-in language 1C:Enterprise (v7, v8)
+Category: enterprise
+*/
+
+function _1c(hljs){
 
   // общий паттерн для определения идентификаторов
   var UNDERSCORE_IDENT_RE = '[A-Za-zА-Яа-яёЁ_][A-Za-zА-Яа-яёЁ_0-9]+';
-  
+
   // v7 уникальные ключевые слова, отсутствующие в v8 ==> keyword
   var v7_keywords =
   'далее ';
@@ -12689,7 +13005,7 @@ module.exports = function(hljs){
 
   // keyword : ключевые слова
   var KEYWORD = v7_keywords + v8_keywords;
-  
+
   // v7 уникальные директивы, отсутствующие в v8 ==> meta-keyword
   var v7_meta_keywords =
   'загрузитьизфайла ';
@@ -12706,7 +13022,7 @@ module.exports = function(hljs){
   // v7 системные константы ==> built_in
   var v7_system_constants =
   'разделительстраниц разделительстрок символтабуляции ';
-  
+
   // v7 уникальные методы глобального контекста, отсутствующие в v8 ==> built_in
   var v7_global_context_methods =
   'ansitooem oemtoansi ввестивидсубконто ввестиперечисление ввестипериод ввестиплансчетов выбранныйплансчетов ' +
@@ -12720,7 +13036,7 @@ module.exports = function(hljs){
   'префиксавтонумерации пропись пустоезначение разм разобратьпозициюдокумента рассчитатьрегистрына ' +
   'рассчитатьрегистрыпо симв создатьобъект статусвозврата стрколичествострок сформироватьпозициюдокумента ' +
   'счетпокоду текущеевремя типзначения типзначениястр установитьтана установитьтапо фиксшаблон шаблон ';
-  
+
   // v8 методы глобального контекста ==> built_in
   var v8_global_context_methods =
   'acos asin atan base64значение base64строка cos exp log log10 pow sin sqrt tan xmlзначение xmlстрока ' +
@@ -12815,7 +13131,7 @@ module.exports = function(hljs){
   v7_system_constants +
   v7_global_context_methods + v8_global_context_methods +
   v8_global_context_property;
-  
+
   // v8 системные наборы значений ==> class
   var v8_system_sets_of_values =
   'webцвета windowsцвета windowsшрифты библиотекакартинок рамкистиля символы цветастиля шрифтыстиля ';
@@ -12967,7 +13283,7 @@ module.exports = function(hljs){
   'кодировкаименфайловвzipфайле методсжатияzip методшифрованияzip режимвосстановленияпутейфайловzip режимобработкиподкаталоговzip ' +
   'режимсохраненияпутейzip уровеньсжатияzip ';
 
-  // v8 системные перечисления - 
+  // v8 системные перечисления -
   // Блокировка данных, Фоновые задания, Автоматизированное тестирование,
   // Доставляемые уведомления, Встроенные покупки, Интернет, Работа с двоичными данными ==> class
   var v8_system_enums_other =
@@ -13086,7 +13402,7 @@ module.exports = function(hljs){
 
   // literal : примитивные типы
   var LITERAL = 'null истина ложь неопределено';
-  
+
   // number : числа
   var NUMBERS = hljs.inherit(hljs.NUMBER_MODE);
 
@@ -13107,10 +13423,10 @@ module.exports = function(hljs){
       }
     ]
   };
-  
+
   // comment : комментарии
   var COMMENTS = hljs.inherit(hljs.C_LINE_COMMENT_MODE);
-  
+
   // meta : инструкции препроцессора, директивы компиляции
   var META = {
     className: 'meta',
@@ -13121,13 +13437,13 @@ module.exports = function(hljs){
       COMMENTS
     ]
   };
-  
+
   // symbol : метка goto
   var SYMBOL = {
     className: 'symbol',
     begin: '~', end: ';|:', excludeEnd: true
-  };  
-  
+  };
+
   // function : объявление процедур и функций
   var FUNCTION = {
     className: 'function',
@@ -13162,6 +13478,7 @@ module.exports = function(hljs){
   };
 
   return {
+    name: '1C:Enterprise',
     case_insensitive: true,
     lexemes: UNDERSCORE_IDENT_RE,
     keywords: {
@@ -13179,15 +13496,24 @@ module.exports = function(hljs){
       NUMBERS,
       STRINGS,
       DATE
-    ]  
+    ]
   }
-};
+}
+
+module.exports = _1c;
+
 
 /***/ }),
 /* 90 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Augmented Backus-Naur Form
+Author: Alex McKibben <alex@nullscope.net>
+Website: https://tools.ietf.org/html/rfc5234
+*/
+
+function abnf(hljs) {
     var regexes = {
         ruleDeclaration: "^[a-zA-Z][a-zA-Z0-9-]*",
         unexpectedChars: "[!@#$^&',?+~`|:]"
@@ -13240,6 +13566,7 @@ module.exports = function(hljs) {
     };
 
     return {
+      name: 'Augmented Backus-Naur Form',
       illegal: regexes.unexpectedChars,
       keywords: keywords.join(" "),
       contains: [
@@ -13253,18 +13580,29 @@ module.exports = function(hljs) {
           hljs.NUMBER_MODE
       ]
     };
-};
+}
+
+module.exports = abnf;
+
 
 /***/ }),
 /* 91 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: Apache Access Log
+ Author: Oleg Efimov <efimovov@gmail.com>
+ Description: Apache/Nginx Access Logs
+ Website: https://httpd.apache.org/docs/2.4/logs.html#accesslog
+ */
+
+function accesslog(hljs) {
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
   var HTTP_VERBS = [
     "GET", "POST", "HEAD", "PUT", "DELETE", "CONNECT", "OPTIONS", "PATCH", "TRACE"
-  ]
+  ];
   return {
+    name: 'Apache Access Log',
     contains: [
       // IP
       {
@@ -13322,13 +13660,22 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = accesslog;
+
 
 /***/ }),
 /* 92 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: ActionScript
+Author: Alexander Myadzel <myadzel@gmail.com>
+Category: scripting
+*/
+
+function actionscript(hljs) {
   var IDENT_RE = '[a-zA-Z_$][a-zA-Z0-9_$]*';
   var IDENT_FUNC_RETURN_TYPE_RE = '([*]|[a-zA-Z_$][a-zA-Z0-9_$]*)';
 
@@ -13339,6 +13686,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'ActionScript',
     aliases: ['as'],
     keywords: {
       keyword: 'as break case catch class const continue default delete do dynamic each ' +
@@ -13400,13 +13748,25 @@ module.exports = function(hljs) {
     ],
     illegal: /#/
   };
-};
+}
+
+module.exports = actionscript;
+
 
 /***/ }),
 /* 93 */
 /***/ (function(module, exports) {
 
-module.exports = // We try to support full Ada2012
+/*
+Language: Ada
+Author: Lars Schulna <kartoffelbrei.mit.muskatnuss@gmail.org>
+Description: Ada is a general-purpose programming language that has great support for saftey critical and real-time applications.
+             It has been developed by the DoD and thus has been used in military and safety-critical applications (like civil aviation).
+             The first version appeared in the 80s, but it's still actively developed today with
+             the newest standard being Ada2012.
+*/
+
+// We try to support full Ada2012
 //
 // We highlight all appearances of types, keywords, literals (string, char, number, bool)
 // and titles (user defined function/procedure/package)
@@ -13416,7 +13776,7 @@ module.exports = // We try to support full Ada2012
 // xml (broken by Foo : Bar type), elm (broken by Foo : Bar type), vbscript-html (broken by body keyword)
 // sql (ada default.txt has a lot of sql keywords)
 
-function(hljs) {
+function ada(hljs) {
     // Regular expression for Ada numeric literals.
     // stolen form the VHDL highlighter
 
@@ -13435,7 +13795,7 @@ function(hljs) {
     var ID_REGEX = '[A-Za-z](_?[A-Za-z0-9.])*';
 
     // bad chars, only allowed in literals
-    var BAD_CHARS = '[]{}%#\'\"'
+    var BAD_CHARS = '[]{}%#\'\"';
 
     // Ada doesn't have block comments, only line comments
     var COMMENTS = hljs.COMMENT('--', '$');
@@ -13473,6 +13833,7 @@ function(hljs) {
     };
 
     return {
+        name: 'Ada',
         case_insensitive: true,
         keywords: {
             keyword:
@@ -13577,13 +13938,23 @@ function(hljs) {
             // {begin: '\\s+:=\\s+'},
         ]
     };
-};
+}
+
+module.exports = ada;
+
 
 /***/ }),
 /* 94 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: AngelScript
+Author: Melissa Geels <melissa@nimble.tools>
+Category: scripting
+Website: https://www.angelcode.com/angelscript/
+*/
+
+function angelscript(hljs) {
   var builtInTypeMode = {
     className: 'built_in',
     begin: '\\b(void|bool|int|int8|int16|int32|int64|uint|uint8|uint16|uint32|uint64|string|ref|array|double|float|auto|dictionary)'
@@ -13604,7 +13975,8 @@ module.exports = function(hljs) {
   objectHandleMode.contains = [ genericMode ];
 
   return {
-    aliases: [ 'asc' ],
+    name: 'AngelScript',
+    aliases: ['asc'],
 
     keywords:
       'for in|0 break continue while do|0 return if else case switch namespace is cast ' +
@@ -13688,20 +14060,50 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = angelscript;
+
 
 /***/ }),
 /* 95 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
-  var NUMBER = {className: 'number', begin: '[\\$%]\\d+'};
+/*
+Language: Apache config
+Author: Ruslan Keba <rukeba@gmail.com>
+Contributors: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Website: https://httpd.apache.org
+Description: language definition for Apache configuration files (httpd.conf & .htaccess)
+Category: common, config
+*/
+
+function apache(hljs) {
+  var NUMBER_REF = {className: 'number', begin: '[\\$%]\\d+'};
+  var NUMBER = {className: 'number', begin: '\\d+'};
+  var IP_ADDRESS = {
+    className: "number",
+    begin: '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}(:\\d{1,5})?'
+  };
+  var PORT_NUMBER = {
+    className: "number",
+    begin: ":\\d{1,5}"
+  };
   return {
+    name: 'Apache config',
     aliases: ['apacheconf'],
     case_insensitive: true,
     contains: [
       hljs.HASH_COMMENT_MODE,
-      {className: 'section', begin: '</?', end: '>'},
+      {className: 'section', begin: '</?', end: '>',
+      contains: [
+        IP_ADDRESS,
+        PORT_NUMBER,
+        // low relevance prevents us from claming XML/HTML where this rule would
+        // match strings inside of XML tags
+        hljs.inherit(hljs.QUOTE_STRING_MODE, { relevance:0 })
+      ]
+    },
       {
         className: 'attribute',
         begin: /\w+/,
@@ -13718,7 +14120,7 @@ module.exports = function(hljs) {
           end: /$/,
           relevance: 0,
           keywords: {
-            literal: 'on off all'
+            literal: 'on off all deny allow'
           },
           contains: [
             {
@@ -13728,8 +14130,9 @@ module.exports = function(hljs) {
             {
               className: 'variable',
               begin: '[\\$%]\\{', end: '\\}',
-              contains: ['self', NUMBER]
+              contains: ['self', NUMBER_REF]
             },
+            IP_ADDRESS,
             NUMBER,
             hljs.QUOTE_STRING_MODE
           ]
@@ -13738,13 +14141,23 @@ module.exports = function(hljs) {
     ],
     illegal: /\S/
   };
-};
+}
+
+module.exports = apache;
+
 
 /***/ }),
 /* 96 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: AppleScript
+Authors: Nathan Grigg <nathan@nathanamy.org>, Dr. Drang <drdrang@gmail.com>
+Category: scripting
+Website: https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html
+*/
+
+function applescript(hljs) {
   var STRING = hljs.inherit(hljs.QUOTE_STRING_MODE, {illegal: ''});
   var PARAMS = {
     className: 'params',
@@ -13766,6 +14179,7 @@ module.exports = function(hljs) {
   ];
 
   return {
+    name: 'AppleScript',
     aliases: ['osascript'],
     keywords: {
       keyword:
@@ -13828,13 +14242,23 @@ module.exports = function(hljs) {
     ].concat(COMMENTS),
     illegal: '//|->|=>|\\[\\['
   };
-};
+}
+
+module.exports = applescript;
+
 
 /***/ }),
 /* 97 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: ArcGIS Arcade
+ Category: scripting
+ Author: John Foster <jfoster@esri.com>
+ Website: https://developers.arcgis.com/arcade/
+ Description: ArcGIS Arcade is an expression language used in many Esri ArcGIS products such as Pro, Online, Server, Runtime, JavaScript, and Python
+*/
+function arcade(hljs) {
   var IDENT_RE = '[A-Za-z_][0-9A-Za-z_]*';
   var KEYWORDS = {
     keyword:
@@ -13854,7 +14278,6 @@ module.exports = function(hljs) {
       'TrackGeometryWindow TrackIndex TrackStartTime TrackWindow TypeOf Union UrlEncode Variance ' +
       'Weekday When Within Year '
   };
-  var EXPRESSIONS;
   var SYMBOL = {
     className: 'symbol',
     begin: '\\$[datastore|feature|layer|map|measure|sourcefeature|sourcelayer|targetfeature|targetlayer|value|view]+'
@@ -13895,6 +14318,7 @@ module.exports = function(hljs) {
   ]);
 
   return {
+    name: 'ArcGIS Arcade',
     aliases: ['arcade'],
     keywords: KEYWORDS,
     contains: [
@@ -13970,18 +14394,36 @@ module.exports = function(hljs) {
     ],
     illegal: /#(?!!)/
   };
-};
+}
+
+module.exports = arcade;
+
 
 /***/ }),
 /* 98 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: C-like foundation grammar for C/C++ grammars
+Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Contributors: Evgeny Stepanischev <imbolk@gmail.com>, Zaven Muradyan <megalivoithos@gmail.com>, Roel Deckers <admin@codingcat.nl>, Sam Wu <samsam2310@gmail.com>, Jordi Petit <jordi.petit@gmail.com>, Pieter Vantorre <pietervantorre@gmail.com>, Google Inc. (David Benjamin) <davidben@google.com>
+Category: common, system
+*/
+
+/* In the future the intention is to split out the C/C++ grammars distinctly
+since they are separate languages.  They will likely share a common foundation
+though, and this file sets the groundwork for that - so that we get the breaking
+change in v10 and don't have to change the requirements again later.
+
+See: https://github.com/highlightjs/highlight.js/issues/2146
+*/
+
+function cLike(hljs) {
   function optional(s) {
     return '(?:' + s + ')?';
   }
-  var DECLTYPE_AUTO_RE = 'decltype\\(auto\\)'
-  var NAMESPACE_RE = '[a-zA-Z_]\\w*::'
+  var DECLTYPE_AUTO_RE = 'decltype\\(auto\\)';
+  var NAMESPACE_RE = '[a-zA-Z_]\\w*::';
   var TEMPLATE_ARGUMENT_RE = '<.*?>';
   var FUNCTION_TYPE_RE = '(' +
     DECLTYPE_AUTO_RE + '|' +
@@ -13994,7 +14436,7 @@ module.exports = function(hljs) {
 
   // https://en.cppreference.com/w/cpp/language/escape
   // \\ \x \xFF \u2837 \u00323747 \374
-  var CHARACTER_ESCAPES = '\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4,8}|[0-7]{3}|\\S)'
+  var CHARACTER_ESCAPES = '\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4,8}|[0-7]{3}|\\S)';
   var STRINGS = {
     className: 'string',
     variants: [
@@ -14056,7 +14498,7 @@ module.exports = function(hljs) {
     keyword: 'int float while private char char8_t char16_t char32_t catch import module export virtual operator sizeof ' +
       'dynamic_cast|10 typedef const_cast|10 const for static_cast|10 union namespace ' +
       'unsigned long volatile static protected bool template mutable if public friend ' +
-      'do goto auto void enum else break extern using asm case typeid wchar_t' +
+      'do goto auto void enum else break extern using asm case typeid wchar_t ' +
       'short reinterpret_cast|10 default double register explicit signed typename try this ' +
       'switch continue inline delete alignas alignof constexpr consteval constinit decltype ' +
       'concept co_await co_return co_yield requires ' +
@@ -14162,6 +14604,9 @@ module.exports = function(hljs) {
   return {
     aliases: ['c', 'cc', 'h', 'c++', 'h++', 'hpp', 'hh', 'hxx', 'cxx'],
     keywords: CPP_KEYWORDS,
+    // the base c-like language will NEVER be auto-detected, rather the
+    // derivitives: c, c++, arduino turn auto-detect back on for themselves
+    disableAutodetect: true,
     illegal: '</',
     contains: [].concat(
       EXPRESSION_CONTEXT,
@@ -14193,19 +14638,54 @@ module.exports = function(hljs) {
       keywords: CPP_KEYWORDS
     }
   };
-};
+}
+
+module.exports = cLike;
+
 
 /***/ }),
 /* 99 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: C++
+Category: common, system
+Website: https://isocpp.org
+Requires: c-like.js
+*/
+
+function cpp(hljs) {
+
+  var lang = hljs.getLanguage('c-like').rawDefinition();
+  // return auto-detection back on
+  lang.disableAutodetect = false;
+  lang.name = 'C++';
+  lang.aliases = ['cc', 'c++', 'h++', 'hpp', 'hh', 'hxx', 'cxx'];
+  return lang;
+}
+
+module.exports = cpp;
+
+
+/***/ }),
+/* 100 */
+/***/ (function(module, exports) {
+
+/*
+Language: Arduino
+Author: Stefania Mellai <s.mellai@arduino.cc>
+Description: The Arduino® Language is a superset of C++. This rules are designed to highlight the Arduino® source code. For info about language see http://www.arduino.cc.
+Requires: cpp.js
+Website: https://www.arduino.cc
+*/
+
+function arduino(hljs) {
 
 	var ARDUINO_KW = {
       keyword:
         'boolean byte word String',
       built_in:
-        'setup loop' +
+        'setup loop ' +
         'KeyboardController MouseController SoftwareSerial ' +
         'EthernetServer EthernetClient LiquidCrystal ' +
         'RobotControl GSMVoiceCall EthernetUDP EsploraTFT ' +
@@ -14295,16 +14775,39 @@ module.exports = function(hljs) {
   kws.literal += ' ' + ARDUINO_KW.literal;
   kws.built_in += ' ' + ARDUINO_KW.built_in;
 
+  ARDUINO.name = 'Arduino';
+
   return ARDUINO;
-};
+}
+
+module.exports = arduino;
+
 
 /***/ }),
-/* 100 */
+/* 101 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: ARM Assembly
+Author: Dan Panzarella <alsoelp@gmail.com>
+Description: ARM Assembly including Thumb and Thumb2 instructions
+Category: assembler
+*/
+
+function armasm(hljs) {
     //local labels: %?[FB]?[AT]?\d{1,2}\w+
+
+  const COMMENT = {
+    variants: [
+      hljs.COMMENT('^[ \\t]*(?=#)', '$', {relevance: 0, excludeBegin: true }),
+      hljs.COMMENT('[;@]', '$', {relevance: 0}),
+      hljs.C_LINE_COMMENT_MODE,
+      hljs.C_BLOCK_COMMENT_MODE,
+    ]
+  };
+
   return {
+    name: 'ARM Assembly',
     case_insensitive: true,
     aliases: ['arm'],
     lexemes: '\\.?' + hljs.IDENT_RE,
@@ -14353,11 +14856,10 @@ module.exports = function(hljs) {
             'wfe|wfi|yield'+
         ')'+
         '(eq|ne|cs|cc|mi|pl|vs|vc|hi|ls|ge|lt|gt|le|al|hs|lo)?'+ //condition codes
-        '[sptrx]?' ,                                             //legal postfixes
-        end: '\\s'
+        '[sptrx]?' +                                             //legal postfixes
+        '(?=\\s)'                                                // followed by space
       },
-      hljs.COMMENT('[;@]', '$', {relevance: 0}),
-      hljs.C_BLOCK_COMMENT_MODE,
+      COMMENT,
       hljs.QUOTE_STRING_MODE,
       {
         className: 'string',
@@ -14384,21 +14886,30 @@ module.exports = function(hljs) {
       {
         className: 'symbol',
         variants: [
+            {begin: '^[ \\t]*[a-z_\\.\\$][a-z0-9_\\.\\$]+:'}, //GNU ARM syntax
             {begin: '^[a-z_\\.\\$][a-z0-9_\\.\\$]+'}, //ARM syntax
-            {begin: '^\\s*[a-z_\\.\\$][a-z0-9_\\.\\$]+:'}, //GNU ARM syntax
             {begin: '[=#]\\w+' }  //label reference
         ],
         relevance: 0
       }
     ]
   };
-};
+}
+
+module.exports = armasm;
+
 
 /***/ }),
-/* 101 */
+/* 102 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: HTML, XML
+Website: https://www.w3.org/XML/
+Category: common
+*/
+
+function xml(hljs) {
   var XML_IDENT_RE = '[A-Za-z0-9\\._:-]+';
   var XML_ENTITIES = {
     className: 'symbol',
@@ -14445,6 +14956,7 @@ module.exports = function(hljs) {
     ]
   };
   return {
+    name: 'HTML, XML',
     aliases: ['html', 'xhtml', 'rss', 'atom', 'xjb', 'xsd', 'xsl', 'plist', 'wsf', 'svg'],
     case_insensitive: true,
     contains: [
@@ -14491,19 +15003,6 @@ module.exports = function(hljs) {
         begin: /<\?xml/, end: /\?>/, relevance: 10
       },
       {
-        begin: /<\?(php)?/, end: /\?>/,
-        subLanguage: 'php',
-        contains: [
-          // We don't want the php closing tag ?> to close the PHP block when
-          // inside any of the following blocks:
-          {begin: '/\\*', end: '\\*/', skip: true},
-          {begin: 'b"', end: '"', skip: true},
-          {begin: 'b\'', end: '\'', skip: true},
-          hljs.inherit(hljs.APOS_STRING_MODE, {illegal: null, className: null, contains: null, skip: true}),
-          hljs.inherit(hljs.QUOTE_STRING_MODE, {illegal: null, className: null, contains: null, skip: true})
-        ]
-      },
-      {
         className: 'tag',
         /*
         The lookahead pattern (?=...) ensures that 'begin' only matches
@@ -14527,7 +15026,7 @@ module.exports = function(hljs) {
         contains: [TAG_INTERNALS],
         starts: {
           end: '\<\/script\>', returnEnd: true,
-          subLanguage: ['actionscript', 'javascript', 'handlebars', 'xml']
+          subLanguage: ['javascript', 'handlebars', 'xml']
         }
       },
       {
@@ -14542,14 +15041,27 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = xml;
+
 
 /***/ }),
-/* 102 */
+/* 103 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: AsciiDoc
+Requires: xml.js
+Author: Dan Allen <dan.j.allen@gmail.com>
+Website: http://asciidoc.org
+Description: A semantic, text-based document format that can be exported to HTML, DocBook and other backends.
+Category: markup
+*/
+
+function asciidoc(hljs) {
   return {
+    name: 'AsciiDoc',
     aliases: ['adoc'],
     contains: [
       // block comment
@@ -14734,13 +15246,22 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = asciidoc;
+
 
 /***/ }),
-/* 103 */
+/* 104 */
 /***/ (function(module, exports) {
 
-module.exports = function (hljs) {
+/*
+Language: AspectJ
+Author: Hakan Ozler <ozler.hakan@gmail.com>
+Website: https://www.eclipse.org/aspectj/
+Description: Syntax Highlighting for the AspectJ Language which is a general-purpose aspect-oriented extension to the Java programming language.
+ */
+function aspectj (hljs) {
   var KEYWORDS =
     'false synchronized int abstract float private char boolean static null if const ' +
     'for true while long throw strictfp finally protected import native final return void ' +
@@ -14752,6 +15273,7 @@ module.exports = function (hljs) {
     'warning error soft precedence thisAspectInstance';
   var SHORTKEYS = 'get set args call';
   return {
+    name: 'AspectJ',
     keywords : KEYWORDS,
     illegal : /<\/|#/,
     contains : [
@@ -14883,20 +15405,31 @@ module.exports = function (hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = aspectj;
+
 
 /***/ }),
-/* 104 */
+/* 105 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: AutoHotkey
+Author: Seongwon Lee <dlimpid@gmail.com>
+Description: AutoHotkey language definition
+Category: scripting
+*/
+
+function autohotkey(hljs) {
   var BACKTICK_ESCAPE = {
     begin: '`[\\s\\S]'
   };
 
   return {
+    name: 'AutoHotkey',
     case_insensitive: true,
-    aliases: [ 'ahk' ],
+    aliases: ['ahk'],
     keywords: {
       keyword: 'Break Continue Critical Exit ExitApp Gosub Goto New OnExit Pause return SetBatchLines SetTimer Suspend Thread Throw Until ahk_id ahk_class ahk_pid ahk_exe ahk_group',
       literal: 'true false NOT AND OR',
@@ -14931,7 +15464,7 @@ module.exports = function(hljs) {
         ]
       },
       {
-        className: 'meta', 
+        className: 'meta',
         begin: '^\\s*#\\w+', end:'$',
         relevance: 0
       },
@@ -14945,13 +15478,23 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = autohotkey;
+
 
 /***/ }),
-/* 105 */
+/* 106 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: AutoIt
+Author: Manh Tuan <junookyo@gmail.com>
+Description: AutoIt language definition
+Category: scripting
+*/
+
+function autoit(hljs) {
     var KEYWORDS = 'ByRef Case Const ContinueCase ContinueLoop ' +
         'Default Dim Do Else ElseIf EndFunc EndIf EndSelect ' +
         'EndSwitch EndWith Enum Exit ExitLoop For Func ' +
@@ -15068,6 +15611,7 @@ module.exports = function(hljs) {
         };
 
     return {
+        name: 'AutoIt',
         case_insensitive: true,
         illegal: /\/\*/,
         keywords: {
@@ -15085,14 +15629,25 @@ module.exports = function(hljs) {
             FUNCTION
         ]
     }
-};
+}
+
+module.exports = autoit;
+
 
 /***/ }),
-/* 106 */
+/* 107 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: AVR Assembly
+Author: Vladimir Ermakov <vooon341@gmail.com>
+Category: assembler
+Website: https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_instruction_list.html
+*/
+
+function avrasm(hljs) {
   return {
+    name: 'AVR Assembly',
     case_insensitive: true,
     lexemes: '\\.?' + hljs.IDENT_RE,
     keywords: {
@@ -15151,13 +15706,23 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = avrasm;
+
 
 /***/ }),
-/* 107 */
+/* 108 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Awk
+Author: Matthew Daly <matthewbdaly@gmail.com>
+Website: https://www.gnu.org/software/gawk/manual/gawk.html
+Description: language definition for Awk scripts
+*/
+
+function awk(hljs) {
   var VARIABLE = {
     className: 'variable',
     variants: [
@@ -15197,8 +15762,9 @@ module.exports = function(hljs) {
     ]
   };
   return {
-	 keywords: {
-	   keyword: KEYWORDS
+    name: 'Awk',
+    keywords: {
+      keyword: KEYWORDS
     },
     contains: [
       VARIABLE,
@@ -15208,14 +15774,25 @@ module.exports = function(hljs) {
       hljs.NUMBER_MODE
     ]
   }
-};
+}
+
+module.exports = awk;
+
 
 /***/ }),
-/* 108 */
+/* 109 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Microsoft Axapta (now Dynamics 365)
+Author: Dmitri Roudakov <dmitri@roudakov.ru>
+Website: https://dynamics.microsoft.com/en-us/ax-overview/
+Category: enterprise
+*/
+
+function axapta(hljs) {
   return {
+    name: 'Dynamics 365',
     keywords: 'false int abstract private char boolean static null if for true ' +
       'while long throw finally protected final return void enum else ' +
       'break new catch byte super case short default double public try this switch ' +
@@ -15243,44 +15820,87 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = axapta;
+
 
 /***/ }),
-/* 109 */
+/* 110 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
-  var VAR = {
+/*
+Language: Bash
+Author: vah <vahtenberg@gmail.com>
+Contributrors: Benjamin Pannell <contact@sierrasoftworks.com>
+Website: https://www.gnu.org/software/bash/
+Category: common
+*/
+
+function bash(hljs) {
+  const VAR = {};
+  const BRACED_VAR = {
+    begin: /\$\{/, end:/\}/,
+    contains: [
+      { begin: /:-/, contains: [VAR] } // default values
+    ]
+  };
+  Object.assign(VAR,{
     className: 'variable',
     variants: [
       {begin: /\$[\w\d#@][\w\d_]*/},
-      {begin: /\$\{(.*?)}/}
+      BRACED_VAR
     ]
+  });
+
+  const SUBST = {
+    className: 'subst',
+    begin: /\$\(/, end: /\)/,
+    contains: [hljs.BACKSLASH_ESCAPE]
   };
-  var QUOTE_STRING = {
+  const QUOTE_STRING = {
     className: 'string',
     begin: /"/, end: /"/,
     contains: [
       hljs.BACKSLASH_ESCAPE,
       VAR,
-      {
-        className: 'variable',
-        begin: /\$\(/, end: /\)/,
-        contains: [hljs.BACKSLASH_ESCAPE]
-      }
+      SUBST
     ]
   };
-  var ESCAPED_QUOTE = {
+  SUBST.contains.push(QUOTE_STRING);
+  const ESCAPED_QUOTE = {
     className: '',
     begin: /\\"/
 
   };
-  var APOS_STRING = {
+  const APOS_STRING = {
     className: 'string',
     begin: /'/, end: /'/
   };
+  const ARITHMETIC = {
+    begin: /\$\(\(/,
+    end: /\)\)/,
+    contains: [
+      { begin: /\d+#[0-9a-f]+/, className: "number" },
+      hljs.NUMBER_MODE,
+      VAR
+    ]
+  };
+  const SHEBANG = {
+    className: 'meta',
+    begin: /^#![^\n]+sh\s*$/,
+    relevance: 10
+  };
+  const FUNCTION = {
+    className: 'function',
+    begin: /\w[\w\d_]*\s*\(\s*\)\s*\{/,
+    returnBegin: true,
+    contains: [hljs.inherit(hljs.TITLE_MODE, {begin: /\w[\w\d_]*/})],
+    relevance: 0
+  };
 
   return {
+    name: 'Bash',
     aliases: ['sh', 'zsh'],
     lexemes: /\b-?[a-z\._]+\b/,
     keywords: {
@@ -15309,18 +15929,9 @@ module.exports = function(hljs) {
         '-ne -eq -lt -gt -f -d -e -s -l -a' // relevance booster
     },
     contains: [
-      {
-        className: 'meta',
-        begin: /^#![^\n]+sh\s*$/,
-        relevance: 10
-      },
-      {
-        className: 'function',
-        begin: /\w[\w\d_]*\s*\(\s*\)\s*\{/,
-        returnBegin: true,
-        contains: [hljs.inherit(hljs.TITLE_MODE, {begin: /\w[\w\d_]*/})],
-        relevance: 0
-      },
+      SHEBANG,
+      FUNCTION,
+      ARITHMETIC,
       hljs.HASH_COMMENT_MODE,
       QUOTE_STRING,
       ESCAPED_QUOTE,
@@ -15328,17 +15939,28 @@ module.exports = function(hljs) {
       VAR
     ]
   };
-};
+}
+
+module.exports = bash;
+
 
 /***/ }),
-/* 110 */
+/* 111 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: BASIC
+Author: Raphaël Assénat <raph@raphnet.net>
+Description: Based on the BASIC reference from the Tandy 1000 guide
+Website: https://en.wikipedia.org/wiki/Tandy_1000
+*/
+
+function basic(hljs) {
   return {
+    name: 'BASIC',
     case_insensitive: true,
     illegal: '^\.',
-    // Support explicitely typed variables that end with $%! or #.
+    // Support explicitly typed variables that end with $%! or #.
     lexemes: '[a-zA-Z][a-zA-Z0-9_\$\%\!\#]*',
     keywords: {
         keyword:
@@ -15383,14 +16005,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = basic;
+
 
 /***/ }),
-/* 111 */
+/* 112 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs){
+/*
+Language: Backus–Naur Form
+Website: https://en.wikipedia.org/wiki/Backus–Naur_form
+Author: Oleg Efimov <efimovov@gmail.com>
+*/
+
+function bnf(hljs){
   return {
+    name: 'Backus–Naur Form',
     contains: [
       // Attribute
       {
@@ -15400,35 +16032,43 @@ module.exports = function(hljs){
       // Specific
       {
         begin: /::=/,
-        starts: {
-          end: /$/,
-          contains: [
-            {
-              begin: /</, end: />/
-            },
-            // Common
-            hljs.C_LINE_COMMENT_MODE,
-            hljs.C_BLOCK_COMMENT_MODE,
-            hljs.APOS_STRING_MODE,
-            hljs.QUOTE_STRING_MODE
-          ]
-        }
+        end: /$/,
+        contains: [
+          {
+            begin: /</, end: />/
+          },
+          // Common
+          hljs.C_LINE_COMMENT_MODE,
+          hljs.C_BLOCK_COMMENT_MODE,
+          hljs.APOS_STRING_MODE,
+          hljs.QUOTE_STRING_MODE
+        ]
       }
     ]
   };
-};
+}
+
+module.exports = bnf;
+
 
 /***/ }),
-/* 112 */
+/* 113 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs){
+/*
+Language: Brainfuck
+Author: Evgeny Stepanischev <imbolk@gmail.com>
+Website: https://esolangs.org/wiki/Brainfuck
+*/
+
+function brainfuck(hljs){
   var LITERAL = {
     className: 'literal',
     begin: '[\\+\\-]',
     relevance: 0
   };
   return {
+    name: 'Brainfuck',
     aliases: ['bf'],
     contains: [
       hljs.COMMENT(
@@ -15457,13 +16097,53 @@ module.exports = function(hljs){
       LITERAL
     ]
   };
-};
+}
+
+module.exports = brainfuck;
+
 
 /***/ }),
-/* 113 */
+/* 114 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: C
+Category: common, system
+Website: https://en.wikipedia.org/wiki/C_(programming_language)
+Requires: c-like.js
+*/
+
+function c(hljs) {
+
+  var lang = hljs.getLanguage('c-like').rawDefinition();
+  // Until C is actually different than C++ there is no reason to auto-detect C
+  // as it's own language since it would just fail auto-detect testing or
+  // simply match with C++.
+  //
+  // See further comments in c-like.js.
+
+  // lang.disableAutodetect = false;
+  lang.name = 'C';
+  lang.aliases = ['c', 'h'];
+  return lang;
+
+}
+
+module.exports = c;
+
+
+/***/ }),
+/* 115 */
+/***/ (function(module, exports) {
+
+/*
+Language: C/AL
+Author: Kenneth Fuglsang Christensen <kfuglsang@gmail.com>
+Description: Provides highlighting of Microsoft Dynamics NAV C/AL code files
+Website: https://docs.microsoft.com/en-us/dynamics-nav/programming-in-c-al
+*/
+
+function cal(hljs) {
   var KEYWORDS =
     'div mod in and or not xor asserterror begin case do downto else end exit for if of repeat then to ' +
     'until while with var';
@@ -15530,6 +16210,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'C/AL',
     case_insensitive: true,
     keywords: { keyword: KEYWORDS, literal: LITERALS },
     illegal: /\/\*/,
@@ -15541,14 +16222,26 @@ module.exports = function(hljs) {
       PROCEDURE
     ]
   };
-};
+}
+
+module.exports = cal;
+
 
 /***/ }),
-/* 114 */
+/* 116 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Cap’n Proto
+Author: Oleg Efimov <efimovov@gmail.com>
+Description: Cap’n Proto message definition format
+Website: https://capnproto.org/capnp-tool.html
+Category: protocols
+*/
+
+function capnproto(hljs) {
   return {
+    name: 'Cap’n Proto',
     aliases: ['capnp'],
     keywords: {
       keyword:
@@ -15594,13 +16287,21 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = capnproto;
+
 
 /***/ }),
-/* 115 */
+/* 117 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Ceylon
+Author: Lucas Werkmeister <mail@lucaswerkmeister.de>
+Website: https://ceylon-lang.org
+*/
+function ceylon(hljs) {
   // 2.3. Identifiers and keywords
   var KEYWORDS =
     'assembly module package import alias class interface object given value ' +
@@ -15609,7 +16310,7 @@ module.exports = function(hljs) {
     'catch finally then let this outer super is exists nonempty';
   // 7.4.1 Declaration Modifiers
   var DECLARATION_MODIFIERS =
-    'shared abstract formal default actual variable late native deprecated' +
+    'shared abstract formal default actual variable late native deprecated ' +
     'final sealed annotation suppressWarnings small';
   // 7.4.2 Documentation
   var DOCUMENTATION =
@@ -15650,6 +16351,7 @@ module.exports = function(hljs) {
   SUBST.contains = EXPRESSIONS;
 
   return {
+    name: 'Ceylon',
     keywords: {
       keyword: KEYWORDS + ' ' + DECLARATION_MODIFIERS,
       meta: DOCUMENTATION
@@ -15665,14 +16367,25 @@ module.exports = function(hljs) {
       }
     ].concat(EXPRESSIONS)
   };
-};
+}
+
+module.exports = ceylon;
+
 
 /***/ }),
-/* 116 */
+/* 118 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Clean
+Author: Camil Staps <info@camilstaps.nl>
+Category: functional
+Website: http://clean.cs.ru.nl
+*/
+
+function clean(hljs) {
   return {
+    name: 'Clean',
     aliases: ['clean','icl','dcl'],
     keywords: {
       keyword:
@@ -15696,44 +16409,57 @@ module.exports = function(hljs) {
       {begin: '->|<-[|:]?|#!?|>>=|\\{\\||\\|\\}|:==|=:|<>'} // relevance booster
     ]
   };
-};
+}
+
+module.exports = clean;
+
 
 /***/ }),
-/* 117 */
+/* 119 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Clojure
+Description: Clojure syntax (based on lisp.js)
+Author: mfornos
+Website: https://clojure.org
+Category: lisp
+*/
+
+function clojure(hljs) {
+  var globals = 'def defonce defprotocol defstruct defmulti defmethod defn- defn defmacro deftype defrecord';
   var keywords = {
     'builtin-name':
       // Clojure keywords
-      'def defonce cond apply if-not if-let if not not= = < > <= >= == + / * - rem '+
-      'quot neg? pos? delay? symbol? keyword? true? false? integer? empty? coll? list? '+
-      'set? ifn? fn? associative? sequential? sorted? counted? reversible? number? decimal? '+
-      'class? distinct? isa? float? rational? reduced? ratio? odd? even? char? seq? vector? '+
-      'string? map? nil? contains? zero? instance? not-every? not-any? libspec? -> ->> .. . '+
-      'inc compare do dotimes mapcat take remove take-while drop letfn drop-last take-last '+
-      'drop-while while intern condp case reduced cycle split-at split-with repeat replicate '+
-      'iterate range merge zipmap declare line-seq sort comparator sort-by dorun doall nthnext '+
-      'nthrest partition eval doseq await await-for let agent atom send send-off release-pending-sends '+
-      'add-watch mapv filterv remove-watch agent-error restart-agent set-error-handler error-handler '+
-      'set-error-mode! error-mode shutdown-agents quote var fn loop recur throw try monitor-enter '+
-      'monitor-exit defmacro defn defn- macroexpand macroexpand-1 for dosync and or '+
-      'when when-not when-let comp juxt partial sequence memoize constantly complement identity assert '+
-      'peek pop doto proxy defstruct first rest cons defprotocol cast coll deftype defrecord last butlast '+
-      'sigs reify second ffirst fnext nfirst nnext defmulti defmethod meta with-meta ns in-ns create-ns import '+
-      'refer keys select-keys vals key val rseq name namespace promise into transient persistent! conj! '+
-      'assoc! dissoc! pop! disj! use class type num float double short byte boolean bigint biginteger '+
-      'bigdec print-method print-dup throw-if printf format load compile get-in update-in pr pr-on newline '+
-      'flush read slurp read-line subvec with-open memfn time re-find re-groups rand-int rand mod locking '+
-      'assert-valid-fdecl alias resolve ref deref refset swap! reset! set-validator! compare-and-set! alter-meta! '+
-      'reset-meta! commute get-validator alter ref-set ref-history-count ref-min-history ref-max-history ensure sync io! '+
-      'new next conj set! to-array future future-call into-array aset gen-class reduce map filter find empty '+
-      'hash-map hash-set sorted-map sorted-map-by sorted-set sorted-set-by vec vector seq flatten reverse assoc dissoc list '+
-      'disj get union difference intersection extend extend-type extend-protocol int nth delay count concat chunk chunk-buffer '+
-      'chunk-append chunk-first chunk-rest max min dec unchecked-inc-int unchecked-inc unchecked-dec-inc unchecked-dec unchecked-negate '+
-      'unchecked-add-int unchecked-add unchecked-subtract-int unchecked-subtract chunk-next chunk-cons chunked-seq? prn vary-meta '+
+      globals + ' ' +
+      'cond apply if-not if-let if not not= = < > <= >= == + / * - rem ' +
+      'quot neg? pos? delay? symbol? keyword? true? false? integer? empty? coll? list? ' +
+      'set? ifn? fn? associative? sequential? sorted? counted? reversible? number? decimal? ' +
+      'class? distinct? isa? float? rational? reduced? ratio? odd? even? char? seq? vector? ' +
+      'string? map? nil? contains? zero? instance? not-every? not-any? libspec? -> ->> .. . ' +
+      'inc compare do dotimes mapcat take remove take-while drop letfn drop-last take-last ' +
+      'drop-while while intern condp case reduced cycle split-at split-with repeat replicate ' +
+      'iterate range merge zipmap declare line-seq sort comparator sort-by dorun doall nthnext ' +
+      'nthrest partition eval doseq await await-for let agent atom send send-off release-pending-sends ' +
+      'add-watch mapv filterv remove-watch agent-error restart-agent set-error-handler error-handler ' +
+      'set-error-mode! error-mode shutdown-agents quote var fn loop recur throw try monitor-enter ' +
+      'monitor-exit macroexpand macroexpand-1 for dosync and or ' +
+      'when when-not when-let comp juxt partial sequence memoize constantly complement identity assert ' +
+      'peek pop doto proxy first rest cons cast coll last butlast ' +
+      'sigs reify second ffirst fnext nfirst nnext meta with-meta ns in-ns create-ns import ' +
+      'refer keys select-keys vals key val rseq name namespace promise into transient persistent! conj! ' +
+      'assoc! dissoc! pop! disj! use class type num float double short byte boolean bigint biginteger ' +
+      'bigdec print-method print-dup throw-if printf format load compile get-in update-in pr pr-on newline ' +
+      'flush read slurp read-line subvec with-open memfn time re-find re-groups rand-int rand mod locking ' +
+      'assert-valid-fdecl alias resolve ref deref refset swap! reset! set-validator! compare-and-set! alter-meta! ' +
+      'reset-meta! commute get-validator alter ref-set ref-history-count ref-min-history ref-max-history ensure sync io! ' +
+      'new next conj set! to-array future future-call into-array aset gen-class reduce map filter find empty ' +
+      'hash-map hash-set sorted-map sorted-map-by sorted-set sorted-set-by vec vector seq flatten reverse assoc dissoc list ' +
+      'disj get union difference intersection extend extend-type extend-protocol int nth delay count concat chunk chunk-buffer ' +
+      'chunk-append chunk-first chunk-rest max min dec unchecked-inc-int unchecked-inc unchecked-dec-inc unchecked-dec unchecked-negate ' +
+      'unchecked-add-int unchecked-add unchecked-subtract-int unchecked-subtract chunk-next chunk-cons chunked-seq? prn vary-meta ' +
       'lazy-seq spread list* str find-keyword keyword symbol gensym force rationalize'
-   };
+  };
 
   var SYMBOLSTART = 'a-zA-Z_\\-!.?+*=<>&#\'';
   var SYMBOL_RE = '[' + SYMBOLSTART + '][' + SYMBOLSTART + '0-9/;:]*';
@@ -15786,24 +16512,54 @@ module.exports = function(hljs) {
   };
   var DEFAULT_CONTAINS = [LIST, STRING, HINT, HINT_COL, COMMENT, KEY, COLLECTION, NUMBER, LITERAL, SYMBOL];
 
-  LIST.contains = [hljs.COMMENT('comment', ''), NAME, BODY];
+  var GLOBAL = {
+    beginKeywords: globals,
+    lexemes: SYMBOL_RE,
+    end: '(\\[|\\#|\\d|"|:|\\{|\\)|\\(|$)',
+    contains: [
+      {
+        className: 'title',
+        begin: SYMBOL_RE,
+        relevance: 0,
+        excludeEnd: true,
+        // we can only have a single title
+        endsParent: true
+      },
+    ].concat(DEFAULT_CONTAINS)
+  };
+
+  LIST.contains = [hljs.COMMENT('comment', ''), GLOBAL, NAME, BODY];
   BODY.contains = DEFAULT_CONTAINS;
   COLLECTION.contains = DEFAULT_CONTAINS;
   HINT_COL.contains = [COLLECTION];
 
   return {
+    name: 'Clojure',
     aliases: ['clj'],
     illegal: /\S/,
     contains: [LIST, STRING, HINT, HINT_COL, COMMENT, KEY, COLLECTION, NUMBER, LITERAL]
-  }
-};
+  };
+}
+
+module.exports = clojure;
+
 
 /***/ }),
-/* 118 */
+/* 120 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Clojure REPL
+Description: Clojure REPL sessions
+Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Requires: clojure.js
+Website: https://clojure.org
+Category: lisp
+*/
+
+function clojureRepl(hljs) {
   return {
+    name: 'Clojure REPL',
     contains: [
       {
         className: 'meta',
@@ -15815,14 +16571,25 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = clojureRepl;
+
 
 /***/ }),
-/* 119 */
+/* 121 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: CMake
+Description: CMake is an open-source cross-platform system for build automation.
+Author: Igor Kalnitsky <igor@kalnitsky.org>
+Website: https://cmake.org
+*/
+
+function cmake(hljs) {
   return {
+    name: 'CMake',
     aliases: ['cmake.in'],
     case_insensitive: true,
     keywords: {
@@ -15872,13 +16639,25 @@ module.exports = function(hljs) {
       hljs.NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = cmake;
+
 
 /***/ }),
-/* 120 */
+/* 122 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: CoffeeScript
+Author: Dmytrii Nagirniak <dnagir@gmail.com>
+Contributors: Oleg Efimov <efimovov@gmail.com>, Cédric Néhémie <cedric.nehemie@gmail.com>
+Description: CoffeeScript is a programming language that transcompiles to JavaScript. For info about language see http://coffeescript.org/
+Category: common, scripting
+Website: https://coffeescript.org
+*/
+
+function coffeescript(hljs) {
   var KEYWORDS = {
     keyword:
       // JS keywords
@@ -15975,6 +16754,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'CoffeeScript',
     aliases: ['coffee', 'cson', 'iced'],
     keywords: KEYWORDS,
     illegal: /\/\*/,
@@ -16022,14 +16802,25 @@ module.exports = function(hljs) {
       }
     ])
   };
-};
+}
+
+module.exports = coffeescript;
+
 
 /***/ }),
-/* 121 */
+/* 123 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Coq
+Author: Stephan Boyer <stephan@stephanboyer.com>
+Category: functional
+Website: https://coq.inria.fr
+*/
+
+function coq(hljs) {
   return {
+    name: 'Coq',
     keywords: {
       keyword:
         '_|0 as at cofix else end exists exists2 fix for forall fun if IF in let ' +
@@ -16038,7 +16829,7 @@ module.exports = function(hljs) {
         'Backtrack Bind Blacklist Canonical Cd Check Class Classes Close Coercion ' +
         'Coercions CoFixpoint CoInductive Collection Combined Compute Conjecture ' +
         'Conjectures Constant constr Constraint Constructors Context Corollary ' +
-        'CreateHintDb Cut Declare Defined Definition Delimit Dependencies Dependent' +
+        'CreateHintDb Cut Declare Defined Definition Delimit Dependencies Dependent ' +
         'Derive Drop eauto End Equality Eval Example Existential Existentials ' +
         'Existing Export exporting Extern Extract Extraction Fact Field Fields File ' +
         'Fixpoint Focus for From Function Functional Generalizable Global Goal Grab ' +
@@ -16093,13 +16884,22 @@ module.exports = function(hljs) {
       {begin: /[-=]>/} // relevance booster
     ]
   };
-};
+}
+
+module.exports = coq;
+
 
 /***/ }),
-/* 122 */
+/* 124 */
 /***/ (function(module, exports) {
 
-module.exports = function cos (hljs) {
+/*
+Language: Caché Object Script
+Author: Nikita Savchenko <zitros.lab@gmail.com>
+Category: enterprise, scripting
+Website: https://cedocs.intersystems.com/latest/csp/docbook/DocBook.UI.Page.cls
+*/
+function cos (hljs) {
 
   var STRINGS = {
     className: 'string',
@@ -16168,6 +16968,7 @@ module.exports = function cos (hljs) {
     //"$ztrap", "$zversion"
 
   return {
+    name: 'Caché Object Script',
     case_insensitive: true,
     aliases: ["cos", "cls"],
     keywords: COS_KEYWORDS,
@@ -16221,13 +17022,24 @@ module.exports = function cos (hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = cos;
+
 
 /***/ }),
-/* 123 */
+/* 125 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: crmsh
+Author: Kristoffer Gronlund <kgronlund@suse.com>
+Website: http://crmsh.github.io
+Description: Syntax Highlighting for the crmsh DSL
+Category: config
+*/
+
+function crmsh(hljs) {
   var RESOURCES = 'primitive rsc_template';
 
   var COMMANDS = 'group clone ms master location colocation order fencing_topology ' +
@@ -16247,6 +17059,7 @@ module.exports = function(hljs) {
   var LITERALS = 'Master Started Slave Stopped start promote demote stop monitor true false';
 
   return {
+    name: 'crmsh',
     aliases: ['crm', 'pcmk'],
     case_insensitive: true,
     keywords: {
@@ -16319,13 +17132,22 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = crmsh;
+
 
 /***/ }),
-/* 124 */
+/* 126 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Crystal
+Author: TSUYUSATO Kitsune <make.just.on@gmail.com>
+Website: https://crystal-lang.org
+*/
+
+function crystal(hljs) {
   var INT_SUFFIX = '(_*[ui](8|16|32|64|128))?';
   var FLOAT_SUFFIX = '(_*f(32|64))?';
   var CRYSTAL_IDENT_RE = '[a-zA-Z_]\\w*[!?=]?';
@@ -16506,18 +17328,30 @@ module.exports = function(hljs) {
   EXPANSION.contains = CRYSTAL_DEFAULT_CONTAINS.slice(1); // without EXPANSION
 
   return {
+    name: 'Crystal',
     aliases: ['cr'],
     lexemes: CRYSTAL_IDENT_RE,
     keywords: CRYSTAL_KEYWORDS,
     contains: CRYSTAL_DEFAULT_CONTAINS
   };
-};
+}
+
+module.exports = crystal;
+
 
 /***/ }),
-/* 125 */
+/* 127 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: C#
+Author: Jason Diamond <jason@diamond.name>
+Contributor: Nicolas LLOBERA <nllobera@gmail.com>, Pieter Vantorre <pietervantorre@gmail.com>
+Website: https://docs.microsoft.com/en-us/dotnet/csharp/
+Category: common
+*/
+
+function csharp(hljs) {
   var KEYWORDS = {
     keyword:
       // Normal keywords.
@@ -16533,6 +17367,7 @@ module.exports = function(hljs) {
     literal:
       'null false true'
   };
+  var TITLE_MODE = hljs.inherit(hljs.TITLE_MODE, {begin: '[a-zA-Z](\\.?\\w)*'});
   var NUMBERS = {
     className: 'number',
     variants: [
@@ -16597,10 +17432,22 @@ module.exports = function(hljs) {
     ]
   };
 
+  var GENERIC_MODIFIER = {
+    begin: "<",
+    end: ">",
+    keywords: "in out"
+  };
   var TYPE_IDENT_RE = hljs.IDENT_RE + '(<' + hljs.IDENT_RE + '(\\s*,\\s*' + hljs.IDENT_RE + ')*>)?(\\[\\])?';
+  var AT_IDENTIFIER = {
+    // prevents expressions like `@class` from incorrect flagging
+    // `class` as a keyword
+    begin: "@" + hljs.IDENT_RE,
+    relevance: 0
+  };
 
   return {
-    aliases: ['csharp', 'c#'],
+    name: 'C#',
+    aliases: ['cs', 'c#'],
     keywords: KEYWORDS,
     illegal: /::/,
     contains: [
@@ -16642,7 +17489,9 @@ module.exports = function(hljs) {
         beginKeywords: 'class interface', end: /[{;=]/,
         illegal: /[^\s:,]/,
         contains: [
-          hljs.TITLE_MODE,
+          { beginKeywords: "where class" },
+          TITLE_MODE,
+          GENERIC_MODIFIER,
           hljs.C_LINE_COMMENT_MODE,
           hljs.C_BLOCK_COMMENT_MODE
         ]
@@ -16651,7 +17500,7 @@ module.exports = function(hljs) {
         beginKeywords: 'namespace', end: /[{;=]/,
         illegal: /[^\s:]/,
         contains: [
-          hljs.inherit(hljs.TITLE_MODE, {begin: '[a-zA-Z](\\.?\\w)*'}),
+          TITLE_MODE,
           hljs.C_LINE_COMMENT_MODE,
           hljs.C_BLOCK_COMMENT_MODE
         ]
@@ -16697,23 +17546,37 @@ module.exports = function(hljs) {
           hljs.C_LINE_COMMENT_MODE,
           hljs.C_BLOCK_COMMENT_MODE
         ]
-      }
+      },
+      AT_IDENTIFIER
     ]
   };
-};
+}
+
+module.exports = csharp;
+
 
 /***/ }),
-/* 126 */
+/* 128 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: CSP
+Description: Content Security Policy definition highlighting
+Author: Taras <oxdef@oxdef.info>
+Website: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+
+vim: ts=2 sw=2 st=2
+*/
+
+function csp(hljs) {
   return {
+    name: 'CSP',
     case_insensitive: false,
     lexemes: '[a-zA-Z][a-zA-Z0-9_-]*',
     keywords: {
-      keyword: 'base-uri child-src connect-src default-src font-src form-action' +
-        ' frame-ancestors frame-src img-src media-src object-src plugin-types' +
-        ' report-uri sandbox script-src style-src',
+      keyword: 'base-uri child-src connect-src default-src font-src form-action ' +
+        'frame-ancestors frame-src img-src media-src object-src plugin-types ' +
+        'report-uri sandbox script-src style-src',
     },
     contains: [
     {
@@ -16726,13 +17589,22 @@ module.exports = function(hljs) {
     },
     ]
   };
-};
+}
+
+module.exports = csp;
+
 
 /***/ }),
-/* 127 */
+/* 129 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: CSS
+Category: common, css
+Website: https://developer.mozilla.org/en-US/docs/Web/CSS
+*/
+
+function css(hljs) {
   var FUNCTION_LIKE = {
     begin: /[\w-]+\(/, returnBegin: true,
     contains: [
@@ -16749,7 +17621,7 @@ module.exports = function(hljs) {
         ]
       }
     ]
-  }
+  };
   var ATTRIBUTE = {
     className: 'attribute',
     begin: /\S/, end: ':', excludeEnd: true,
@@ -16769,11 +17641,10 @@ module.exports = function(hljs) {
         }
       ]
     }
-  }
-  var AT_IDENTIFIER = '@[a-z-]+' // @font-face
-  var AT_MODIFIERS = "and or not only"
-  var MEDIA_TYPES = "all print screen speech"
-  var AT_PROPERTY_RE = /@\-?\w[\w]*(\-\w+)*/ // @-webkit-keyframes
+  };
+  var AT_IDENTIFIER = '@[a-z-]+'; // @font-face
+  var AT_MODIFIERS = "and or not only";
+  var AT_PROPERTY_RE = /@\-?\w[\w]*(\-\w+)*/; // @-webkit-keyframes
   var IDENT_RE = '[a-zA-Z-][a-zA-Z0-9_-]*';
   var RULE = {
     begin: /(?:[A-Z\_\.\-]+|--[a-zA-Z0-9_-]+)\s*:/, returnBegin: true, end: ';', endsWithParent: true,
@@ -16783,6 +17654,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'CSS',
     case_insensitive: true,
     illegal: /[=\/|'\$]/,
     contains: [
@@ -16856,13 +17728,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = css;
+
 
 /***/ }),
-/* 128 */
+/* 130 */
 /***/ (function(module, exports) {
 
-module.exports = /**
+/*
+Language: D
+Author: Aleksandar Ruzicic <aleksandar@ruzicic.info>
+Description: D is a language with C-like syntax and static typing. It pragmatically combines efficiency, control, and modeling power, with safety and programmer productivity.
+Version: 1.0a
+Website: https://dlang.org
+Date: 2012-04-08
+*/
+
+/**
  * Known issues:
  *
  * - invalid hex string literals will be recognized as a double quoted strings
@@ -16878,7 +17762,7 @@ module.exports = /**
  *   up to the end of line is matched as special token sequence)
  */
 
-function(hljs) {
+function d(hljs) {
   /**
    * Language keywords
    *
@@ -17099,6 +17983,7 @@ function(hljs) {
   );
 
   return {
+    name: 'D',
     lexemes: hljs.UNDERSCORE_IDENT_RE,
     keywords: D_KEYWORDS,
     contains: [
@@ -17118,125 +18003,188 @@ function(hljs) {
         D_ATTRIBUTE_MODE
     ]
   };
-};
+}
+
+module.exports = d;
+
 
 /***/ }),
-/* 129 */
+/* 131 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
-  return {
-    aliases: ['md', 'mkdown', 'mkd'],
-    contains: [
-      // highlight headers
+/*
+Language: Markdown
+Requires: xml.js
+Author: John Crepezzi <john.crepezzi@gmail.com>
+Website: https://daringfireball.net/projects/markdown/
+Category: common, markup
+*/
+
+function markdown(hljs) {
+  const INLINE_HTML = {
+    begin: '<', end: '>',
+    subLanguage: 'xml',
+    relevance: 0
+  };
+  const HORIZONTAL_RULE = {
+    begin: '^[-\\*]{3,}', end: '$'
+  };
+  const CODE = {
+    className: 'code',
+    variants: [
+      // TODO: fix to allow these to work with sublanguage also
+      { begin: '(`{3,})(.|\\n)*?\\1`*[ ]*', },
+      { begin: '(~{3,})(.|\\n)*?\\1~*[ ]*', },
+      // needed to allow markdown as a sublanguage to work
+      { begin: '```', end: '```+[ ]*$' },
+      { begin: '~~~', end: '~~~+[ ]*$' },
+      { begin: '`.+?`' },
       {
-        className: 'section',
-        variants: [
-          { begin: '^#{1,6}', end: '$' },
-          { begin: '^.+?\\n[=-]{2,}$' }
-        ]
-      },
-      // inline html
-      {
-        begin: '<', end: '>',
-        subLanguage: 'xml',
-        relevance: 0
-      },
-      // lists (indicators only)
-      {
-        className: 'bullet',
-        begin: '^\\s*([*+-]|(\\d+\\.))\\s+'
-      },
-      // strong segments
-      {
-        className: 'strong',
-        begin: '[*_]{2}.+?[*_]{2}'
-      },
-      // emphasis segments
-      {
-        className: 'emphasis',
-        variants: [
-          { begin: '\\*.+?\\*' },
-          { begin: '_.+?_'
-          , relevance: 0
-          }
-        ]
-      },
-      // blockquotes
-      {
-        className: 'quote',
-        begin: '^>\\s+', end: '$'
-      },
-      // code snippets
-      {
-        className: 'code',
-        variants: [
-          {
-            begin: '^```\\w*\\s*$', end: '^```[ ]*$'
-          },
-          {
-            begin: '`.+?`'
-          },
-          {
-            begin: '^( {4}|\\t)', end: '$',
-            relevance: 0
-          }
-        ]
-      },
-      // horizontal rules
-      {
-        begin: '^[-\\*]{3,}', end: '$'
-      },
-      // using links - title and link
-      {
-        begin: '\\[.+?\\][\\(\\[].*?[\\)\\]]',
-        returnBegin: true,
+        begin: '(?=^( {4}|\\t))',
+        // use contains to gobble up multiple lines to allow the block to be whatever size
+        // but only have a single open/close tag vs one per line
         contains: [
-          {
-            className: 'string',
-            begin: '\\[', end: '\\]',
-            excludeBegin: true,
-            returnEnd: true,
-            relevance: 0
-          },
-          {
-            className: 'link',
-            begin: '\\]\\(', end: '\\)',
-            excludeBegin: true, excludeEnd: true
-          },
-          {
-            className: 'symbol',
-            begin: '\\]\\[', end: '\\]',
-            excludeBegin: true, excludeEnd: true
-          }
+          { begin: '^( {4}|\\t)', end: '(\\n)$' }
         ],
-        relevance: 10
-      },
-      {
-        begin: /^\[[^\n]+\]:/,
-        returnBegin: true,
-        contains: [
-          {
-            className: 'symbol',
-            begin: /\[/, end: /\]/,
-            excludeBegin: true, excludeEnd: true
-          },
-          {
-            className: 'link',
-            begin: /:\s*/, end: /$/,
-            excludeBegin: true
-          }
-        ]
+        relevance: 0
       }
     ]
   };
-};
+  const LIST = {
+    className: 'bullet',
+    begin: '^[ \t]*([*+-]|(\\d+\\.))(?=\\s+)',
+    end: '\\s+',
+    excludeEnd: true
+  };
+  const LINK_REFERENCE = {
+    begin: /^\[[^\n]+\]:/,
+    returnBegin: true,
+    contains: [
+      {
+        className: 'symbol',
+        begin: /\[/, end: /\]/,
+        excludeBegin: true, excludeEnd: true
+      },
+      {
+        className: 'link',
+        begin: /:\s*/, end: /$/,
+        excludeBegin: true
+      }
+    ]
+  };
+  const LINK = {
+    begin: '\\[.+?\\][\\(\\[].*?[\\)\\]]',
+    returnBegin: true,
+    contains: [
+      {
+        className: 'string',
+        begin: '\\[', end: '\\]',
+        excludeBegin: true,
+        returnEnd: true,
+        relevance: 0
+      },
+      {
+        className: 'link',
+        begin: '\\]\\(', end: '\\)',
+        excludeBegin: true, excludeEnd: true
+      },
+      {
+        className: 'symbol',
+        begin: '\\]\\[', end: '\\]',
+        excludeBegin: true, excludeEnd: true
+      }
+    ],
+    relevance: 10
+  };
+  const BOLD = {
+    className: 'strong',
+    contains: [],
+    variants: [
+      {begin: /_{2}/, end: /_{2}/ },
+      {begin: /\*{2}/, end: /\*{2}/ }
+    ]
+  };
+  const ITALIC = {
+    className: 'emphasis',
+    contains: [],
+    variants: [
+      { begin: /\*(?!\*)/, end: /\*/ },
+      { begin: /_(?!_)/, end: /_/, relevance: 0},
+    ]
+  };
+  BOLD.contains.push(ITALIC);
+  ITALIC.contains.push(BOLD);
+
+  var CONTAINABLE = [
+    INLINE_HTML,
+    LINK
+  ];
+
+  BOLD.contains = BOLD.contains.concat(CONTAINABLE);
+  ITALIC.contains = ITALIC.contains.concat(CONTAINABLE);
+
+  CONTAINABLE = CONTAINABLE.concat(BOLD,ITALIC);
+
+  const HEADER = {
+    className: 'section',
+    variants: [
+      {
+        begin: '^#{1,6}',
+        end: '$',
+        contains: CONTAINABLE
+       },
+      {
+        begin: '(?=^.+?\\n[=-]{2,}$)',
+        contains: [
+          { begin: '^[=-]*$' },
+          { begin: '^', end: "\\n", contains: CONTAINABLE },
+        ]
+       }
+    ]
+  };
+
+  const BLOCKQUOTE = {
+    className: 'quote',
+    begin: '^>\\s+',
+    contains: CONTAINABLE,
+    end: '$',
+  };
+
+  return {
+    name: 'Markdown',
+    aliases: ['md', 'mkdown', 'mkd'],
+    contains: [
+      HEADER,
+      INLINE_HTML,
+      LIST,
+      BOLD,
+      ITALIC,
+      BLOCKQUOTE,
+      CODE,
+      HORIZONTAL_RULE,
+      LINK,
+      LINK_REFERENCE
+    ]
+  };
+}
+
+module.exports = markdown;
+
 
 /***/ }),
-/* 130 */
+/* 132 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Dart
+Requires: markdown.js
+Author: Maxim Dikun <dikmax@gmail.com>
+Description: Dart a modern, object-oriented language developed by Google. For more information see https://www.dartlang.org/
+Website: https://dart.dev
+Category: scripting
+*/
+
+function dart(hljs) {
   var SUBST = {
     className: 'subst',
     variants: [{
@@ -17315,13 +18263,15 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Dart',
     keywords: KEYWORDS,
     contains: [
       STRING,
       hljs.COMMENT(
         '/\\*\\*',
         '\\*/', {
-          subLanguage: 'markdown'
+          subLanguage: 'markdown',
+          relevance:0
         }
       ),
       hljs.COMMENT(
@@ -17331,6 +18281,7 @@ module.exports = function(hljs) {
             subLanguage: 'markdown',
             begin: '.',
             end: '$',
+            relevance:0
           }]
         }
       ),
@@ -17357,13 +18308,21 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = dart;
+
 
 /***/ }),
-/* 131 */
+/* 133 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Delphi
+Website: https://www.embarcadero.com/products/delphi
+*/
+
+function delphi(hljs) {
   var KEYWORDS =
     'exports register file shl array record property for mod while set ally label uses raise not ' +
     'stored class safecall var interface or private static exit index inherited to else stdcall ' +
@@ -17393,6 +18352,25 @@ module.exports = function(hljs) {
     begin: /'/, end: /'/,
     contains: [{begin: /''/}]
   };
+  var NUMBER = {
+    className: 'number',
+    relevance: 0,
+    // Source: https://www.freepascal.org/docs-html/ref/refse6.html
+    variants: [
+      {
+        // Hexadecimal notation, e.g., $7F.
+        begin: '\\$[0-9A-Fa-f]+',
+      },
+      {
+        // Octal notation, e.g., &42.
+        begin: '&[0-7]+',
+      },
+      {
+        // Binary notation, e.g., %1010.
+        begin: '%[01]+',
+      }
+    ]
+  };
   var CHAR_STRING = {
     className: 'string', begin: /(#\d+)+/
   };
@@ -17418,6 +18396,7 @@ module.exports = function(hljs) {
     ].concat(COMMENT_MODES)
   };
   return {
+    name: 'Delphi',
     aliases: ['dpr', 'dfm', 'pas', 'pascal', 'freepascal', 'lazarus', 'lpr', 'lfm'],
     case_insensitive: true,
     keywords: KEYWORDS,
@@ -17425,19 +18404,32 @@ module.exports = function(hljs) {
     contains: [
       STRING, CHAR_STRING,
       hljs.NUMBER_MODE,
+      NUMBER,
       CLASS,
       FUNCTION,
       DIRECTIVE
     ].concat(COMMENT_MODES)
   };
-};
+}
+
+module.exports = delphi;
+
 
 /***/ }),
-/* 132 */
+/* 134 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Diff
+Description: Unified and context diff
+Author: Vasily Polovnyov <vast@whiteants.net>
+Website: https://www.gnu.org/software/diffutils/
+Category: common
+*/
+
+function diff(hljs) {
   return {
+    name: 'Diff',
     aliases: ['patch'],
     contains: [
       {
@@ -17474,13 +18466,26 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = diff;
+
 
 /***/ }),
-/* 133 */
+/* 135 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Django
+Description: Django is a high-level Python Web framework that encourages rapid development and clean, pragmatic design.
+Requires: xml.js
+Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Contributors: Ilya Baryshev <baryshev@gmail.com>
+Website: https://www.djangoproject.com
+Category: template
+*/
+
+function django(hljs) {
   var FILTER = {
     begin: /\|[A-Za-z]+:?/,
     keywords: {
@@ -17501,6 +18506,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Django',
     aliases: ['jinja'],
     case_insensitive: true,
     subLanguage: 'xml',
@@ -17542,14 +18548,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = django;
+
 
 /***/ }),
-/* 134 */
+/* 136 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: DNS Zone
+Author: Tim Schumacher <tim@datenknoten.me>
+Category: config
+Website: https://en.wikipedia.org/wiki/Zone_file
+*/
+
+function dns(hljs) {
   return {
+    name: 'DNS Zone',
     aliases: ['bind', 'zone'],
     keywords: {
       keyword:
@@ -17575,14 +18592,27 @@ module.exports = function(hljs) {
       hljs.inherit(hljs.NUMBER_MODE, {begin: /\b\d+[dhwm]?/})
     ]
   };
-};
+}
+
+module.exports = dns;
+
 
 /***/ }),
-/* 135 */
+/* 137 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Dockerfile
+Requires: bash.js
+Author: Alexis Hénaut <alexis@henaut.net>
+Description: language definition for Dockerfile files
+Website: https://docs.docker.com/engine/reference/builder/
+Category: config
+*/
+
+function dockerfile(hljs) {
   return {
+    name: 'Dockerfile',
     aliases: ['docker'],
     case_insensitive: true,
     keywords: 'from maintainer expose env arg user onbuild stopsignal',
@@ -17601,13 +18631,23 @@ module.exports = function(hljs) {
     ],
     illegal: '</'
   }
-};
+}
+
+module.exports = dockerfile;
+
 
 /***/ }),
-/* 136 */
+/* 138 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Batch file (DOS)
+Author: Alexander Makarov <sam@rmcreative.ru>
+Contributors: Anton Kochkov <anton.kochkov@gmail.com>
+Website: https://en.wikipedia.org/wiki/Batch_file
+*/
+
+function dos(hljs) {
   var COMMENT = hljs.COMMENT(
     /^\s*@?rem\b/, /$/,
     {
@@ -17620,6 +18660,7 @@ module.exports = function(hljs) {
     relevance: 0
   };
   return {
+    name: 'Batch file (DOS)',
     aliases: ['bat', 'cmd'],
     case_insensitive: true,
     illegal: /\/\*/,
@@ -17633,7 +18674,7 @@ module.exports = function(hljs) {
         'append assoc at attrib break cacls cd chcp chdir chkdsk chkntfs cls cmd color ' +
         'comp compact convert date dir diskcomp diskcopy doskey erase fs ' +
         'find findstr format ftype graftabl help keyb label md mkdir mode more move path ' +
-        'pause print popd pushd promt rd recover rem rename replace restore rmdir shift' +
+        'pause print popd pushd promt rd recover rem rename replace restore rmdir shift ' +
         'sort start subst time title tree type ver verify vol ' +
         // winutils
         'ping net ipconfig taskkill xcopy ren del'
@@ -17657,13 +18698,22 @@ module.exports = function(hljs) {
       COMMENT
     ]
   };
-};
+}
+
+module.exports = dos;
+
 
 /***/ }),
-/* 137 */
+/* 139 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: dsconfig
+ Description: dsconfig batch configuration language for LDAP directory servers
+ Contributors: Jacob Childress <jacobc@gmail.com>
+ Category: enterprise, config
+ */
+function dsconfig(hljs) {
   var QUOTED_PROPERTY = {
     className: 'string',
     begin: /"/, end: /"/
@@ -17708,13 +18758,24 @@ module.exports = function(hljs) {
       hljs.HASH_COMMENT_MODE
     ]
   };
-};
+}
+
+module.exports = dsconfig;
+
 
 /***/ }),
-/* 138 */
+/* 140 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Device Tree
+Description: *.dts files used in the Linux kernel
+Author: Martin Braun <martin.braun@ettus.com>, Moritz Fischer <moritz.fischer@ettus.com>
+Website: https://elinux.org/Device_Tree_Reference
+Category: config
+*/
+
+function dts(hljs) {
   var STRINGS = {
     className: 'string',
     variants: [
@@ -17817,6 +18878,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Device Tree',
     keywords: "",
     contains: [
       DTS_ROOT_NODE,
@@ -17836,15 +18898,28 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = dts;
+
 
 /***/ }),
-/* 139 */
+/* 141 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Dust
+Requires: xml.js
+Author: Michael Allen <michael.allen@benefitfocus.com>
+Description: Matcher for dust.js templates.
+Website: https://www.dustjs.com
+Category: template
+*/
+
+function dust(hljs) {
   var EXPRESSION_KEYWORDS = 'if eq ne lt lte gt gte select default math sep';
   return {
+    name: 'Dust',
     aliases: ['dst'],
     case_insensitive: true,
     subLanguage: 'xml',
@@ -17872,13 +18947,22 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = dust;
+
 
 /***/ }),
-/* 140 */
+/* 142 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Extended Backus-Naur Form
+Author: Alex McKibben <alex@nullscope.net>
+Website: https://en.wikipedia.org/wiki/Extended_Backus–Naur_form
+*/
+
+function ebnf(hljs) {
     var commentMode = hljs.COMMENT(/\(\*/, /\*\)/);
 
     var nonTerminalMode = {
@@ -17909,6 +18993,7 @@ module.exports = function(hljs) {
     };
 
     return {
+        name: 'Extended Backus-Naur Form',
         illegal: /\S/,
         contains: [
             commentMode,
@@ -17916,13 +19001,24 @@ module.exports = function(hljs) {
             ruleBodyMode
         ]
     };
-};
+}
+
+module.exports = ebnf;
+
 
 /***/ }),
-/* 141 */
+/* 143 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Elixir
+Author: Josh Adams <josh@isotope11.com>
+Description: language definition for Elixir source code files (.ex and .exs).  Based on ruby language support.
+Category: functional
+Website: https://elixir-lang.org
+*/
+
+function elixir(hljs) {
   var ELIXIR_IDENT_RE = '[a-zA-Z_][a-zA-Z0-9_.]*(\\!|\\?)?';
   var ELIXIR_METHOD_RE = '[a-zA-Z_]\\w*[!?=]?|[-+~]\\@|<<|>>|=~|===?|<=>|[<>]=?|\\*\\*|[-/+%^&*~`|]|\\[\\]=?';
   var ELIXIR_KEYWORDS =
@@ -17935,8 +19031,12 @@ module.exports = function(hljs) {
     lexemes: ELIXIR_IDENT_RE,
     keywords: ELIXIR_KEYWORDS
   };
-
-  var SIGIL_DELIMITERS = '[/|([{<"\']'
+  var NUMBER = {
+    className: 'number',
+    begin: '(\\b0o[0-7_]+)|(\\b0b[01_]+)|(\\b0x[0-9a-fA-F_]+)|(-?\\b[1-9][0-9_]*(.[0-9_]+([eE][-+]?[0-9]+)?)?)',
+    relevance: 0
+  };
+  var SIGIL_DELIMITERS = '[/|([{<"\']';
   var LOWERCASE_SIGIL = {
     className: 'string',
     begin: '~[a-z]' + '(?=' + SIGIL_DELIMITERS + ')',
@@ -18044,11 +19144,7 @@ module.exports = function(hljs) {
       begin: ELIXIR_IDENT_RE + ':(?!:)',
       relevance: 0
     },
-    {
-      className: 'number',
-      begin: '(\\b0o[0-7_]+)|(\\b0b[01_]+)|(\\b0x[0-9a-fA-F_]+)|(-?\\b[1-9][0-9_]*(.[0-9_]+([eE][-+]?[0-9]+)?)?)',
-      relevance: 0
-    },
+    NUMBER,
     {
       className: 'variable',
       begin: '(\\$\\W)|((\\$|\\@\\@?)(\\w+))'
@@ -18060,6 +19156,15 @@ module.exports = function(hljs) {
       begin: '(' + hljs.RE_STARTERS_RE + ')\\s*',
       contains: [
         hljs.HASH_COMMENT_MODE,
+        {
+          // to prevent false regex triggers for the division function:
+          // /:
+          begin: /\/: (?=\d+\s*[,\]])/,
+          relevance: 0,
+          contains: [
+            NUMBER
+          ]
+        },
         {
           className: 'regexp',
           illegal: '\\n',
@@ -18080,17 +19185,28 @@ module.exports = function(hljs) {
   SUBST.contains = ELIXIR_DEFAULT_CONTAINS;
 
   return {
+    name: 'Elixir',
     lexemes: ELIXIR_IDENT_RE,
     keywords: ELIXIR_KEYWORDS,
     contains: ELIXIR_DEFAULT_CONTAINS
   };
-};
+}
+
+module.exports = elixir;
+
 
 /***/ }),
-/* 142 */
+/* 144 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Elm
+Author: Janis Voigtlaender <janis.voigtlaender@gmail.com>
+Website: https://elm-lang.org
+Category: functional
+*/
+
+function elm(hljs) {
   var COMMENT = {
     variants: [
       hljs.COMMENT('--', '$'),
@@ -18131,6 +19247,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Elm',
     keywords:
       'let in if then else case of where module import exposing ' +
       'type alias as infix infixl infixr port effect command subscription',
@@ -18178,13 +19295,25 @@ module.exports = function(hljs) {
     ],
     illegal: /;/
   };
-};
+}
+
+module.exports = elm;
+
 
 /***/ }),
-/* 143 */
+/* 145 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Ruby
+Description: Ruby is a dynamic, open source programming language with a focus on simplicity and productivity.
+Website: https://www.ruby-lang.org/
+Author: Anton Kovalyov <anton@kovalyov.net>
+Contributors: Peter Leonov <gojpeg@yandex.ru>, Vasily Polovnyov <vast@whiteants.net>, Loren Segal <lsegal@soen.ca>, Pascal Hurni <phi@ruby-reactive.org>, Cedric Sohrauer <sohrauer@googlemail.com>
+Category: common
+*/
+
+function ruby(hljs) {
   var RUBY_METHOD_RE = '[a-zA-Z_]\\w*[!?=]?|[-+~]\\@|<<|>>|=~|===?|<=>|[<>]=?|\\*\\*|[-/+%^&*~`|]|\\[\\]=?';
   var RUBY_KEYWORDS = {
     keyword:
@@ -18362,19 +19491,34 @@ module.exports = function(hljs) {
   ];
 
   return {
+    name: 'Ruby',
     aliases: ['rb', 'gemspec', 'podspec', 'thor', 'irb'],
     keywords: RUBY_KEYWORDS,
     illegal: /\/\*/,
     contains: COMMENT_MODES.concat(IRB_DEFAULT).concat(RUBY_DEFAULT_CONTAINS)
   };
-};
+}
+
+module.exports = ruby;
+
 
 /***/ }),
-/* 144 */
+/* 146 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: ERB (Embedded Ruby)
+Requires: xml.js, ruby.js
+Author: Lucas Mazza <lucastmazza@gmail.com>
+Contributors: Kassio Borges <kassioborgesm@gmail.com>
+Description: "Bridge" language defining fragments of Ruby in HTML within <% .. %>
+Website: https://ruby-doc.org/stdlib-2.6.5/libdoc/erb/rdoc/ERB.html
+Category: template
+*/
+
+function erb(hljs) {
   return {
+    name: 'ERB',
     subLanguage: 'xml',
     contains: [
       hljs.COMMENT('<%#', '%>'),
@@ -18386,14 +19530,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = erb;
+
 
 /***/ }),
-/* 145 */
+/* 147 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Erlang REPL
+Author: Sergey Ignatov <sergey@ignatov.spb.su>
+Website: https://www.erlang.org
+Category: functional
+*/
+
+function erlangRepl(hljs) {
   return {
+    name: 'Erlang REPL',
     keywords: {
       built_in:
         'spawn spawn_link self',
@@ -18436,13 +19591,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = erlangRepl;
+
 
 /***/ }),
-/* 146 */
+/* 148 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Erlang
+Description: Erlang is a general-purpose functional language, with strict evaluation, single assignment, and dynamic typing.
+Author: Nikolay Zakharov <nikolay.desh@gmail.com>, Dmitry Kovega <arhibot@gmail.com>
+Website: https://www.erlang.org
+Category: functional
+*/
+
+function erlang(hljs) {
   var BASIC_ATOM_RE = '[a-z\'][a-zA-Z0-9_\']*';
   var FUNCTION_NAME_RE = '(' + BASIC_ATOM_RE + ':' + BASIC_ATOM_RE + '|' + BASIC_ATOM_RE + ')';
   var ERLANG_RESERVED = {
@@ -18546,6 +19712,7 @@ module.exports = function(hljs) {
     contains: BASIC_MODES
   };
   return {
+    name: 'Erlang',
     aliases: ['erl'],
     keywords: ERLANG_RESERVED,
     illegal: '(</|\\*=|\\+=|-=|/\\*|\\*/|\\(\\*|\\*\\))',
@@ -18586,14 +19753,25 @@ module.exports = function(hljs) {
       {begin: /\.$/} // relevance booster
     ]
   };
-};
+}
+
+module.exports = erlang;
+
 
 /***/ }),
-/* 147 */
+/* 149 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Excel formulae
+Author: Victor Zhou <OiCMudkips@users.noreply.github.com>
+Description: Excel formulae
+Website: https://products.office.com/en-us/excel/
+*/
+
+function excel(hljs) {
   return {
+    name: 'Excel formulae',
     aliases: ['xlsx', 'xls'],
     case_insensitive: true,
     lexemes: /[a-zA-Z][\w\.]*/,
@@ -18638,14 +19816,23 @@ module.exports = function(hljs) {
       })
     ]
   };
-};
+}
+
+module.exports = excel;
+
 
 /***/ }),
-/* 148 */
+/* 150 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: FIX
+Author: Brent Bradbury <brent@brentium.com>
+*/
+
+function fix(hljs) {
   return {
+    name: 'FIX',
     contains: [
     {
       begin: /[^\u2401\u0001]+/,
@@ -18671,13 +19858,23 @@ module.exports = function(hljs) {
     }],
     case_insensitive: true
   };
-};
+}
+
+module.exports = fix;
+
 
 /***/ }),
-/* 149 */
+/* 151 */
 /***/ (function(module, exports) {
 
-module.exports = function (hljs) {
+/*
+ Language: Flix
+ Category: functional
+ Author: Magnus Madsen <mmadsen@uwaterloo.ca>
+ Website: https://flix.dev/
+ */
+
+function flix (hljs) {
 
     var CHAR = {
         className: 'string',
@@ -18707,6 +19904,7 @@ module.exports = function (hljs) {
     };
 
     return {
+        name: 'Flix',
         keywords: {
             literal: 'true false',
             keyword: 'case class def else enum if impl import in lat rel index let match namespace switch type yield with'
@@ -18720,22 +19918,63 @@ module.exports = function (hljs) {
             hljs.C_NUMBER_MODE
         ]
     };
-};
+}
+
+module.exports = flix;
+
 
 /***/ }),
-/* 150 */
+/* 152 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
-  var PARAMS = {
+/*
+Language: Fortran
+Author: Anthony Scemama <scemama@irsamc.ups-tlse.fr>
+Website: https://en.wikipedia.org/wiki/Fortran
+Category: scientific
+*/
+
+function fortran(hljs) {
+  const PARAMS = {
     className: 'params',
     begin: '\\(', end: '\\)'
   };
 
-  var F_KEYWORDS = {
+  const COMMENT = {
+    variants: [
+      hljs.COMMENT('!', '$', {relevance: 0}),
+      // allow Fortran 77 style comments
+      hljs.COMMENT('^C', '$', {relevance: 0})
+    ]
+  };
+
+  const NUMBER = {
+    className: 'number',
+    // regex in both fortran and irpf90 should match
+    begin: '(?=\\b|\\+|\\-|\\.)(?:\\.|\\d+\\.?)\\d*([de][+-]?\\d+)?(_[a-z_\\d]+)?',
+    relevance: 0
+  };
+
+  const FUNCTION_DEF = {
+    className: 'function',
+    beginKeywords: 'subroutine function program',
+    illegal: '[${=\\n]',
+    contains: [hljs.UNDERSCORE_TITLE_MODE, PARAMS]
+  };
+
+  const STRING = {
+    className: 'string',
+    relevance: 0,
+    variants: [
+      hljs.APOS_STRING_MODE,
+      hljs.QUOTE_STRING_MODE
+    ]
+  };
+
+  const KEYWORDS = {
     literal: '.False. .True.',
-    keyword: 'kind do while private call intrinsic where elsewhere ' +
-      'type endtype endmodule endselect endinterface end enddo endif if forall endforall only contains default return stop then block endblock ' +
+    keyword: 'kind do concurrent local shared while private call intrinsic where elsewhere ' +
+      'type endtype endmodule endselect endinterface end enddo endif if forall endforall only contains default return stop then block endblock endassociate ' +
       'public subroutine|10 function program .and. .or. .not. .le. .eq. .ge. .gt. .lt. ' +
       'goto save else use module select case ' +
       'access blank direct exist file fmt form formatted iostat name named nextrec number opened rec recl sequential status unformatted unit ' +
@@ -18750,8 +19989,8 @@ module.exports = function(hljs) {
       'c_ptr c_funptr iso_fortran_env character_storage_size error_unit file_storage_size input_unit iostat_end iostat_eor ' +
       'numeric_storage_size output_unit c_f_procpointer ieee_arithmetic ieee_support_underflow_control ' +
       'ieee_get_underflow_mode ieee_set_underflow_mode newunit contiguous recursive ' +
-      'pad position action delim readwrite eor advance nml interface procedure namelist include sequence elemental pure ' +
-      'integer real character complex logical dimension allocatable|10 parameter ' +
+      'pad position action delim readwrite eor advance nml interface procedure namelist include sequence elemental pure impure ' +
+      'integer real character complex logical codimension dimension allocatable|10 parameter ' +
       'external implicit|10 none double precision assign intent optional pointer ' +
       'target in out common equivalence data',
     built_in: 'alog alog10 amax0 amax1 amin0 amin1 amod cabs ccos cexp clog csin csqrt dabs dacos dasin datan datan2 dcos dcosh ddim dexp dint ' +
@@ -18767,41 +20006,48 @@ module.exports = function(hljs) {
       'set_exponent shape size spacing spread sum system_clock tiny transpose trim ubound unpack verify achar iachar transfer ' +
       'dble entry dprod cpu_time command_argument_count get_command get_command_argument get_environment_variable is_iostat_end ' +
       'ieee_arithmetic ieee_support_underflow_control ieee_get_underflow_mode ieee_set_underflow_mode ' +
-      'is_iostat_eor move_alloc new_line selected_char_kind same_type_as extends_type_of'  +
+      'is_iostat_eor move_alloc new_line selected_char_kind same_type_as extends_type_of '  +
       'acosh asinh atanh bessel_j0 bessel_j1 bessel_jn bessel_y0 bessel_y1 bessel_yn erf erfc erfc_scaled gamma log_gamma hypot norm2 ' +
       'atomic_define atomic_ref execute_command_line leadz trailz storage_size merge_bits ' +
       'bge bgt ble blt dshiftl dshiftr findloc iall iany iparity image_index lcobound ucobound maskl maskr ' +
-      'num_images parity popcnt poppar shifta shiftl shiftr this_image'
+      'num_images parity popcnt poppar shifta shiftl shiftr this_image sync change team co_broadcast co_max co_min co_sum co_reduce'
   };
   return {
+    name: 'Fortran',
     case_insensitive: true,
     aliases: ['f90', 'f95'],
-    keywords: F_KEYWORDS,
+    keywords: KEYWORDS,
     illegal: /\/\*/,
     contains: [
-      hljs.inherit(hljs.APOS_STRING_MODE, {className: 'string', relevance: 0}),
-      hljs.inherit(hljs.QUOTE_STRING_MODE, {className: 'string', relevance: 0}),
+      STRING,
+      FUNCTION_DEF,
+      // allow `C = value` for assignments so they aren't misdetected
+      // as Fortran 77 style comments
       {
-        className: 'function',
-        beginKeywords: 'subroutine function program',
-        illegal: '[${=\\n]',
-        contains: [hljs.UNDERSCORE_TITLE_MODE, PARAMS]
+        begin: /^C\s*=(?!=)/,
+        relevance: 0,
       },
-      hljs.COMMENT('!', '$', {relevance: 0}),
-      {
-        className: 'number',
-        begin: '(?=\\b|\\+|\\-|\\.)(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*)(?:[de][+-]?\\d+)?\\b\\.?',
-        relevance: 0
-      }
+      COMMENT,
+      NUMBER
     ]
   };
-};
+}
+
+module.exports = fortran;
+
 
 /***/ }),
-/* 151 */
+/* 153 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: F#
+Author: Jonas Follesø <jonas@follesoe.no>
+Contributors: Troy Kershaw <hello@troykershaw.com>, Henrik Feldt <henrik@haf.se>
+Website: https://docs.microsoft.com/en-us/dotnet/fsharp/
+Category: functional
+*/
+function fsharp(hljs) {
   var TYPEPARAM = {
     begin: '<', end: '>',
     contains: [
@@ -18810,6 +20056,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'F#',
     aliases: ['fs'],
     keywords:
       'abstract and as assert base begin class default delegate do done ' +
@@ -18858,13 +20105,25 @@ module.exports = function(hljs) {
       hljs.C_NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = fsharp;
+
 
 /***/ }),
-/* 152 */
+/* 154 */
 /***/ (function(module, exports) {
 
-module.exports = function (hljs) {
+/*
+ Language: GAMS
+ Author: Stefan Bechert <stefan.bechert@gmx.net>
+ Contributors: Oleg Efimov <efimovov@gmail.com>, Mikko Kouhia <mikko.kouhia@iki.fi>
+ Description: The General Algebraic Modeling System language
+ Website: https://www.gams.com
+ Category: scientific
+ */
+
+function gams (hljs) {
   var KEYWORDS = {
     'keyword':
       'abort acronym acronyms alias all and assign binary card diag display ' +
@@ -18941,6 +20200,7 @@ module.exports = function (hljs) {
   };
 
   return {
+    name: 'GAMS',
     aliases: ['gms'],
     case_insensitive: true,
     keywords: KEYWORDS,
@@ -19016,13 +20276,23 @@ module.exports = function (hljs) {
       SYMBOLS,
     ]
   };
-};
+}
+
+module.exports = gams;
+
 
 /***/ }),
-/* 153 */
+/* 155 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: GAUSS
+Author: Matt Evans <matt@aptech.com>
+Description: GAUSS Mathematical and Statistical language
+Website: https://www.aptech.com
+Category: scientific
+*/
+function gauss(hljs) {
   var KEYWORDS = {
     keyword:  'bool break call callexe checkinterrupt clear clearg closeall cls comlog compile ' +
               'continue create debug declare delete disable dlibrary dllcall do dos ed edit else ' +
@@ -19271,6 +20541,7 @@ module.exports = function(hljs) {
   FUNCTION_REF.contains.push(FUNCTION_REF_PARAMS);
 
   return {
+    name: 'GAUSS',
     aliases: ['gss'],
     case_insensitive: true, // language is case-insensitive
     keywords: KEYWORDS,
@@ -19311,13 +20582,23 @@ module.exports = function(hljs) {
       STRUCT_TYPE,
     ]
   };
-};
+}
+
+module.exports = gauss;
+
 
 /***/ }),
-/* 154 */
+/* 156 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: G-code (ISO 6983)
+ Contributors: Adam Joseph Cook <adam.joseph.cook@gmail.com>
+ Description: G-code syntax highlighter for Fanuc and other common CNC machine tool controls.
+ Website: https://www.sis.se/api/document/preview/911952/
+ */
+
+function gcode(hljs) {
     var GCODE_IDENT_RE = '[A-Z_][A-Z0-9_.]*';
     var GCODE_CLOSE_RE = '\\%';
     var GCODE_KEYWORDS =
@@ -19368,6 +20649,7 @@ module.exports = function(hljs) {
     ];
 
     return {
+        name: 'G-code (ISO 6983)',
         aliases: ['nc'],
         // Some implementations (CNC controls) of G-code are interoperable with uppercase and lowercase letters seamlessly.
         // However, most prefer all uppercase and uppercase is customary.
@@ -19382,14 +20664,25 @@ module.exports = function(hljs) {
             GCODE_START
         ].concat(GCODE_CODE)
     };
-};
+}
+
+module.exports = gcode;
+
 
 /***/ }),
-/* 155 */
+/* 157 */
 /***/ (function(module, exports) {
 
-module.exports = function (hljs) {
+/*
+ Language: Gherkin
+ Author: Sam Pikesley (@pikesley) <sam.pikesley@theodi.org>
+ Description: Gherkin is the format for cucumber specifications. It is a domain specific language which helps you to describe business behavior without the need to go into detail of implementation.
+ Website: https://cucumber.io/docs/gherkin/
+ */
+
+function gherkin (hljs) {
   return {
+    name: 'Gherkin',
     aliases: ['feature'],
     keywords: 'Feature Background Ability Business\ Need Scenario Scenarios Scenario\ Outline Scenario\ Template Examples Given And Then But When',
     contains: [
@@ -19423,14 +20716,26 @@ module.exports = function (hljs) {
       hljs.QUOTE_STRING_MODE
     ]
   };
-};
+}
+
+module.exports = gherkin;
+
 
 /***/ }),
-/* 156 */
+/* 158 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: GLSL
+Description: OpenGL Shading Language
+Author: Sergey Tikhomirov <sergey@tikhomirov.io>
+Website: https://en.wikipedia.org/wiki/OpenGL_Shading_Language
+Category: graphics
+*/
+
+function glsl(hljs) {
   return {
+    name: 'GLSL',
     keywords: {
       keyword:
         // Statements
@@ -19450,7 +20755,7 @@ module.exports = function(hljs) {
       type:
         'atomic_uint bool bvec2 bvec3 bvec4 dmat2 dmat2x2 dmat2x3 dmat2x4 dmat3 dmat3x2 dmat3x3 ' +
         'dmat3x4 dmat4 dmat4x2 dmat4x3 dmat4x4 double dvec2 dvec3 dvec4 float iimage1D iimage1DArray ' +
-        'iimage2D iimage2DArray iimage2DMS iimage2DMSArray iimage2DRect iimage3D iimageBuffer' +
+        'iimage2D iimage2DArray iimage2DMS iimage2DMSArray iimage2DRect iimage3D iimageBuffer ' +
         'iimageCube iimageCubeArray image1D image1DArray image2D image2DArray image2DMS image2DMSArray ' +
         'image2DRect image3D imageBuffer imageCube imageCubeArray int isampler1D isampler1DArray ' +
         'isampler2D isampler2DArray isampler2DMS isampler2DMSArray isampler2DRect isampler3D ' +
@@ -19544,13 +20849,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = glsl;
+
 
 /***/ }),
-/* 157 */
+/* 159 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: GML
+Author: Meseta <meseta@gmail.com>
+Description: Game Maker Language for GameMaker Studio 2
+Website: https://docs2.yoyogames.com
+Category: scripting
+*/
+
+function gml(hljs) {
   var GML_KEYWORDS = {
     keyword: 'begin end if then else while do for break continue with until ' +
       'repeat exit and or xor not return mod div switch case default var ' +
@@ -20409,6 +21725,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'GML',
     aliases: ['gml', 'GML'],
     case_insensitive: false, // language is case-insensitive
     keywords: GML_KEYWORDS,
@@ -20421,13 +21738,25 @@ module.exports = function(hljs) {
       hljs.C_NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = gml;
+
 
 /***/ }),
-/* 158 */
+/* 160 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Go
+Author: Stephan Kountso aka StepLg <steplg@gmail.com>
+Contributors: Evgeny Stepanischev <imbolk@gmail.com>
+Description: Google go language (golang). For info about language
+Website: http://golang.org/
+Category: common, system
+*/
+
+function go(hljs) {
   var GO_KEYWORDS = {
     keyword:
       'break default func interface select case map struct chan else goto package switch ' +
@@ -20440,6 +21769,7 @@ module.exports = function(hljs) {
       'append cap close complex copy imag len make new panic print println real recover delete'
   };
   return {
+    name: 'Go',
     aliases: ['golang'],
     keywords: GO_KEYWORDS,
     illegal: '</',
@@ -20479,14 +21809,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = go;
+
 
 /***/ }),
-/* 159 */
+/* 161 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Golo
+Author: Philippe Charriere <ph.charriere@gmail.com>
+Description: a lightweight dynamic language for the JVM
+Website: http://golo-lang.org/
+*/
+
+function golo(hljs) {
     return {
+      name: 'Golo',
       keywords: {
         keyword:
           'println readln print import module function local return let var ' +
@@ -20506,14 +21847,25 @@ module.exports = function(hljs) {
         }
       ]
     }
-};
+}
+
+module.exports = golo;
+
 
 /***/ }),
-/* 160 */
+/* 162 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Gradle
+Description: Gradle is an open-source build automation tool focused on flexibility and performance.
+Website: https://gradle.org
+Author: Damian Mee <mee.damian@gmail.com>
+*/
+
+function gradle(hljs) {
   return {
+    name: 'Gradle',
     case_insensitive: true,
     keywords: {
       keyword:
@@ -20545,14 +21897,25 @@ module.exports = function(hljs) {
 
     ]
   }
-};
+}
+
+module.exports = gradle;
+
 
 /***/ }),
-/* 161 */
+/* 163 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: Groovy
+ Author: Guillaume Laforge <glaforge@gmail.com>
+ Description: Groovy programming language implementation inspired from Vsevolod's Java mode
+ Website: https://groovy-lang.org
+ */
+
+function groovy(hljs) {
     return {
+        name: 'Groovy',
         keywords: {
             literal : 'true false null',
             keyword:
@@ -20643,15 +22006,27 @@ module.exports = function(hljs) {
         ],
         illegal: /#|<\//
     }
-};
+}
+
+module.exports = groovy;
+
 
 /***/ }),
-/* 162 */
+/* 164 */
 /***/ (function(module, exports) {
 
-module.exports = // TODO support filter tags like :javascript, support inline HTML
-function(hljs) {
+/*
+Language: HAML
+Requires: ruby.js
+Author: Dan Allen <dan.j.allen@gmail.com>
+Website: http://haml.info
+Category: template
+*/
+
+// TODO support filter tags like :javascript, support inline HTML
+function haml(hljs) {
   return {
+    name: 'HAML',
     case_insensitive: true,
     contains: [
       {
@@ -20754,13 +22129,25 @@ function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = haml;
+
 
 /***/ }),
-/* 163 */
+/* 165 */
 /***/ (function(module, exports) {
 
-module.exports = function (hljs) {
+/*
+Language: Handlebars
+Requires: xml.js
+Author: Robin Ward <robin.ward@gmail.com>
+Description: Matcher for Handlebars as well as EmberJS additions.
+Website: https://handlebarsjs.com
+Category: template
+*/
+
+function handlebars(hljs) {
   var BUILT_INS = {'builtin-name': 'each in with if else unless bindattr action collection debugger log outlet template unbound view yield lookup'};
 
   var IDENTIFIER_PLAIN_OR_QUOTED = {
@@ -20790,6 +22177,7 @@ module.exports = function (hljs) {
   var PREVENT_ESCAPE_WITH_ANOTHER_PRECEEDING_BACKSLASH = {begin: /\\\\(?=\{\{)/, skip: true};
 
   return {
+    name: 'Handlebars',
     aliases: ['hbs', 'html.hbs', 'html.handlebars'],
     case_insensitive: true,
     subLanguage: 'xml',
@@ -20833,13 +22221,24 @@ module.exports = function (hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = handlebars;
+
 
 /***/ }),
-/* 164 */
+/* 166 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Haskell
+Author: Jeremy Hull <sourdrums@gmail.com>
+Contributors: Zena Treep <zena.treep@gmail.com>
+Website: https://www.haskell.org
+Category: functional
+*/
+
+function haskell(hljs) {
   var COMMENT = {
     variants: [
       hljs.COMMENT('--', '$'),
@@ -20887,6 +22286,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Haskell',
     aliases: ['hs'],
     keywords:
       'let in if then else case of where do module import hiding ' +
@@ -20959,19 +22359,29 @@ module.exports = function(hljs) {
       {begin: '->|<-'} // No markup, relevance booster
     ]
   };
-};
+}
+
+module.exports = haskell;
+
 
 /***/ }),
-/* 165 */
+/* 167 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
-  var IDENT_RE = '[a-zA-Z_$][a-zA-Z0-9_$]*';
-  var IDENT_FUNC_RETURN_TYPE_RE = '([*]|[a-zA-Z_$][a-zA-Z0-9_$]*)';
+/*
+Language: Haxe
+Description: Haxe is an open source toolkit based on a modern, high level, strictly typed programming language.
+Author: Christopher Kaster <ikasoki@gmail.com> (Based on the actionscript.js language file by Alexander Myadzel)
+Contributors: Kenton Hamaluik <kentonh@gmail.com>
+Website: https://haxe.org
+*/
+
+function haxe(hljs) {
 
   var HAXE_BASIC_TYPES = 'Int Float String Bool Dynamic Void Array ';
 
   return {
+    name: 'Haxe',
     aliases: ['hx'],
     keywords: {
       keyword: 'break case cast catch continue default do dynamic else enum extern ' +
@@ -21075,14 +22485,25 @@ module.exports = function(hljs) {
     ],
     illegal: /<\//
   };
-};
+}
+
+module.exports = haxe;
+
 
 /***/ }),
-/* 166 */
+/* 168 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: HSP
+Author: prince <MC.prince.0203@gmail.com>
+Website: https://en.wikipedia.org/wiki/Hot_Soup_Processor
+Category: scripting
+*/
+
+function hsp(hljs) {
   return {
+    name: 'HSP',
     case_insensitive: true,
     lexemes: /[\w\._]+/,
     keywords: 'goto gosub return break repeat loop continue wait await dim sdim foreach dimtype dup dupptr end stop newmod delmod mref run exgoto on mcall assert logmes newlab resume yield onexit onerror onkey onclick oncmd exist delete mkdir chdir dirlist bload bsave bcopy memfile if else poke wpoke lpoke getstr chdpm memexpand memcpy memset notesel noteadd notedel noteload notesave randomize noteunsel noteget split strrep setease button chgdisp exec dialog mmload mmplay mmstop mci pset pget syscolor mes print title pos circle cls font sysfont objsize picload color palcolor palette redraw width gsel gcopy gzoom gmode bmpsave hsvcolor getkey listbox chkbox combox input mesbox buffer screen bgscr mouse objsel groll line clrobj boxf objprm objmode stick grect grotate gsquare gradf objimage objskip objenable celload celdiv celput newcom querycom delcom cnvstow comres axobj winobj sendmsg comevent comevarg sarrayconv callfunc cnvwtos comevdisp libptr system hspstat hspver stat cnt err strsize looplev sublev iparam wparam lparam refstr refdval int rnd strlen length length2 length3 length4 vartype gettime peek wpeek lpeek varptr varuse noteinfo instr abs limit getease str strmid strf getpath strtrim sin cos tan atan sqrt double absf expf logf limitf powf geteasef mousex mousey mousew hwnd hinstance hdc ginfo objinfo dirinfo sysinfo thismod __hspver__ __hsp30__ __date__ __time__ __line__ __file__ _debug __hspdef__ and or xor not screen_normal screen_palette screen_hide screen_fixedsize screen_tool screen_frame gmode_gdi gmode_mem gmode_rgb0 gmode_alpha gmode_rgb0alpha gmode_add gmode_sub gmode_pixela ginfo_mx ginfo_my ginfo_act ginfo_sel ginfo_wx1 ginfo_wy1 ginfo_wx2 ginfo_wy2 ginfo_vx ginfo_vy ginfo_sizex ginfo_sizey ginfo_winx ginfo_winy ginfo_mesx ginfo_mesy ginfo_r ginfo_g ginfo_b ginfo_paluse ginfo_dispx ginfo_dispy ginfo_cx ginfo_cy ginfo_intid ginfo_newid ginfo_sx ginfo_sy objinfo_mode objinfo_bmscr objinfo_hwnd notemax notesize dir_cur dir_exe dir_win dir_sys dir_cmdline dir_desktop dir_mydoc dir_tv font_normal font_bold font_italic font_underline font_strikeout font_antialias objmode_normal objmode_guifont objmode_usefont gsquare_grad msgothic msmincho do until while wend for next _break _continue switch case default swbreak swend ddim ldim alloc m_pi rad2deg deg2rad ease_linear ease_quad_in ease_quad_out ease_quad_inout ease_cubic_in ease_cubic_out ease_cubic_inout ease_quartic_in ease_quartic_out ease_quartic_inout ease_bounce_in ease_bounce_out ease_bounce_inout ease_shake_in ease_shake_out ease_shake_inout ease_loop',
@@ -21125,13 +22546,31 @@ module.exports = function(hljs) {
       hljs.C_NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = hsp;
+
 
 /***/ }),
-/* 167 */
+/* 169 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: HTMLBars
+Requires: xml.js, handlebars.js
+Author: Michael Johnston <lastobelus@gmail.com>
+Description: Matcher for HTMLBars
+Website: https://github.com/tildeio/htmlbars
+Category: template
+*/
+
+function htmlbars(hljs) {
+  // This work isn't complete yet but this is done so that this technically
+  // breaking change becomes a part of the 10.0 release and won't force
+  // us to prematurely release 11.0 just to break this.
+  var SHOULD_INHERIT_FROM_HANDLEBARS = hljs.requireLanguage('handlebars');
+  // https://github.com/highlightjs/highlight.js/issues/2181
+
   var BUILT_INS = 'action collection component concat debugger each each-in else get hash if input link-to loc log mut outlet partial query-params render textarea unbound unless with yield view';
 
   var ATTR_ASSIGNMENT = {
@@ -21174,6 +22613,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'HTMLBars',
     case_insensitive: true,
     subLanguage: 'xml',
     contains: [
@@ -21200,15 +22640,27 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = htmlbars;
+
 
 /***/ }),
-/* 168 */
+/* 170 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: HTTP
+Description: HTTP request and response headers with automatic body highlighting
+Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Category: common, protocols
+Website: https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview
+*/
+
+function http(hljs) {
   var VERSION = 'HTTP/[0-9\\.]+';
   return {
+    name: 'HTTP',
     aliases: ['https'],
     illegal: '\\S',
     contains: [
@@ -21245,13 +22697,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = http;
+
 
 /***/ }),
-/* 169 */
+/* 171 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Hy
+Description: Hy is a wonderful dialect of Lisp that’s embedded in Python.
+Author: Sergey Sobko <s.sobko@profitware.ru>
+Website: http://docs.hylang.org/en/stable/
+Category: lisp
+*/
+
+function hy(hljs) {
   var keywords = {
     'builtin-name':
       // keywords
@@ -21347,20 +22810,32 @@ module.exports = function(hljs) {
   COLLECTION.contains = DEFAULT_CONTAINS;
 
   return {
+    name: 'Hy',
     aliases: ['hylang'],
     illegal: /\S/,
     contains: [SHEBANG, LIST, STRING, HINT, HINT_COL, COMMENT, KEY, COLLECTION, NUMBER, LITERAL]
   }
-};
+}
+
+module.exports = hy;
+
 
 /***/ }),
-/* 170 */
+/* 172 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Inform 7
+Author: Bruno Dias <bruno.r.dias@gmail.com>
+Description: Language definition for Inform 7, a DSL for writing parser interactive fiction.
+Website: http://inform7.com
+*/
+
+function inform7(hljs) {
   var START_BRACKET = '\\[';
   var END_BRACKET = '\\]';
   return {
+    name: 'Inform 7',
     aliases: ['i7'],
     case_insensitive: true,
     keywords: {
@@ -21412,13 +22887,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = inform7;
+
 
 /***/ }),
-/* 171 */
+/* 173 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: TOML, also INI
+Description: TOML aims to be a minimal configuration file format that's easy to read due to obvious semantics.
+Contributors: Guillaume Gomez <guillaume1.gomez@gmail.com>
+Category: common, config
+Website: https://github.com/toml-lang/toml
+*/
+
+function ini(hljs) {
   var NUMBERS = {
     className: 'number',
     relevance: 0,
@@ -21467,6 +22953,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'TOML, also INI',
     aliases: ['toml'],
     case_insensitive: true,
     illegal: /\S/,
@@ -21493,13 +22980,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = ini;
+
 
 /***/ }),
-/* 172 */
+/* 174 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: IRPF90
+Author: Anthony Scemama <scemama@irsamc.ups-tlse.fr>
+Description: IRPF90 is an open-source Fortran code generator
+Website: http://irpf90.ups-tlse.fr
+Category: scientific
+*/
+
+function irpf90(hljs) {
   var PARAMS = {
     className: 'params',
     begin: '\\(', end: '\\)'
@@ -21543,7 +23041,7 @@ module.exports = function(hljs) {
       'set_exponent shape size spacing spread sum system_clock tiny transpose trim ubound unpack verify achar iachar transfer ' +
       'dble entry dprod cpu_time command_argument_count get_command get_command_argument get_environment_variable is_iostat_end ' +
       'ieee_arithmetic ieee_support_underflow_control ieee_get_underflow_mode ieee_set_underflow_mode ' +
-      'is_iostat_eor move_alloc new_line selected_char_kind same_type_as extends_type_of'  +
+      'is_iostat_eor move_alloc new_line selected_char_kind same_type_as extends_type_of '  +
       'acosh asinh atanh bessel_j0 bessel_j1 bessel_jn bessel_y0 bessel_y1 bessel_yn erf erfc erfc_scaled gamma log_gamma hypot norm2 ' +
       'atomic_define atomic_ref execute_command_line leadz trailz storage_size merge_bits ' +
       'bge bgt ble blt dshiftl dshiftr findloc iall iany iparity image_index lcobound ucobound maskl maskr ' +
@@ -21552,6 +23050,7 @@ module.exports = function(hljs) {
       'IRP_ALIGN irp_here'
   };
   return {
+    name: 'IRPF90',
     case_insensitive: true,
     keywords: F_KEYWORDS,
     illegal: /\/\*/,
@@ -21568,18 +23067,29 @@ module.exports = function(hljs) {
       hljs.COMMENT('begin_doc', 'end_doc', {relevance: 10}),
       {
         className: 'number',
-        begin: '(?=\\b|\\+|\\-|\\.)(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*)(?:[de][+-]?\\d+)?\\b\\.?',
+        // regex in both fortran and irpf90 should match
+        begin: '(?=\\b|\\+|\\-|\\.)(?:\\.|\\d+\\.?)\\d*([de][+-]?\\d+)?(_[a-z_\\d]+)?',
         relevance: 0
       }
     ]
   };
-};
+}
+
+module.exports = irpf90;
+
 
 /***/ }),
-/* 173 */
+/* 175 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: ISBL
+Author: Dmitriy Tarasov <dimatar@gmail.com>
+Description: built-in language DIRECTUM
+Category: enterprise
+*/
+
+function isbl(hljs) {
   // Определение идентификаторов
   var UNDERSCORE_IDENT_RE = "[A-Za-zА-Яа-яёЁ_!][A-Za-zА-Яа-яёЁ_0-9]*";
 
@@ -24735,6 +26245,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'ISBL',
     aliases: ["isbl"],
     case_insensitive: true,
     lexemes: UNDERSCORE_IDENT_RE,
@@ -24750,13 +26261,23 @@ module.exports = function(hljs) {
       COMMENTS,
     ],
   };
-};
+}
+
+module.exports = isbl;
+
 
 /***/ }),
-/* 174 */
+/* 176 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Java
+Author: Vsevolod Solovyov <vsevolod.solovyov@gmail.com>
+Category: common, enterprise
+Website: https://www.java.com/
+*/
+
+function java(hljs) {
   var JAVA_IDENT_RE = '[\u00C0-\u02B8a-zA-Z_$][\u00C0-\u02B8a-zA-Z_$0-9]*';
   var GENERIC_IDENT_RE = JAVA_IDENT_RE + '(<' + JAVA_IDENT_RE + '(\\s*,\\s*' + JAVA_IDENT_RE + ')*>)?';
   var KEYWORDS =
@@ -24766,6 +26287,17 @@ module.exports = function(hljs) {
     'package default double public try this switch continue throws protected public private ' +
     'module requires exports do';
 
+  var ANNOTATION = {
+    className: 'meta',
+    begin: '@' + JAVA_IDENT_RE,
+    contains:[
+      {
+        begin: /\(/,
+        end: /\)/,
+        contains: ["self"] // allow nested () inside our annotation
+      },
+    ]
+  };
   // https://docs.oracle.com/javase/7/docs/technotes/guides/language/underscores-literals.html
   var JAVA_NUMBER_RE = '\\b' +
     '(' +
@@ -24788,6 +26320,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Java',
     aliases: ['jsp'],
     keywords: KEYWORDS,
     illegal: /<\/|#/,
@@ -24846,6 +26379,7 @@ module.exports = function(hljs) {
             keywords: KEYWORDS,
             relevance: 0,
             contains: [
+              ANNOTATION,
               hljs.APOS_STRING_MODE,
               hljs.QUOTE_STRING_MODE,
               hljs.C_NUMBER_MODE,
@@ -24857,18 +26391,26 @@ module.exports = function(hljs) {
         ]
       },
       JAVA_NUMBER_MODE,
-      {
-        className: 'meta', begin: '@[A-Za-z]+'
-      }
+      ANNOTATION
     ]
   };
-};
+}
+
+module.exports = java;
+
 
 /***/ }),
-/* 175 */
+/* 177 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: JavaScript
+Description: JavaScript (JS) is a lightweight, interpreted, or just-in-time compiled programming language with first-class functions.
+Category: common, scripting
+Website: https://developer.mozilla.org/en-US/docs/Web/JavaScript
+*/
+
+function javascript(hljs) {
   var FRAGMENT = {
     begin: '<>',
     end: '</>'
@@ -24956,8 +26498,16 @@ module.exports = function(hljs) {
     hljs.C_BLOCK_COMMENT_MODE,
     hljs.C_LINE_COMMENT_MODE
   ]);
+  var PARAMS = {
+    className: 'params',
+    begin: /\(/, end: /\)/,
+    excludeBegin: true,
+    excludeEnd: true,
+    contains: PARAMS_CONTAINS
+  };
 
   return {
+    name: 'JavaScript',
     aliases: ['js', 'jsx', 'mjs', 'cjs'],
     keywords: KEYWORDS,
     contains: [
@@ -25052,6 +26602,9 @@ module.exports = function(hljs) {
               }
             ]
           },
+          { // could be a comma delimited list of params to a function call
+            begin: /,/, relevance: 0,
+          },
           {
             className: '',
             begin: /\s/,
@@ -25079,19 +26632,14 @@ module.exports = function(hljs) {
         beginKeywords: 'function', end: /\{/, excludeEnd: true,
         contains: [
           hljs.inherit(hljs.TITLE_MODE, {begin: IDENT_RE}),
-          {
-            className: 'params',
-            begin: /\(/, end: /\)/,
-            excludeBegin: true,
-            excludeEnd: true,
-            contains: PARAMS_CONTAINS
-          }
+          PARAMS
         ],
         illegal: /\[|%/
       },
       {
         begin: /\$[(.]/ // relevance booster for a pattern common to JS libs: `$(something)` and `$.something`
       },
+
       hljs.METHOD_GUARD,
       { // ES6 class
         className: 'class',
@@ -25103,18 +26651,40 @@ module.exports = function(hljs) {
         ]
       },
       {
-        beginKeywords: 'constructor get set', end: /\{/, excludeEnd: true
+        beginKeywords: 'constructor', end: /\{/, excludeEnd: true
+      },
+      {
+        begin:'(get|set)\\s+(?=' + IDENT_RE+ '\\()',
+        end: /{/,
+        keywords: "get set",
+        contains: [
+          hljs.inherit(hljs.TITLE_MODE, {begin: IDENT_RE}),
+          { begin: /\(\)/ }, // eat to avoid empty params
+          PARAMS
+        ]
+
       }
     ],
     illegal: /#(?!!)/
   };
-};
+}
+
+module.exports = javascript;
+
 
 /***/ }),
-/* 176 */
+/* 178 */
 /***/ (function(module, exports) {
 
-module.exports = function (hljs) {
+/*
+ Language: JBoss CLI
+ Author: Raphaël Parrëe <rparree@edc4it.com>
+ Description: language definition jboss cli
+ Website: https://docs.jboss.org/author/display/WFLY/Command+Line+Interface
+ Category: config
+ */
+
+function jbossCli (hljs) {
   var PARAM = {
     begin: /[\w-]+ *=/, returnBegin: true,
     relevance: 0,
@@ -25141,6 +26711,7 @@ module.exports = function (hljs) {
     begin: /--[\w\-=\/]+/,
   };
   return {
+    name: 'JBoss CLI',
     aliases: ['wildfly-cli'],
     lexemes: '[a-z\-]+',
     keywords: {
@@ -25159,18 +26730,29 @@ module.exports = function (hljs) {
       PARAMSBLOCK
     ]
   }
-};
+}
+
+module.exports = jbossCli;
+
 
 /***/ }),
-/* 177 */
+/* 179 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: JSON
+Description: JSON (JavaScript Object Notation) is a lightweight data-interchange format.
+Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Website: http://www.json.org
+Category: common, protocols
+*/
+
+function json(hljs) {
   var LITERALS = {literal: 'true false null'};
   var ALLOWED_COMMENTS = [
     hljs.C_LINE_COMMENT_MODE,
     hljs.C_BLOCK_COMMENT_MODE
-  ]
+  ];
   var TYPES = [
     hljs.QUOTE_STRING_MODE,
     hljs.C_NUMBER_MODE
@@ -25200,20 +26782,32 @@ module.exports = function(hljs) {
   };
   TYPES.push(OBJECT, ARRAY);
   ALLOWED_COMMENTS.forEach(function(rule) {
-    TYPES.push(rule)
-  })
+    TYPES.push(rule);
+  });
   return {
+    name: 'JSON',
     contains: TYPES,
     keywords: LITERALS,
     illegal: '\\S'
   };
-};
+}
+
+module.exports = json;
+
 
 /***/ }),
-/* 178 */
+/* 180 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Julia
+Description: Julia is a high-level, high-performance, dynamic programming language.
+Author: Kenta Sato <bicycle1885@gmail.com>
+Contributors: Alex Arslan <ararslan@comcast.net>
+Website: https://julialang.org
+*/
+
+function julia(hljs) {
   // Since there are numerous special names in Julia, it is too much trouble
   // to maintain them by hand. Hence these names (i.e. keywords, literals and
   // built-ins) are automatically generated from Julia v0.6 itself through
@@ -25355,6 +26949,7 @@ module.exports = function(hljs) {
     ]
   };
 
+  DEFAULT.name = 'Julia';
   DEFAULT.contains = [
     NUMBER,
     CHAR,
@@ -25373,14 +26968,42 @@ module.exports = function(hljs) {
   INTERPOLATION.contains = DEFAULT.contains;
 
   return DEFAULT;
-};
+}
+
+module.exports = julia;
+
 
 /***/ }),
-/* 179 */
+/* 181 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Julia REPL
+Description: Julia REPL sessions
+Author: Morten Piibeleht <morten.piibeleht@gmail.com>
+Website: https://julialang.org
+Requires: julia.js
+
+The Julia REPL code blocks look something like the following:
+
+  julia> function foo(x)
+             x + 1
+         end
+  foo (generic function with 1 method)
+
+They start on a new line with "julia>". Usually there should also be a space after this, but
+we also allow the code to start right after the > character. The code may run over multiple
+lines, but the additional lines must start with six spaces (i.e. be indented to match
+"julia>"). The rest of the code is assumed to be output from the executed code and will be
+left un-highlighted.
+
+Using simply spaces to identify line continuations may get a false-positive if the output
+also prints out six spaces, but such cases should be rare.
+*/
+
+function juliaRepl(hljs) {
   return {
+    name: 'Julia REPL',
     contains: [
       {
         className: 'meta',
@@ -25401,13 +27024,25 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = juliaRepl;
+
 
 /***/ }),
-/* 180 */
+/* 182 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: Kotlin
+ Description: Kotlin is an OSS statically typed programming language that targets the JVM, Android, JavaScript and Native.
+ Author: Sergey Mashkov <cy6erGn0m@gmail.com>
+ Website: https://kotlinlang.org
+ Category: common
+ */
+
+
+function kotlin(hljs) {
   var KEYWORDS = {
     keyword:
       'abstract as val var vararg get set class object open private protected public noinline ' +
@@ -25468,7 +27103,7 @@ module.exports = function(hljs) {
       }
     ]
   };
-  SUBST.contains.push(STRING)
+  SUBST.contains.push(STRING);
 
   var ANNOTATION_USE_SITE = {
     className: 'meta', begin: '@(?:file|property|field|get|set|receiver|param|setparam|delegate)\\s*:(?:\\s*' + hljs.UNDERSCORE_IDENT_RE + ')?'
@@ -25526,6 +27161,7 @@ module.exports = function(hljs) {
   KOTLIN_PAREN_TYPE.variants[1].contains = [ KOTLIN_PAREN_TYPE2 ];
 
   return {
+    name: 'Kotlin',
     aliases: ['kt'],
     keywords: KEYWORDS,
     contains : [
@@ -25622,13 +27258,23 @@ module.exports = function(hljs) {
       KOTLIN_NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = kotlin;
+
 
 /***/ }),
-/* 181 */
+/* 183 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Lasso
+Author: Eric Knibbe <eric@lassosoft.com>
+Description: Lasso is a language and server platform for database-driven web applications. This definition handles Lasso 9 syntax and LassoScript for Lasso 8.6 and earlier.
+Website: http://www.lassosoft.com/What-Is-Lasso
+*/
+
+function lasso(hljs) {
   var LASSO_IDENT_RE = '[a-zA-Z_][\\w.]*';
   var LASSO_ANGLE_RE = '<\\?(lasso(script)?|=)';
   var LASSO_CLOSE_RE = '\\]|\\?>';
@@ -25736,6 +27382,7 @@ module.exports = function(hljs) {
     }
   ];
   return {
+    name: 'Lasso',
     aliases: ['ls', 'lassoscript'],
     case_insensitive: true,
     lexemes: LASSO_IDENT_RE + '|&[lg]t;',
@@ -25789,14 +27436,102 @@ module.exports = function(hljs) {
       }
     ].concat(LASSO_CODE)
   };
-};
+}
+
+module.exports = lasso;
+
 
 /***/ }),
-/* 182 */
+/* 184 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: LaTeX
+Author: Vladimir Moskva <vladmos@gmail.com>
+Website: https://www.latex-project.org
+Category: markup
+*/
+
+function latex(hljs) {
+  var COMMAND = {
+    className: 'tag',
+    begin: /\\/,
+    relevance: 0,
+    contains: [
+      {
+        className: 'name',
+        variants: [
+          {begin: /[a-zA-Z\u0430-\u044f\u0410-\u042f]+[*]?/},
+          {begin: /[^a-zA-Z\u0430-\u044f\u0410-\u042f0-9]/}
+        ],
+        starts: {
+          endsWithParent: true,
+          relevance: 0,
+          contains: [
+            {
+              className: 'string', // because it looks like attributes in HTML tags
+              variants: [
+                {begin: /\[/, end: /\]/},
+                {begin: /\{/, end: /\}/}
+              ]
+            },
+            {
+              begin: /\s*=\s*/, endsWithParent: true,
+              relevance: 0,
+              contains: [
+                {
+                  className: 'number',
+                  begin: /-?\d*\.?\d+(pt|pc|mm|cm|in|dd|cc|ex|em)?/
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  };
+
   return {
+    name: 'LaTeX',
+    aliases: ['tex'],
+    contains: [
+      COMMAND,
+      {
+        className: 'formula',
+        contains: [COMMAND],
+        relevance: 0,
+        variants: [
+          {begin: /\$\$/, end: /\$\$/},
+          {begin: /\$/, end: /\$/}
+        ]
+      },
+      hljs.COMMENT(
+        '%',
+        '$',
+        {
+          relevance: 0
+        }
+      )
+    ]
+  };
+}
+
+module.exports = latex;
+
+
+/***/ }),
+/* 185 */
+/***/ (function(module, exports) {
+
+/*
+Language: LDIF
+Contributors: Jacob Childress <jacobc@gmail.com>
+Category: enterprise, config
+Website: https://en.wikipedia.org/wiki/LDAP_Data_Interchange_Format
+*/
+function ldif(hljs) {
+  return {
+    name: 'LDIF',
     contains: [
       {
         className: 'attribute',
@@ -25816,14 +27551,24 @@ module.exports = function(hljs) {
       hljs.HASH_COMMENT_MODE
     ]
   };
-};
+}
+
+module.exports = ldif;
+
 
 /***/ }),
-/* 183 */
+/* 186 */
 /***/ (function(module, exports) {
 
-module.exports = function (hljs) {
+/*
+Language: Leaf
+Author: Hale Chan <halechan@qq.com>
+Description: Based on the Leaf reference from https://vapor.github.io/documentation/guide/leaf.html.
+*/
+
+function leaf (hljs) {
   return {
+    name: 'Leaf',
     contains: [
       {
         className: 'function',
@@ -25860,13 +27605,24 @@ module.exports = function (hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = leaf;
+
 
 /***/ }),
-/* 184 */
+/* 187 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Less
+Description: It's CSS, with just a little more.
+Author:   Max Mikhailov <seven.phases.max@gmail.com>
+Website: http://lesscss.org
+Category: common, css
+*/
+
+function less(hljs) {
   var IDENT_RE        = '[\\w-]+'; // yes, Less identifiers may begin with a digit
   var INTERP_IDENT_RE = '(' + IDENT_RE + '|@{' + IDENT_RE + '})';
 
@@ -26000,17 +27756,28 @@ module.exports = function(hljs) {
   );
 
   return {
+    name: 'Less',
     case_insensitive: true,
     illegal: '[=>\'/<($"]',
     contains: RULES
   };
-};
+}
+
+module.exports = less;
+
 
 /***/ }),
-/* 185 */
+/* 188 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Lisp
+Description: Generic lisp syntax
+Author: Vasily Polovnyov <vast@whiteants.net>
+Category: lisp
+*/
+
+function lisp(hljs) {
   var LISP_IDENT_RE = '[a-zA-Z_\\-\\+\\*\\/\\<\\=\\>\\&\\#][a-zA-Z0-9_\\-\\+\\*\\/\\<\\=\\>\\&\\#!]*';
   var MEC_RE = '\\|[^]*?\\|';
   var LISP_SIMPLE_NUMBER_RE = '(\\-|\\+)?\\d+(\\.\\d+|\\/\\d+)?((d|e|f|l|s|D|E|F|L|S)(\\+|\\-)?\\d+)?';
@@ -26098,6 +27865,7 @@ module.exports = function(hljs) {
   BODY.contains = [QUOTED, QUOTED_ATOM, LIST, LITERAL, NUMBER, STRING, COMMENT, VARIABLE, KEYWORD, MEC, IDENT];
 
   return {
+    name: 'Lisp',
     illegal: /\S/,
     contains: [
       NUMBER,
@@ -26111,13 +27879,25 @@ module.exports = function(hljs) {
       IDENT
     ]
   };
-};
+}
+
+module.exports = lisp;
+
 
 /***/ }),
-/* 186 */
+/* 189 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: LiveCode
+Author: Ralf Bitter <rabit@revigniter.com>
+Description: Language definition for LiveCode server accounting for revIgniter (a web application framework) characteristics.
+Version: 1.1
+Date: 2019-04-17
+Category: enterprise
+*/
+
+function livecodeserver(hljs) {
   var VARIABLE = {
     className: 'variable',
     variants: [
@@ -26140,6 +27920,7 @@ module.exports = function(hljs) {
   });
   var TITLE2 = hljs.inherit(hljs.TITLE_MODE, {begin: '\\b([A-Za-z0-9_\\-]+)\\b'});
   return {
+    name: 'LiveCode',
     case_insensitive: false,
     keywords: {
       keyword:
@@ -26276,13 +28057,26 @@ module.exports = function(hljs) {
     ].concat(COMMENT_MODES),
     illegal: ';$|^\\[|^=|&|{'
   };
-};
+}
+
+module.exports = livecodeserver;
+
 
 /***/ }),
-/* 187 */
+/* 190 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: LiveScript
+Author: Taneli Vatanen <taneli.vatanen@gmail.com>
+Contributors: Jen Evers-Corvina <jen@sevvie.net>
+Origin: coffeescript.js
+Description: LiveScript is a programming language that transcompiles to JavaScript. For info about language see http://livescript.net/
+Website: https://livescript.net
+Category: scripting
+*/
+
+function livescript(hljs) {
   var KEYWORDS = {
     keyword:
       // JS keywords
@@ -26389,6 +28183,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'LiveScript',
     aliases: ['ls'],
     keywords: KEYWORDS,
     illegal: /\/\*/,
@@ -26434,15 +28229,27 @@ module.exports = function(hljs) {
       }
     ])
   };
-};
+}
+
+module.exports = livescript;
+
 
 /***/ }),
-/* 188 */
+/* 191 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: LLVM IR
+Author: Michael Rodler <contact@f0rki.at>
+Description: language used as intermediate representation in the LLVM compiler framework
+Website: https://llvm.org/docs/LangRef.html
+Category: assembler
+*/
+
+function llvm(hljs) {
   var identifier = '([-a-zA-Z$._][\\w\\-$.]*)';
   return {
+    name: 'LLVM IR',
     //lexemes: '[.%]?' + hljs.IDENT_RE,
     keywords:
       'begin end true false declare define global ' +
@@ -26527,13 +28334,24 @@ module.exports = function(hljs) {
       },
     ]
   };
-};
+}
+
+module.exports = llvm;
+
 
 /***/ }),
-/* 189 */
+/* 192 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: LSL (Linden Scripting Language)
+Description: The Linden Scripting Language is used in Second Life by Linden Labs.
+Author: Builder's Brewery <buildersbrewery@gmail.com>
+Website: http://wiki.secondlife.com/wiki/LSL_Portal
+Category: scripting
+*/
+
+function lsl(hljs) {
 
     var LSL_STRING_ESCAPE_CHARS = {
         className: 'subst',
@@ -26584,6 +28402,7 @@ module.exports = function(hljs) {
     };
 
     return {
+        name: 'LSL (Linden Scripting Language)',
         illegal: ':',
         contains: [
             LSL_STRINGS,
@@ -26615,13 +28434,24 @@ module.exports = function(hljs) {
             }
         ]
     };
-};
+}
+
+module.exports = lsl;
+
 
 /***/ }),
-/* 190 */
+/* 193 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Lua
+Description: Lua is a powerful, efficient, lightweight, embeddable scripting language.
+Author: Andrew Fedorov <dmmdrs@mail.ru>
+Category: common, scripting
+Website: https://www.lua.org
+*/
+
+function lua(hljs) {
   var OPENING_LONG_BRACKET = '\\[=*\\[';
   var CLOSING_LONG_BRACKET = '\\]=*\\]';
   var LONG_BRACKETS = {
@@ -26640,6 +28470,7 @@ module.exports = function(hljs) {
     )
   ];
   return {
+    name: 'Lua',
     lexemes: hljs.UNDERSCORE_IDENT_RE,
     keywords: {
       literal: "true false nil",
@@ -26649,9 +28480,9 @@ module.exports = function(hljs) {
         '_G _ENV _VERSION __index __newindex __mode __call __metatable __tostring __len ' +
         '__gc __add __sub __mul __div __mod __pow __concat __unm __eq __lt __le assert ' +
         //Standard methods and properties:
-        'collectgarbage dofile error getfenv getmetatable ipairs load loadfile loadstring' +
-        'module next pairs pcall print rawequal rawget rawset require select setfenv' +
-        'setmetatable tonumber tostring type unpack xpcall arg self' +
+        'collectgarbage dofile error getfenv getmetatable ipairs load loadfile loadstring ' +
+        'module next pairs pcall print rawequal rawget rawset require select setfenv ' +
+        'setmetatable tonumber tostring type unpack xpcall arg self ' +
         //Library methods and properties (one line per library):
         'coroutine resume yield status wrap create running debug getupvalue ' +
         'debug sethook getmetatable gethook setmetatable setlocal traceback setfenv getinfo setupvalue getlocal getregistry getfenv ' +
@@ -26685,13 +28516,24 @@ module.exports = function(hljs) {
       }
     ])
   };
-};
+}
+
+module.exports = lua;
+
 
 /***/ }),
-/* 191 */
+/* 194 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Makefile
+Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Contributors: Joël Porquet <joel@porquet.org>
+Website: https://www.gnu.org/software/make/manual/html_node/Introduction.html
+Category: common
+*/
+
+function makefile(hljs) {
   /* Variables: simple (eg $(var)) and special (eg $@) */
   var VARIABLE = {
     className: 'variable',
@@ -26747,6 +28589,7 @@ module.exports = function(hljs) {
     contains: [VARIABLE,]
   };
   return {
+    name: 'Makefile',
     aliases: ['mk', 'mak'],
     keywords:
       'define endef undefine ifdef ifndef ifeq ifneq else endif ' +
@@ -26762,14 +28605,26 @@ module.exports = function(hljs) {
       TARGET,
     ]
   };
-};
+}
+
+module.exports = makefile;
+
 
 /***/ }),
-/* 192 */
+/* 195 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Mathematica
+Description: Wolfram Mathematica (usually termed Mathematica) is a modern technical computing system spanning most areas of technical computing.
+Authors: Daniel Kvasnicka <dkvasnicka@vendavo.com>, Jan Poeschko <jan@poeschko.com>
+Website: https://www.wolfram.com/mathematica/
+Category: scientific
+*/
+
+function mathematica(hljs) {
   return {
+    name: 'Mathematica',
     aliases: ['mma', 'wl'],
     lexemes: '(\\$|\\b)' + hljs.IDENT_RE + '\\b',
     //
@@ -26782,32 +28637,32 @@ module.exports = function(hljs) {
     //       StringStartsQ[#, CharacterRange["A", "Z"] | "$"] &],
     //       First[Characters[#]] &]], " +\n"]
     //
-    keywords: 'AASTriangle AbelianGroup Abort AbortKernels AbortProtect AbortScheduledTask Above Abs AbsArg AbsArgPlot Absolute AbsoluteCorrelation AbsoluteCorrelationFunction AbsoluteCurrentValue AbsoluteDashing AbsoluteFileName AbsoluteOptions AbsolutePointSize AbsoluteThickness AbsoluteTime AbsoluteTiming AcceptanceThreshold AccountingForm Accumulate Accuracy AccuracyGoal ActionDelay ActionMenu ActionMenuBox ActionMenuBoxOptions Activate Active ActiveClassification ActiveClassificationObject ActiveItem ActivePrediction ActivePredictionObject ActiveStyle AcyclicGraphQ AddOnHelpPath AddSides AddTo AddToSearchIndex AddUsers AdjacencyGraph AdjacencyList AdjacencyMatrix AdjustmentBox AdjustmentBoxOptions AdjustTimeSeriesForecast AdministrativeDivisionData AffineHalfSpace AffineSpace AffineStateSpaceModel AffineTransform After AggregatedEntityClass AggregationLayer AircraftData AirportData AirPressureData AirTemperatureData AiryAi AiryAiPrime AiryAiZero AiryBi AiryBiPrime AiryBiZero AlgebraicIntegerQ AlgebraicNumber AlgebraicNumberDenominator AlgebraicNumberNorm AlgebraicNumberPolynomial AlgebraicNumberTrace AlgebraicRules AlgebraicRulesData Algebraics AlgebraicUnitQ Alignment AlignmentMarker AlignmentPoint All AllowAdultContent AllowedCloudExtraParameters AllowedCloudParameterExtensions AllowedDimensions AllowedFrequencyRange AllowedHeads AllowGroupClose AllowIncomplete AllowInlineCells AllowKernelInitialization AllowLooseGrammar AllowReverseGroupClose AllowScriptLevelChange AllTrue Alphabet AlphabeticOrder AlphabeticSort AlphaChannel AlternateImage AlternatingFactorial AlternatingGroup AlternativeHypothesis Alternatives AltitudeMethod AmbientLight AmbiguityFunction AmbiguityList Analytic AnatomyData AnatomyForm AnatomyPlot3D AnatomySkinStyle AnatomyStyling AnchoredSearch And AndersonDarlingTest AngerJ AngleBisector AngleBracket AnglePath AnglePath3D AngleVector AngularGauge Animate AnimationCycleOffset AnimationCycleRepetitions AnimationDirection AnimationDisplayTime AnimationRate AnimationRepetitions AnimationRunning AnimationRunTime AnimationTimeIndex Animator AnimatorBox AnimatorBoxOptions AnimatorElements Annotate Annotation AnnotationDelete AnnotationNames AnnotationRules AnnotationValue Annuity AnnuityDue Annulus AnomalyDetection AnomalyDetectorFunction Anonymous Antialiasing AntihermitianMatrixQ Antisymmetric AntisymmetricMatrixQ Antonyms AnyOrder AnySubset AnyTrue Apart ApartSquareFree APIFunction Appearance AppearanceElements AppearanceRules AppellF1 Append AppendCheck AppendLayer AppendTo ApplicationIdentificationKey Apply ApplySides ArcCos ArcCosh ArcCot ArcCoth ArcCsc ArcCsch ArcCurvature ARCHProcess ArcLength ArcSec ArcSech ArcSin ArcSinDistribution ArcSinh ArcTan ArcTanh Area Arg ArgMax ArgMin ArgumentCountQ ARIMAProcess ArithmeticGeometricMean ARMAProcess Around AroundReplace ARProcess Array ArrayComponents ArrayDepth ArrayFilter ArrayFlatten ArrayMesh ArrayPad ArrayPlot ArrayQ ArrayResample ArrayReshape ArrayRules Arrays Arrow Arrow3DBox ArrowBox Arrowheads ASATriangle Ask AskAppend AskConfirm AskDisplay AskedQ AskedValue AskFunction AskState AskTemplateDisplay AspectRatio AspectRatioFixed Assert AssociateTo Association AssociationFormat AssociationMap AssociationQ AssociationThread AssumeDeterministic Assuming Assumptions AstronomicalData AsymptoticDSolveValue AsymptoticEqual AsymptoticEquivalent AsymptoticGreater AsymptoticGreaterEqual AsymptoticIntegrate AsymptoticLess AsymptoticLessEqual AsymptoticOutputTracker AsymptoticRSolveValue AsymptoticSolve AsymptoticSum Asynchronous AsynchronousTaskObject AsynchronousTasks Atom AtomCoordinates AtomCount AtomDiagramCoordinates AtomList AtomQ AttentionLayer Attributes Audio AudioAmplify AudioAnnotate AudioAnnotationLookup AudioBlockMap AudioCapture AudioChannelAssignment AudioChannelCombine AudioChannelMix AudioChannels AudioChannelSeparate AudioData AudioDelay AudioDelete AudioDevice AudioDistance AudioFade AudioFrequencyShift AudioGenerator AudioIdentify AudioInputDevice AudioInsert AudioIntervals AudioJoin AudioLabel AudioLength AudioLocalMeasurements AudioLooping AudioLoudness AudioMeasurements AudioNormalize AudioOutputDevice AudioOverlay AudioPad AudioPan AudioPartition AudioPause AudioPitchShift AudioPlay AudioPlot AudioQ AudioRecord AudioReplace AudioResample AudioReverb AudioSampleRate AudioSpectralMap AudioSpectralTransformation AudioSplit AudioStop AudioStream AudioStreams AudioTimeStretch AudioTrim AudioType AugmentedPolyhedron AugmentedSymmetricPolynomial Authenticate Authentication AuthenticationDialog AutoAction Autocomplete AutocompletionFunction AutoCopy AutocorrelationTest AutoDelete AutoEvaluateEvents AutoGeneratedPackage AutoIndent AutoIndentSpacings AutoItalicWords AutoloadPath AutoMatch Automatic AutomaticImageSize AutoMultiplicationSymbol AutoNumberFormatting AutoOpenNotebooks AutoOpenPalettes AutoQuoteCharacters AutoRefreshed AutoRemove AutorunSequencing AutoScaling AutoScroll AutoSpacing AutoStyleOptions AutoStyleWords AutoSubmitting Axes AxesEdge AxesLabel AxesOrigin AxesStyle AxiomaticTheory Axis' +
-      'BabyMonsterGroupB Back Background BackgroundAppearance BackgroundTasksSettings Backslash Backsubstitution Backward Ball Band BandpassFilter BandstopFilter BarabasiAlbertGraphDistribution BarChart BarChart3D BarcodeImage BarcodeRecognize BaringhausHenzeTest BarLegend BarlowProschanImportance BarnesG BarOrigin BarSpacing BartlettHannWindow BartlettWindow BaseDecode BaseEncode BaseForm Baseline BaselinePosition BaseStyle BasicRecurrentLayer BatchNormalizationLayer BatchSize BatesDistribution BattleLemarieWavelet BayesianMaximization BayesianMaximizationObject BayesianMinimization BayesianMinimizationObject Because BeckmannDistribution Beep Before Begin BeginDialogPacket BeginFrontEndInteractionPacket BeginPackage BellB BellY Below BenfordDistribution BeniniDistribution BenktanderGibratDistribution BenktanderWeibullDistribution BernoulliB BernoulliDistribution BernoulliGraphDistribution BernoulliProcess BernsteinBasis BesselFilterModel BesselI BesselJ BesselJZero BesselK BesselY BesselYZero Beta BetaBinomialDistribution BetaDistribution BetaNegativeBinomialDistribution BetaPrimeDistribution BetaRegularized Between BetweennessCentrality BeveledPolyhedron BezierCurve BezierCurve3DBox BezierCurve3DBoxOptions BezierCurveBox BezierCurveBoxOptions BezierFunction BilateralFilter Binarize BinaryDeserialize BinaryDistance BinaryFormat BinaryImageQ BinaryRead BinaryReadList BinarySerialize BinaryWrite BinCounts BinLists Binomial BinomialDistribution BinomialProcess BinormalDistribution BiorthogonalSplineWavelet BipartiteGraphQ BiquadraticFilterModel BirnbaumImportance BirnbaumSaundersDistribution BitAnd BitClear BitGet BitLength BitNot BitOr BitSet BitShiftLeft BitShiftRight BitXor BiweightLocation BiweightMidvariance Black BlackmanHarrisWindow BlackmanNuttallWindow BlackmanWindow Blank BlankForm BlankNullSequence BlankSequence Blend Block BlockchainAddressData BlockchainBase BlockchainBlockData BlockchainContractValue BlockchainData BlockchainGet BlockchainKeyEncode BlockchainPut BlockchainTokenData BlockchainTransaction BlockchainTransactionData BlockchainTransactionSign BlockchainTransactionSubmit BlockMap BlockRandom BlomqvistBeta BlomqvistBetaTest Blue Blur BodePlot BohmanWindow Bold Bond BondCount BondList BondQ Bookmarks Boole BooleanConsecutiveFunction BooleanConvert BooleanCountingFunction BooleanFunction BooleanGraph BooleanMaxterms BooleanMinimize BooleanMinterms BooleanQ BooleanRegion Booleans BooleanStrings BooleanTable BooleanVariables BorderDimensions BorelTannerDistribution Bottom BottomHatTransform BoundaryDiscretizeGraphics BoundaryDiscretizeRegion BoundaryMesh BoundaryMeshRegion BoundaryMeshRegionQ BoundaryStyle BoundedRegionQ BoundingRegion Bounds Box BoxBaselineShift BoxData BoxDimensions Boxed Boxes BoxForm BoxFormFormatTypes BoxFrame BoxID BoxMargins BoxMatrix BoxObject BoxRatios BoxRotation BoxRotationPoint BoxStyle BoxWhiskerChart Bra BracketingBar BraKet BrayCurtisDistance BreadthFirstScan Break BridgeData BrightnessEqualize BroadcastStationData Brown BrownForsytheTest BrownianBridgeProcess BrowserCategory BSplineBasis BSplineCurve BSplineCurve3DBox BSplineCurve3DBoxOptions BSplineCurveBox BSplineCurveBoxOptions BSplineFunction BSplineSurface BSplineSurface3DBox BSplineSurface3DBoxOptions BubbleChart BubbleChart3D BubbleScale BubbleSizes BuildingData BulletGauge BusinessDayQ ButterflyGraph ButterworthFilterModel Button ButtonBar ButtonBox ButtonBoxOptions ButtonCell ButtonContents ButtonData ButtonEvaluator ButtonExpandable ButtonFrame ButtonFunction ButtonMargins ButtonMinHeight ButtonNote ButtonNotebook ButtonSource ButtonStyle ButtonStyleMenuListing Byte ByteArray ByteArrayFormat ByteArrayQ ByteArrayToString ByteCount ByteOrdering' +
-      'C CachedValue CacheGraphics CachePersistence CalendarConvert CalendarData CalendarType Callout CalloutMarker CalloutStyle CallPacket CanberraDistance Cancel CancelButton CandlestickChart CanonicalGraph CanonicalizePolygon CanonicalizePolyhedron CanonicalName CanonicalWarpingCorrespondence CanonicalWarpingDistance CantorMesh CantorStaircase Cap CapForm CapitalDifferentialD Capitalize CapsuleShape CaptureRunning CardinalBSplineBasis CarlemanLinearize CarmichaelLambda CaseOrdering Cases CaseSensitive Cashflow Casoratian Catalan CatalanNumber Catch Catenate CatenateLayer CauchyDistribution CauchyWindow CayleyGraph CDF CDFDeploy CDFInformation CDFWavelet Ceiling CelestialSystem Cell CellAutoOverwrite CellBaseline CellBoundingBox CellBracketOptions CellChangeTimes CellContents CellContext CellDingbat CellDynamicExpression CellEditDuplicate CellElementsBoundingBox CellElementSpacings CellEpilog CellEvaluationDuplicate CellEvaluationFunction CellEvaluationLanguage CellEventActions CellFrame CellFrameColor CellFrameLabelMargins CellFrameLabels CellFrameMargins CellGroup CellGroupData CellGrouping CellGroupingRules CellHorizontalScrolling CellID CellLabel CellLabelAutoDelete CellLabelMargins CellLabelPositioning CellLabelStyle CellLabelTemplate CellMargins CellObject CellOpen CellPrint CellProlog Cells CellSize CellStyle CellTags CellularAutomaton CensoredDistribution Censoring Center CenterArray CenterDot CentralFeature CentralMoment CentralMomentGeneratingFunction Cepstrogram CepstrogramArray CepstrumArray CForm ChampernowneNumber ChangeOptions ChannelBase ChannelBrokerAction ChannelDatabin ChannelHistoryLength ChannelListen ChannelListener ChannelListeners ChannelListenerWait ChannelObject ChannelPreSendFunction ChannelReceiverFunction ChannelSend ChannelSubscribers ChanVeseBinarize Character CharacterCounts CharacterEncoding CharacterEncodingsPath CharacteristicFunction CharacteristicPolynomial CharacterName CharacterRange Characters ChartBaseStyle ChartElementData ChartElementDataFunction ChartElementFunction ChartElements ChartLabels ChartLayout ChartLegends ChartStyle Chebyshev1FilterModel Chebyshev2FilterModel ChebyshevDistance ChebyshevT ChebyshevU Check CheckAbort CheckAll Checkbox CheckboxBar CheckboxBox CheckboxBoxOptions ChemicalData ChessboardDistance ChiDistribution ChineseRemainder ChiSquareDistribution ChoiceButtons ChoiceDialog CholeskyDecomposition Chop ChromaticityPlot ChromaticityPlot3D ChromaticPolynomial Circle CircleBox CircleDot CircleMinus CirclePlus CirclePoints CircleThrough CircleTimes CirculantGraph CircularOrthogonalMatrixDistribution CircularQuaternionMatrixDistribution CircularRealMatrixDistribution CircularSymplecticMatrixDistribution CircularUnitaryMatrixDistribution Circumsphere CityData ClassifierFunction ClassifierInformation ClassifierMeasurements ClassifierMeasurementsObject Classify ClassPriors Clear ClearAll ClearAttributes ClearCookies ClearPermissions ClearSystemCache ClebschGordan ClickPane Clip ClipboardNotebook ClipFill ClippingStyle ClipPlanes ClipPlanesStyle ClipRange Clock ClockGauge ClockwiseContourIntegral Close Closed CloseKernels ClosenessCentrality Closing ClosingAutoSave ClosingEvent CloudAccountData CloudBase CloudConnect CloudDeploy CloudDirectory CloudDisconnect CloudEvaluate CloudExport CloudExpression CloudExpressions CloudFunction CloudGet CloudImport CloudLoggingData CloudObject CloudObjectInformation CloudObjectInformationData CloudObjectNameFormat CloudObjects CloudObjectURLType CloudPublish CloudPut CloudRenderingMethod CloudSave CloudShare CloudSubmit CloudSymbol CloudUnshare ClusterClassify ClusterDissimilarityFunction ClusteringComponents ClusteringTree CMYKColor Coarse CodeAssistOptions Coefficient CoefficientArrays CoefficientDomain CoefficientList CoefficientRules CoifletWavelet Collect Colon ColonForm ColorBalance ColorCombine ColorConvert ColorCoverage ColorData ColorDataFunction ColorDetect ColorDistance ColorFunction ColorFunctionScaling Colorize ColorNegate ColorOutput ColorProfileData ColorQ ColorQuantize ColorReplace ColorRules ColorSelectorSettings ColorSeparate ColorSetter ColorSetterBox ColorSetterBoxOptions ColorSlider ColorsNear ColorSpace ColorToneMapping Column ColumnAlignments ColumnBackgrounds ColumnForm ColumnLines ColumnsEqual ColumnSpacings ColumnWidths CombinedEntityClass CombinerFunction CometData CommonDefaultFormatTypes Commonest CommonestFilter CommonName CommonUnits CommunityBoundaryStyle CommunityGraphPlot CommunityLabels CommunityRegionStyle CompanyData CompatibleUnitQ CompilationOptions CompilationTarget Compile Compiled CompiledCodeFunction CompiledFunction CompilerOptions Complement CompleteGraph CompleteGraphQ CompleteKaryTree CompletionsListPacket Complex Complexes ComplexExpand ComplexInfinity ComplexityFunction ComplexListPlot ComplexPlot ComplexPlot3D ComponentMeasurements ComponentwiseContextMenu Compose ComposeList ComposeSeries CompositeQ Composition CompoundElement CompoundExpression CompoundPoissonDistribution CompoundPoissonProcess CompoundRenewalProcess Compress CompressedData ComputeUncertainty Condition ConditionalExpression Conditioned Cone ConeBox ConfidenceLevel ConfidenceRange ConfidenceTransform ConfigurationPath ConformAudio ConformImages Congruent ConicHullRegion ConicHullRegion3DBox ConicHullRegionBox ConicOptimization Conjugate ConjugateTranspose Conjunction Connect ConnectedComponents ConnectedGraphComponents ConnectedGraphQ ConnectedMeshComponents ConnectedMoleculeComponents ConnectedMoleculeQ ConnectionSettings ConnectLibraryCallbackFunction ConnectSystemModelComponents ConnesWindow ConoverTest ConsoleMessage ConsoleMessagePacket ConsolePrint Constant ConstantArray ConstantArrayLayer ConstantImage ConstantPlusLayer ConstantRegionQ Constants ConstantTimesLayer ConstellationData ConstrainedMax ConstrainedMin Construct Containing ContainsAll ContainsAny ContainsExactly ContainsNone ContainsOnly ContentFieldOptions ContentLocationFunction ContentObject ContentPadding ContentsBoundingBox ContentSelectable ContentSize Context ContextMenu Contexts ContextToFileName Continuation Continue ContinuedFraction ContinuedFractionK ContinuousAction ContinuousMarkovProcess ContinuousTask ContinuousTimeModelQ ContinuousWaveletData ContinuousWaveletTransform ContourDetect ContourGraphics ContourIntegral ContourLabels ContourLines ContourPlot ContourPlot3D Contours ContourShading ContourSmoothing ContourStyle ContraharmonicMean ContrastiveLossLayer Control ControlActive ControlAlignment ControlGroupContentsBox ControllabilityGramian ControllabilityMatrix ControllableDecomposition ControllableModelQ ControllerDuration ControllerInformation ControllerInformationData ControllerLinking ControllerManipulate ControllerMethod ControllerPath ControllerState ControlPlacement ControlsRendering ControlType Convergents ConversionOptions ConversionRules ConvertToBitmapPacket ConvertToPostScript ConvertToPostScriptPacket ConvexHullMesh ConvexPolygonQ ConvexPolyhedronQ ConvolutionLayer Convolve ConwayGroupCo1 ConwayGroupCo2 ConwayGroupCo3 CookieFunction Cookies CoordinateBoundingBox CoordinateBoundingBoxArray CoordinateBounds CoordinateBoundsArray CoordinateChartData CoordinatesToolOptions CoordinateTransform CoordinateTransformData CoprimeQ Coproduct CopulaDistribution Copyable CopyDatabin CopyDirectory CopyFile CopyTag CopyToClipboard CornerFilter CornerNeighbors Correlation CorrelationDistance CorrelationFunction CorrelationTest Cos Cosh CoshIntegral CosineDistance CosineWindow CosIntegral Cot Coth Count CountDistinct CountDistinctBy CounterAssignments CounterBox CounterBoxOptions CounterClockwiseContourIntegral CounterEvaluator CounterFunction CounterIncrements CounterStyle CounterStyleMenuListing CountRoots CountryData Counts CountsBy Covariance CovarianceEstimatorFunction CovarianceFunction CoxianDistribution CoxIngersollRossProcess CoxModel CoxModelFit CramerVonMisesTest CreateArchive CreateCellID CreateChannel CreateCloudExpression CreateDatabin CreateDataSystemModel CreateDialog CreateDirectory CreateDocument CreateFile CreateIntermediateDirectories CreateManagedLibraryExpression CreateNotebook CreatePalette CreatePalettePacket CreatePermissionsGroup CreateScheduledTask CreateSearchIndex CreateSystemModel CreateTemporary CreateUUID CreateWindow CriterionFunction CriticalityFailureImportance CriticalitySuccessImportance CriticalSection Cross CrossEntropyLossLayer CrossingCount CrossingDetect CrossingPolygon CrossMatrix Csc Csch CTCLossLayer Cube CubeRoot Cubics Cuboid CuboidBox Cumulant CumulantGeneratingFunction Cup CupCap Curl CurlyDoubleQuote CurlyQuote CurrencyConvert CurrentDate CurrentImage CurrentlySpeakingPacket CurrentNotebookImage CurrentScreenImage CurrentValue Curry CurvatureFlowFilter CurveClosed Cyan CycleGraph CycleIndexPolynomial Cycles CyclicGroup Cyclotomic Cylinder CylinderBox CylindricalDecomposition' +
-      'D DagumDistribution DamData DamerauLevenshteinDistance DampingFactor Darker Dashed Dashing DatabaseConnect DatabaseDisconnect DatabaseReference Databin DatabinAdd DatabinRemove Databins DatabinUpload DataCompression DataDistribution DataRange DataReversed Dataset Date DateBounds Dated DateDelimiters DateDifference DatedUnit DateFormat DateFunction DateHistogram DateList DateListLogPlot DateListPlot DateListStepPlot DateObject DateObjectQ DateOverlapsQ DatePattern DatePlus DateRange DateReduction DateString DateTicksFormat DateValue DateWithinQ DaubechiesWavelet DavisDistribution DawsonF DayCount DayCountConvention DayHemisphere DaylightQ DayMatchQ DayName DayNightTerminator DayPlus DayRange DayRound DeBruijnGraph DeBruijnSequence Debug DebugTag Decapitalize Decimal DecimalForm DeclareKnownSymbols DeclarePackage Decompose DeconvolutionLayer Decrement Decrypt DecryptFile DedekindEta DeepSpaceProbeData Default DefaultAxesStyle DefaultBaseStyle DefaultBoxStyle DefaultButton DefaultColor DefaultControlPlacement DefaultDuplicateCellStyle DefaultDuration DefaultElement DefaultFaceGridsStyle DefaultFieldHintStyle DefaultFont DefaultFontProperties DefaultFormatType DefaultFormatTypeForStyle DefaultFrameStyle DefaultFrameTicksStyle DefaultGridLinesStyle DefaultInlineFormatType DefaultInputFormatType DefaultLabelStyle DefaultMenuStyle DefaultNaturalLanguage DefaultNewCellStyle DefaultNewInlineCellStyle DefaultNotebook DefaultOptions DefaultOutputFormatType DefaultPrintPrecision DefaultStyle DefaultStyleDefinitions DefaultTextFormatType DefaultTextInlineFormatType DefaultTicksStyle DefaultTooltipStyle DefaultValue DefaultValues Defer DefineExternal DefineInputStreamMethod DefineOutputStreamMethod DefineResourceFunction Definition Degree DegreeCentrality DegreeGraphDistribution DegreeLexicographic DegreeReverseLexicographic DEigensystem DEigenvalues Deinitialization Del DelaunayMesh Delayed Deletable Delete DeleteAnomalies DeleteBorderComponents DeleteCases DeleteChannel DeleteCloudExpression DeleteContents DeleteDirectory DeleteDuplicates DeleteDuplicatesBy DeleteFile DeleteMissing DeleteObject DeletePermissionsKey DeleteSearchIndex DeleteSmallComponents DeleteStopwords DeleteWithContents DeletionWarning DelimitedArray DelimitedSequence Delimiter DelimiterFlashTime DelimiterMatching Delimiters DeliveryFunction Dendrogram Denominator DensityGraphics DensityHistogram DensityPlot DensityPlot3D DependentVariables Deploy Deployed Depth DepthFirstScan Derivative DerivativeFilter DerivedKey DescriptorStateSpace DesignMatrix DestroyAfterEvaluation Det DeviceClose DeviceConfigure DeviceExecute DeviceExecuteAsynchronous DeviceObject DeviceOpen DeviceOpenQ DeviceRead DeviceReadBuffer DeviceReadLatest DeviceReadList DeviceReadTimeSeries Devices DeviceStreams DeviceWrite DeviceWriteBuffer DGaussianWavelet DiacriticalPositioning Diagonal DiagonalizableMatrixQ DiagonalMatrix DiagonalMatrixQ Dialog DialogIndent DialogInput DialogLevel DialogNotebook DialogProlog DialogReturn DialogSymbols Diamond DiamondMatrix DiceDissimilarity DictionaryLookup DictionaryWordQ DifferenceDelta DifferenceOrder DifferenceQuotient DifferenceRoot DifferenceRootReduce Differences DifferentialD DifferentialRoot DifferentialRootReduce DifferentiatorFilter DigitalSignature DigitBlock DigitBlockMinimum DigitCharacter DigitCount DigitQ DihedralAngle DihedralGroup Dilation DimensionalCombinations DimensionalMeshComponents DimensionReduce DimensionReducerFunction DimensionReduction Dimensions DiracComb DiracDelta DirectedEdge DirectedEdges DirectedGraph DirectedGraphQ DirectedInfinity Direction Directive Directory DirectoryName DirectoryQ DirectoryStack DirichletBeta DirichletCharacter DirichletCondition DirichletConvolve DirichletDistribution DirichletEta DirichletL DirichletLambda DirichletTransform DirichletWindow DisableConsolePrintPacket DisableFormatting DiscreteChirpZTransform DiscreteConvolve DiscreteDelta DiscreteHadamardTransform DiscreteIndicator DiscreteLimit DiscreteLQEstimatorGains DiscreteLQRegulatorGains DiscreteLyapunovSolve DiscreteMarkovProcess DiscreteMaxLimit DiscreteMinLimit DiscretePlot DiscretePlot3D DiscreteRatio DiscreteRiccatiSolve DiscreteShift DiscreteTimeModelQ DiscreteUniformDistribution DiscreteVariables DiscreteWaveletData DiscreteWaveletPacketTransform DiscreteWaveletTransform DiscretizeGraphics DiscretizeRegion Discriminant DisjointQ Disjunction Disk DiskBox DiskMatrix DiskSegment Dispatch DispatchQ DispersionEstimatorFunction Display DisplayAllSteps DisplayEndPacket DisplayFlushImagePacket DisplayForm DisplayFunction DisplayPacket DisplayRules DisplaySetSizePacket DisplayString DisplayTemporary DisplayWith DisplayWithRef DisplayWithVariable DistanceFunction DistanceMatrix DistanceTransform Distribute Distributed DistributedContexts DistributeDefinitions DistributionChart DistributionDomain DistributionFitTest DistributionParameterAssumptions DistributionParameterQ Dithering Div Divergence Divide DivideBy Dividers DivideSides Divisible Divisors DivisorSigma DivisorSum DMSList DMSString Do DockedCells DocumentGenerator DocumentGeneratorInformation DocumentGeneratorInformationData DocumentGenerators DocumentNotebook DocumentWeightingRules Dodecahedron DomainRegistrationInformation DominantColors DOSTextFormat Dot DotDashed DotEqual DotLayer DotPlusLayer Dotted DoubleBracketingBar DoubleContourIntegral DoubleDownArrow DoubleLeftArrow DoubleLeftRightArrow DoubleLeftTee DoubleLongLeftArrow DoubleLongLeftRightArrow DoubleLongRightArrow DoubleRightArrow DoubleRightTee DoubleUpArrow DoubleUpDownArrow DoubleVerticalBar DoublyInfinite Down DownArrow DownArrowBar DownArrowUpArrow DownLeftRightVector DownLeftTeeVector DownLeftVector DownLeftVectorBar DownRightTeeVector DownRightVector DownRightVectorBar Downsample DownTee DownTeeArrow DownValues DragAndDrop DrawEdges DrawFrontFaces DrawHighlighted Drop DropoutLayer DSolve DSolveValue Dt DualLinearProgramming DualPolyhedron DualSystemsModel DumpGet DumpSave DuplicateFreeQ Duration Dynamic DynamicBox DynamicBoxOptions DynamicEvaluationTimeout DynamicGeoGraphics DynamicImage DynamicLocation DynamicModule DynamicModuleBox DynamicModuleBoxOptions DynamicModuleParent DynamicModuleValues DynamicName DynamicNamespace DynamicReference DynamicSetting DynamicUpdating DynamicWrapper DynamicWrapperBox DynamicWrapperBoxOptions' +
-      'E EarthImpactData EarthquakeData EccentricityCentrality Echo EchoFunction EclipseType EdgeAdd EdgeBetweennessCentrality EdgeCapacity EdgeCapForm EdgeColor EdgeConnectivity EdgeContract EdgeCost EdgeCount EdgeCoverQ EdgeCycleMatrix EdgeDashing EdgeDelete EdgeDetect EdgeForm EdgeIndex EdgeJoinForm EdgeLabeling EdgeLabels EdgeLabelStyle EdgeList EdgeOpacity EdgeQ EdgeRenderingFunction EdgeRules EdgeShapeFunction EdgeStyle EdgeThickness EdgeWeight EdgeWeightedGraphQ Editable EditButtonSettings EditCellTagsSettings EditDistance EffectiveInterest Eigensystem Eigenvalues EigenvectorCentrality Eigenvectors Element ElementData ElementwiseLayer ElidedForms Eliminate EliminationOrder Ellipsoid EllipticE EllipticExp EllipticExpPrime EllipticF EllipticFilterModel EllipticK EllipticLog EllipticNomeQ EllipticPi EllipticReducedHalfPeriods EllipticTheta EllipticThetaPrime EmbedCode EmbeddedHTML EmbeddedService EmbeddingLayer EmbeddingObject EmitSound EmphasizeSyntaxErrors EmpiricalDistribution Empty EmptyGraphQ EmptyRegion EnableConsolePrintPacket Enabled Encode Encrypt EncryptedObject EncryptFile End EndAdd EndDialogPacket EndFrontEndInteractionPacket EndOfBuffer EndOfFile EndOfLine EndOfString EndPackage EngineEnvironment EngineeringForm Enter EnterExpressionPacket EnterTextPacket Entity EntityClass EntityClassList EntityCopies EntityFunction EntityGroup EntityInstance EntityList EntityPrefetch EntityProperties EntityProperty EntityPropertyClass EntityRegister EntityStore EntityStores EntityTypeName EntityUnregister EntityValue Entropy EntropyFilter Environment Epilog EpilogFunction Equal EqualColumns EqualRows EqualTilde EqualTo EquatedTo Equilibrium EquirippleFilterKernel Equivalent Erf Erfc Erfi ErlangB ErlangC ErlangDistribution Erosion ErrorBox ErrorBoxOptions ErrorNorm ErrorPacket ErrorsDialogSettings EscapeRadius EstimatedBackground EstimatedDistribution EstimatedProcess EstimatorGains EstimatorRegulator EuclideanDistance EulerAngles EulerCharacteristic EulerE EulerGamma EulerianGraphQ EulerMatrix EulerPhi Evaluatable Evaluate Evaluated EvaluatePacket EvaluateScheduledTask EvaluationBox EvaluationCell EvaluationCompletionAction EvaluationData EvaluationElements EvaluationEnvironment EvaluationMode EvaluationMonitor EvaluationNotebook EvaluationObject EvaluationOrder Evaluator EvaluatorNames EvenQ EventData EventEvaluator EventHandler EventHandlerTag EventLabels EventSeries ExactBlackmanWindow ExactNumberQ ExactRootIsolation ExampleData Except ExcludedForms ExcludedLines ExcludedPhysicalQuantities ExcludePods Exclusions ExclusionsStyle Exists Exit ExitDialog ExoplanetData Exp Expand ExpandAll ExpandDenominator ExpandFileName ExpandNumerator Expectation ExpectationE ExpectedValue ExpGammaDistribution ExpIntegralE ExpIntegralEi ExpirationDate Exponent ExponentFunction ExponentialDistribution ExponentialFamily ExponentialGeneratingFunction ExponentialMovingAverage ExponentialPowerDistribution ExponentPosition ExponentStep Export ExportAutoReplacements ExportByteArray ExportForm ExportPacket ExportString Expression ExpressionCell ExpressionPacket ExpressionUUID ExpToTrig ExtendedEntityClass ExtendedGCD Extension ExtentElementFunction ExtentMarkers ExtentSize ExternalBundle ExternalCall ExternalDataCharacterEncoding ExternalEvaluate ExternalFunction ExternalFunctionName ExternalObject ExternalOptions ExternalSessionObject ExternalSessions ExternalTypeSignature ExternalValue Extract ExtractArchive ExtractLayer ExtremeValueDistribution' +
+    keywords: 'AASTriangle AbelianGroup Abort AbortKernels AbortProtect AbortScheduledTask Above Abs AbsArg AbsArgPlot Absolute AbsoluteCorrelation AbsoluteCorrelationFunction AbsoluteCurrentValue AbsoluteDashing AbsoluteFileName AbsoluteOptions AbsolutePointSize AbsoluteThickness AbsoluteTime AbsoluteTiming AcceptanceThreshold AccountingForm Accumulate Accuracy AccuracyGoal ActionDelay ActionMenu ActionMenuBox ActionMenuBoxOptions Activate Active ActiveClassification ActiveClassificationObject ActiveItem ActivePrediction ActivePredictionObject ActiveStyle AcyclicGraphQ AddOnHelpPath AddSides AddTo AddToSearchIndex AddUsers AdjacencyGraph AdjacencyList AdjacencyMatrix AdjustmentBox AdjustmentBoxOptions AdjustTimeSeriesForecast AdministrativeDivisionData AffineHalfSpace AffineSpace AffineStateSpaceModel AffineTransform After AggregatedEntityClass AggregationLayer AircraftData AirportData AirPressureData AirTemperatureData AiryAi AiryAiPrime AiryAiZero AiryBi AiryBiPrime AiryBiZero AlgebraicIntegerQ AlgebraicNumber AlgebraicNumberDenominator AlgebraicNumberNorm AlgebraicNumberPolynomial AlgebraicNumberTrace AlgebraicRules AlgebraicRulesData Algebraics AlgebraicUnitQ Alignment AlignmentMarker AlignmentPoint All AllowAdultContent AllowedCloudExtraParameters AllowedCloudParameterExtensions AllowedDimensions AllowedFrequencyRange AllowedHeads AllowGroupClose AllowIncomplete AllowInlineCells AllowKernelInitialization AllowLooseGrammar AllowReverseGroupClose AllowScriptLevelChange AllTrue Alphabet AlphabeticOrder AlphabeticSort AlphaChannel AlternateImage AlternatingFactorial AlternatingGroup AlternativeHypothesis Alternatives AltitudeMethod AmbientLight AmbiguityFunction AmbiguityList Analytic AnatomyData AnatomyForm AnatomyPlot3D AnatomySkinStyle AnatomyStyling AnchoredSearch And AndersonDarlingTest AngerJ AngleBisector AngleBracket AnglePath AnglePath3D AngleVector AngularGauge Animate AnimationCycleOffset AnimationCycleRepetitions AnimationDirection AnimationDisplayTime AnimationRate AnimationRepetitions AnimationRunning AnimationRunTime AnimationTimeIndex Animator AnimatorBox AnimatorBoxOptions AnimatorElements Annotate Annotation AnnotationDelete AnnotationNames AnnotationRules AnnotationValue Annuity AnnuityDue Annulus AnomalyDetection AnomalyDetectorFunction Anonymous Antialiasing AntihermitianMatrixQ Antisymmetric AntisymmetricMatrixQ Antonyms AnyOrder AnySubset AnyTrue Apart ApartSquareFree APIFunction Appearance AppearanceElements AppearanceRules AppellF1 Append AppendCheck AppendLayer AppendTo ApplicationIdentificationKey Apply ApplySides ArcCos ArcCosh ArcCot ArcCoth ArcCsc ArcCsch ArcCurvature ARCHProcess ArcLength ArcSec ArcSech ArcSin ArcSinDistribution ArcSinh ArcTan ArcTanh Area Arg ArgMax ArgMin ArgumentCountQ ARIMAProcess ArithmeticGeometricMean ARMAProcess Around AroundReplace ARProcess Array ArrayComponents ArrayDepth ArrayFilter ArrayFlatten ArrayMesh ArrayPad ArrayPlot ArrayQ ArrayResample ArrayReshape ArrayRules Arrays Arrow Arrow3DBox ArrowBox Arrowheads ASATriangle Ask AskAppend AskConfirm AskDisplay AskedQ AskedValue AskFunction AskState AskTemplateDisplay AspectRatio AspectRatioFixed Assert AssociateTo Association AssociationFormat AssociationMap AssociationQ AssociationThread AssumeDeterministic Assuming Assumptions AstronomicalData AsymptoticDSolveValue AsymptoticEqual AsymptoticEquivalent AsymptoticGreater AsymptoticGreaterEqual AsymptoticIntegrate AsymptoticLess AsymptoticLessEqual AsymptoticOutputTracker AsymptoticRSolveValue AsymptoticSolve AsymptoticSum Asynchronous AsynchronousTaskObject AsynchronousTasks Atom AtomCoordinates AtomCount AtomDiagramCoordinates AtomList AtomQ AttentionLayer Attributes Audio AudioAmplify AudioAnnotate AudioAnnotationLookup AudioBlockMap AudioCapture AudioChannelAssignment AudioChannelCombine AudioChannelMix AudioChannels AudioChannelSeparate AudioData AudioDelay AudioDelete AudioDevice AudioDistance AudioFade AudioFrequencyShift AudioGenerator AudioIdentify AudioInputDevice AudioInsert AudioIntervals AudioJoin AudioLabel AudioLength AudioLocalMeasurements AudioLooping AudioLoudness AudioMeasurements AudioNormalize AudioOutputDevice AudioOverlay AudioPad AudioPan AudioPartition AudioPause AudioPitchShift AudioPlay AudioPlot AudioQ AudioRecord AudioReplace AudioResample AudioReverb AudioSampleRate AudioSpectralMap AudioSpectralTransformation AudioSplit AudioStop AudioStream AudioStreams AudioTimeStretch AudioTrim AudioType AugmentedPolyhedron AugmentedSymmetricPolynomial Authenticate Authentication AuthenticationDialog AutoAction Autocomplete AutocompletionFunction AutoCopy AutocorrelationTest AutoDelete AutoEvaluateEvents AutoGeneratedPackage AutoIndent AutoIndentSpacings AutoItalicWords AutoloadPath AutoMatch Automatic AutomaticImageSize AutoMultiplicationSymbol AutoNumberFormatting AutoOpenNotebooks AutoOpenPalettes AutoQuoteCharacters AutoRefreshed AutoRemove AutorunSequencing AutoScaling AutoScroll AutoSpacing AutoStyleOptions AutoStyleWords AutoSubmitting Axes AxesEdge AxesLabel AxesOrigin AxesStyle AxiomaticTheory Axis ' +
+      'BabyMonsterGroupB Back Background BackgroundAppearance BackgroundTasksSettings Backslash Backsubstitution Backward Ball Band BandpassFilter BandstopFilter BarabasiAlbertGraphDistribution BarChart BarChart3D BarcodeImage BarcodeRecognize BaringhausHenzeTest BarLegend BarlowProschanImportance BarnesG BarOrigin BarSpacing BartlettHannWindow BartlettWindow BaseDecode BaseEncode BaseForm Baseline BaselinePosition BaseStyle BasicRecurrentLayer BatchNormalizationLayer BatchSize BatesDistribution BattleLemarieWavelet BayesianMaximization BayesianMaximizationObject BayesianMinimization BayesianMinimizationObject Because BeckmannDistribution Beep Before Begin BeginDialogPacket BeginFrontEndInteractionPacket BeginPackage BellB BellY Below BenfordDistribution BeniniDistribution BenktanderGibratDistribution BenktanderWeibullDistribution BernoulliB BernoulliDistribution BernoulliGraphDistribution BernoulliProcess BernsteinBasis BesselFilterModel BesselI BesselJ BesselJZero BesselK BesselY BesselYZero Beta BetaBinomialDistribution BetaDistribution BetaNegativeBinomialDistribution BetaPrimeDistribution BetaRegularized Between BetweennessCentrality BeveledPolyhedron BezierCurve BezierCurve3DBox BezierCurve3DBoxOptions BezierCurveBox BezierCurveBoxOptions BezierFunction BilateralFilter Binarize BinaryDeserialize BinaryDistance BinaryFormat BinaryImageQ BinaryRead BinaryReadList BinarySerialize BinaryWrite BinCounts BinLists Binomial BinomialDistribution BinomialProcess BinormalDistribution BiorthogonalSplineWavelet BipartiteGraphQ BiquadraticFilterModel BirnbaumImportance BirnbaumSaundersDistribution BitAnd BitClear BitGet BitLength BitNot BitOr BitSet BitShiftLeft BitShiftRight BitXor BiweightLocation BiweightMidvariance Black BlackmanHarrisWindow BlackmanNuttallWindow BlackmanWindow Blank BlankForm BlankNullSequence BlankSequence Blend Block BlockchainAddressData BlockchainBase BlockchainBlockData BlockchainContractValue BlockchainData BlockchainGet BlockchainKeyEncode BlockchainPut BlockchainTokenData BlockchainTransaction BlockchainTransactionData BlockchainTransactionSign BlockchainTransactionSubmit BlockMap BlockRandom BlomqvistBeta BlomqvistBetaTest Blue Blur BodePlot BohmanWindow Bold Bond BondCount BondList BondQ Bookmarks Boole BooleanConsecutiveFunction BooleanConvert BooleanCountingFunction BooleanFunction BooleanGraph BooleanMaxterms BooleanMinimize BooleanMinterms BooleanQ BooleanRegion Booleans BooleanStrings BooleanTable BooleanVariables BorderDimensions BorelTannerDistribution Bottom BottomHatTransform BoundaryDiscretizeGraphics BoundaryDiscretizeRegion BoundaryMesh BoundaryMeshRegion BoundaryMeshRegionQ BoundaryStyle BoundedRegionQ BoundingRegion Bounds Box BoxBaselineShift BoxData BoxDimensions Boxed Boxes BoxForm BoxFormFormatTypes BoxFrame BoxID BoxMargins BoxMatrix BoxObject BoxRatios BoxRotation BoxRotationPoint BoxStyle BoxWhiskerChart Bra BracketingBar BraKet BrayCurtisDistance BreadthFirstScan Break BridgeData BrightnessEqualize BroadcastStationData Brown BrownForsytheTest BrownianBridgeProcess BrowserCategory BSplineBasis BSplineCurve BSplineCurve3DBox BSplineCurve3DBoxOptions BSplineCurveBox BSplineCurveBoxOptions BSplineFunction BSplineSurface BSplineSurface3DBox BSplineSurface3DBoxOptions BubbleChart BubbleChart3D BubbleScale BubbleSizes BuildingData BulletGauge BusinessDayQ ButterflyGraph ButterworthFilterModel Button ButtonBar ButtonBox ButtonBoxOptions ButtonCell ButtonContents ButtonData ButtonEvaluator ButtonExpandable ButtonFrame ButtonFunction ButtonMargins ButtonMinHeight ButtonNote ButtonNotebook ButtonSource ButtonStyle ButtonStyleMenuListing Byte ByteArray ByteArrayFormat ByteArrayQ ByteArrayToString ByteCount ByteOrdering ' +
+      'C CachedValue CacheGraphics CachePersistence CalendarConvert CalendarData CalendarType Callout CalloutMarker CalloutStyle CallPacket CanberraDistance Cancel CancelButton CandlestickChart CanonicalGraph CanonicalizePolygon CanonicalizePolyhedron CanonicalName CanonicalWarpingCorrespondence CanonicalWarpingDistance CantorMesh CantorStaircase Cap CapForm CapitalDifferentialD Capitalize CapsuleShape CaptureRunning CardinalBSplineBasis CarlemanLinearize CarmichaelLambda CaseOrdering Cases CaseSensitive Cashflow Casoratian Catalan CatalanNumber Catch Catenate CatenateLayer CauchyDistribution CauchyWindow CayleyGraph CDF CDFDeploy CDFInformation CDFWavelet Ceiling CelestialSystem Cell CellAutoOverwrite CellBaseline CellBoundingBox CellBracketOptions CellChangeTimes CellContents CellContext CellDingbat CellDynamicExpression CellEditDuplicate CellElementsBoundingBox CellElementSpacings CellEpilog CellEvaluationDuplicate CellEvaluationFunction CellEvaluationLanguage CellEventActions CellFrame CellFrameColor CellFrameLabelMargins CellFrameLabels CellFrameMargins CellGroup CellGroupData CellGrouping CellGroupingRules CellHorizontalScrolling CellID CellLabel CellLabelAutoDelete CellLabelMargins CellLabelPositioning CellLabelStyle CellLabelTemplate CellMargins CellObject CellOpen CellPrint CellProlog Cells CellSize CellStyle CellTags CellularAutomaton CensoredDistribution Censoring Center CenterArray CenterDot CentralFeature CentralMoment CentralMomentGeneratingFunction Cepstrogram CepstrogramArray CepstrumArray CForm ChampernowneNumber ChangeOptions ChannelBase ChannelBrokerAction ChannelDatabin ChannelHistoryLength ChannelListen ChannelListener ChannelListeners ChannelListenerWait ChannelObject ChannelPreSendFunction ChannelReceiverFunction ChannelSend ChannelSubscribers ChanVeseBinarize Character CharacterCounts CharacterEncoding CharacterEncodingsPath CharacteristicFunction CharacteristicPolynomial CharacterName CharacterRange Characters ChartBaseStyle ChartElementData ChartElementDataFunction ChartElementFunction ChartElements ChartLabels ChartLayout ChartLegends ChartStyle Chebyshev1FilterModel Chebyshev2FilterModel ChebyshevDistance ChebyshevT ChebyshevU Check CheckAbort CheckAll Checkbox CheckboxBar CheckboxBox CheckboxBoxOptions ChemicalData ChessboardDistance ChiDistribution ChineseRemainder ChiSquareDistribution ChoiceButtons ChoiceDialog CholeskyDecomposition Chop ChromaticityPlot ChromaticityPlot3D ChromaticPolynomial Circle CircleBox CircleDot CircleMinus CirclePlus CirclePoints CircleThrough CircleTimes CirculantGraph CircularOrthogonalMatrixDistribution CircularQuaternionMatrixDistribution CircularRealMatrixDistribution CircularSymplecticMatrixDistribution CircularUnitaryMatrixDistribution Circumsphere CityData ClassifierFunction ClassifierInformation ClassifierMeasurements ClassifierMeasurementsObject Classify ClassPriors Clear ClearAll ClearAttributes ClearCookies ClearPermissions ClearSystemCache ClebschGordan ClickPane Clip ClipboardNotebook ClipFill ClippingStyle ClipPlanes ClipPlanesStyle ClipRange Clock ClockGauge ClockwiseContourIntegral Close Closed CloseKernels ClosenessCentrality Closing ClosingAutoSave ClosingEvent CloudAccountData CloudBase CloudConnect CloudDeploy CloudDirectory CloudDisconnect CloudEvaluate CloudExport CloudExpression CloudExpressions CloudFunction CloudGet CloudImport CloudLoggingData CloudObject CloudObjectInformation CloudObjectInformationData CloudObjectNameFormat CloudObjects CloudObjectURLType CloudPublish CloudPut CloudRenderingMethod CloudSave CloudShare CloudSubmit CloudSymbol CloudUnshare ClusterClassify ClusterDissimilarityFunction ClusteringComponents ClusteringTree CMYKColor Coarse CodeAssistOptions Coefficient CoefficientArrays CoefficientDomain CoefficientList CoefficientRules CoifletWavelet Collect Colon ColonForm ColorBalance ColorCombine ColorConvert ColorCoverage ColorData ColorDataFunction ColorDetect ColorDistance ColorFunction ColorFunctionScaling Colorize ColorNegate ColorOutput ColorProfileData ColorQ ColorQuantize ColorReplace ColorRules ColorSelectorSettings ColorSeparate ColorSetter ColorSetterBox ColorSetterBoxOptions ColorSlider ColorsNear ColorSpace ColorToneMapping Column ColumnAlignments ColumnBackgrounds ColumnForm ColumnLines ColumnsEqual ColumnSpacings ColumnWidths CombinedEntityClass CombinerFunction CometData CommonDefaultFormatTypes Commonest CommonestFilter CommonName CommonUnits CommunityBoundaryStyle CommunityGraphPlot CommunityLabels CommunityRegionStyle CompanyData CompatibleUnitQ CompilationOptions CompilationTarget Compile Compiled CompiledCodeFunction CompiledFunction CompilerOptions Complement CompleteGraph CompleteGraphQ CompleteKaryTree CompletionsListPacket Complex Complexes ComplexExpand ComplexInfinity ComplexityFunction ComplexListPlot ComplexPlot ComplexPlot3D ComponentMeasurements ComponentwiseContextMenu Compose ComposeList ComposeSeries CompositeQ Composition CompoundElement CompoundExpression CompoundPoissonDistribution CompoundPoissonProcess CompoundRenewalProcess Compress CompressedData ComputeUncertainty Condition ConditionalExpression Conditioned Cone ConeBox ConfidenceLevel ConfidenceRange ConfidenceTransform ConfigurationPath ConformAudio ConformImages Congruent ConicHullRegion ConicHullRegion3DBox ConicHullRegionBox ConicOptimization Conjugate ConjugateTranspose Conjunction Connect ConnectedComponents ConnectedGraphComponents ConnectedGraphQ ConnectedMeshComponents ConnectedMoleculeComponents ConnectedMoleculeQ ConnectionSettings ConnectLibraryCallbackFunction ConnectSystemModelComponents ConnesWindow ConoverTest ConsoleMessage ConsoleMessagePacket ConsolePrint Constant ConstantArray ConstantArrayLayer ConstantImage ConstantPlusLayer ConstantRegionQ Constants ConstantTimesLayer ConstellationData ConstrainedMax ConstrainedMin Construct Containing ContainsAll ContainsAny ContainsExactly ContainsNone ContainsOnly ContentFieldOptions ContentLocationFunction ContentObject ContentPadding ContentsBoundingBox ContentSelectable ContentSize Context ContextMenu Contexts ContextToFileName Continuation Continue ContinuedFraction ContinuedFractionK ContinuousAction ContinuousMarkovProcess ContinuousTask ContinuousTimeModelQ ContinuousWaveletData ContinuousWaveletTransform ContourDetect ContourGraphics ContourIntegral ContourLabels ContourLines ContourPlot ContourPlot3D Contours ContourShading ContourSmoothing ContourStyle ContraharmonicMean ContrastiveLossLayer Control ControlActive ControlAlignment ControlGroupContentsBox ControllabilityGramian ControllabilityMatrix ControllableDecomposition ControllableModelQ ControllerDuration ControllerInformation ControllerInformationData ControllerLinking ControllerManipulate ControllerMethod ControllerPath ControllerState ControlPlacement ControlsRendering ControlType Convergents ConversionOptions ConversionRules ConvertToBitmapPacket ConvertToPostScript ConvertToPostScriptPacket ConvexHullMesh ConvexPolygonQ ConvexPolyhedronQ ConvolutionLayer Convolve ConwayGroupCo1 ConwayGroupCo2 ConwayGroupCo3 CookieFunction Cookies CoordinateBoundingBox CoordinateBoundingBoxArray CoordinateBounds CoordinateBoundsArray CoordinateChartData CoordinatesToolOptions CoordinateTransform CoordinateTransformData CoprimeQ Coproduct CopulaDistribution Copyable CopyDatabin CopyDirectory CopyFile CopyTag CopyToClipboard CornerFilter CornerNeighbors Correlation CorrelationDistance CorrelationFunction CorrelationTest Cos Cosh CoshIntegral CosineDistance CosineWindow CosIntegral Cot Coth Count CountDistinct CountDistinctBy CounterAssignments CounterBox CounterBoxOptions CounterClockwiseContourIntegral CounterEvaluator CounterFunction CounterIncrements CounterStyle CounterStyleMenuListing CountRoots CountryData Counts CountsBy Covariance CovarianceEstimatorFunction CovarianceFunction CoxianDistribution CoxIngersollRossProcess CoxModel CoxModelFit CramerVonMisesTest CreateArchive CreateCellID CreateChannel CreateCloudExpression CreateDatabin CreateDataSystemModel CreateDialog CreateDirectory CreateDocument CreateFile CreateIntermediateDirectories CreateManagedLibraryExpression CreateNotebook CreatePalette CreatePalettePacket CreatePermissionsGroup CreateScheduledTask CreateSearchIndex CreateSystemModel CreateTemporary CreateUUID CreateWindow CriterionFunction CriticalityFailureImportance CriticalitySuccessImportance CriticalSection Cross CrossEntropyLossLayer CrossingCount CrossingDetect CrossingPolygon CrossMatrix Csc Csch CTCLossLayer Cube CubeRoot Cubics Cuboid CuboidBox Cumulant CumulantGeneratingFunction Cup CupCap Curl CurlyDoubleQuote CurlyQuote CurrencyConvert CurrentDate CurrentImage CurrentlySpeakingPacket CurrentNotebookImage CurrentScreenImage CurrentValue Curry CurvatureFlowFilter CurveClosed Cyan CycleGraph CycleIndexPolynomial Cycles CyclicGroup Cyclotomic Cylinder CylinderBox CylindricalDecomposition ' +
+      'D DagumDistribution DamData DamerauLevenshteinDistance DampingFactor Darker Dashed Dashing DatabaseConnect DatabaseDisconnect DatabaseReference Databin DatabinAdd DatabinRemove Databins DatabinUpload DataCompression DataDistribution DataRange DataReversed Dataset Date DateBounds Dated DateDelimiters DateDifference DatedUnit DateFormat DateFunction DateHistogram DateList DateListLogPlot DateListPlot DateListStepPlot DateObject DateObjectQ DateOverlapsQ DatePattern DatePlus DateRange DateReduction DateString DateTicksFormat DateValue DateWithinQ DaubechiesWavelet DavisDistribution DawsonF DayCount DayCountConvention DayHemisphere DaylightQ DayMatchQ DayName DayNightTerminator DayPlus DayRange DayRound DeBruijnGraph DeBruijnSequence Debug DebugTag Decapitalize Decimal DecimalForm DeclareKnownSymbols DeclarePackage Decompose DeconvolutionLayer Decrement Decrypt DecryptFile DedekindEta DeepSpaceProbeData Default DefaultAxesStyle DefaultBaseStyle DefaultBoxStyle DefaultButton DefaultColor DefaultControlPlacement DefaultDuplicateCellStyle DefaultDuration DefaultElement DefaultFaceGridsStyle DefaultFieldHintStyle DefaultFont DefaultFontProperties DefaultFormatType DefaultFormatTypeForStyle DefaultFrameStyle DefaultFrameTicksStyle DefaultGridLinesStyle DefaultInlineFormatType DefaultInputFormatType DefaultLabelStyle DefaultMenuStyle DefaultNaturalLanguage DefaultNewCellStyle DefaultNewInlineCellStyle DefaultNotebook DefaultOptions DefaultOutputFormatType DefaultPrintPrecision DefaultStyle DefaultStyleDefinitions DefaultTextFormatType DefaultTextInlineFormatType DefaultTicksStyle DefaultTooltipStyle DefaultValue DefaultValues Defer DefineExternal DefineInputStreamMethod DefineOutputStreamMethod DefineResourceFunction Definition Degree DegreeCentrality DegreeGraphDistribution DegreeLexicographic DegreeReverseLexicographic DEigensystem DEigenvalues Deinitialization Del DelaunayMesh Delayed Deletable Delete DeleteAnomalies DeleteBorderComponents DeleteCases DeleteChannel DeleteCloudExpression DeleteContents DeleteDirectory DeleteDuplicates DeleteDuplicatesBy DeleteFile DeleteMissing DeleteObject DeletePermissionsKey DeleteSearchIndex DeleteSmallComponents DeleteStopwords DeleteWithContents DeletionWarning DelimitedArray DelimitedSequence Delimiter DelimiterFlashTime DelimiterMatching Delimiters DeliveryFunction Dendrogram Denominator DensityGraphics DensityHistogram DensityPlot DensityPlot3D DependentVariables Deploy Deployed Depth DepthFirstScan Derivative DerivativeFilter DerivedKey DescriptorStateSpace DesignMatrix DestroyAfterEvaluation Det DeviceClose DeviceConfigure DeviceExecute DeviceExecuteAsynchronous DeviceObject DeviceOpen DeviceOpenQ DeviceRead DeviceReadBuffer DeviceReadLatest DeviceReadList DeviceReadTimeSeries Devices DeviceStreams DeviceWrite DeviceWriteBuffer DGaussianWavelet DiacriticalPositioning Diagonal DiagonalizableMatrixQ DiagonalMatrix DiagonalMatrixQ Dialog DialogIndent DialogInput DialogLevel DialogNotebook DialogProlog DialogReturn DialogSymbols Diamond DiamondMatrix DiceDissimilarity DictionaryLookup DictionaryWordQ DifferenceDelta DifferenceOrder DifferenceQuotient DifferenceRoot DifferenceRootReduce Differences DifferentialD DifferentialRoot DifferentialRootReduce DifferentiatorFilter DigitalSignature DigitBlock DigitBlockMinimum DigitCharacter DigitCount DigitQ DihedralAngle DihedralGroup Dilation DimensionalCombinations DimensionalMeshComponents DimensionReduce DimensionReducerFunction DimensionReduction Dimensions DiracComb DiracDelta DirectedEdge DirectedEdges DirectedGraph DirectedGraphQ DirectedInfinity Direction Directive Directory DirectoryName DirectoryQ DirectoryStack DirichletBeta DirichletCharacter DirichletCondition DirichletConvolve DirichletDistribution DirichletEta DirichletL DirichletLambda DirichletTransform DirichletWindow DisableConsolePrintPacket DisableFormatting DiscreteChirpZTransform DiscreteConvolve DiscreteDelta DiscreteHadamardTransform DiscreteIndicator DiscreteLimit DiscreteLQEstimatorGains DiscreteLQRegulatorGains DiscreteLyapunovSolve DiscreteMarkovProcess DiscreteMaxLimit DiscreteMinLimit DiscretePlot DiscretePlot3D DiscreteRatio DiscreteRiccatiSolve DiscreteShift DiscreteTimeModelQ DiscreteUniformDistribution DiscreteVariables DiscreteWaveletData DiscreteWaveletPacketTransform DiscreteWaveletTransform DiscretizeGraphics DiscretizeRegion Discriminant DisjointQ Disjunction Disk DiskBox DiskMatrix DiskSegment Dispatch DispatchQ DispersionEstimatorFunction Display DisplayAllSteps DisplayEndPacket DisplayFlushImagePacket DisplayForm DisplayFunction DisplayPacket DisplayRules DisplaySetSizePacket DisplayString DisplayTemporary DisplayWith DisplayWithRef DisplayWithVariable DistanceFunction DistanceMatrix DistanceTransform Distribute Distributed DistributedContexts DistributeDefinitions DistributionChart DistributionDomain DistributionFitTest DistributionParameterAssumptions DistributionParameterQ Dithering Div Divergence Divide DivideBy Dividers DivideSides Divisible Divisors DivisorSigma DivisorSum DMSList DMSString Do DockedCells DocumentGenerator DocumentGeneratorInformation DocumentGeneratorInformationData DocumentGenerators DocumentNotebook DocumentWeightingRules Dodecahedron DomainRegistrationInformation DominantColors DOSTextFormat Dot DotDashed DotEqual DotLayer DotPlusLayer Dotted DoubleBracketingBar DoubleContourIntegral DoubleDownArrow DoubleLeftArrow DoubleLeftRightArrow DoubleLeftTee DoubleLongLeftArrow DoubleLongLeftRightArrow DoubleLongRightArrow DoubleRightArrow DoubleRightTee DoubleUpArrow DoubleUpDownArrow DoubleVerticalBar DoublyInfinite Down DownArrow DownArrowBar DownArrowUpArrow DownLeftRightVector DownLeftTeeVector DownLeftVector DownLeftVectorBar DownRightTeeVector DownRightVector DownRightVectorBar Downsample DownTee DownTeeArrow DownValues DragAndDrop DrawEdges DrawFrontFaces DrawHighlighted Drop DropoutLayer DSolve DSolveValue Dt DualLinearProgramming DualPolyhedron DualSystemsModel DumpGet DumpSave DuplicateFreeQ Duration Dynamic DynamicBox DynamicBoxOptions DynamicEvaluationTimeout DynamicGeoGraphics DynamicImage DynamicLocation DynamicModule DynamicModuleBox DynamicModuleBoxOptions DynamicModuleParent DynamicModuleValues DynamicName DynamicNamespace DynamicReference DynamicSetting DynamicUpdating DynamicWrapper DynamicWrapperBox DynamicWrapperBoxOptions ' +
+      'E EarthImpactData EarthquakeData EccentricityCentrality Echo EchoFunction EclipseType EdgeAdd EdgeBetweennessCentrality EdgeCapacity EdgeCapForm EdgeColor EdgeConnectivity EdgeContract EdgeCost EdgeCount EdgeCoverQ EdgeCycleMatrix EdgeDashing EdgeDelete EdgeDetect EdgeForm EdgeIndex EdgeJoinForm EdgeLabeling EdgeLabels EdgeLabelStyle EdgeList EdgeOpacity EdgeQ EdgeRenderingFunction EdgeRules EdgeShapeFunction EdgeStyle EdgeThickness EdgeWeight EdgeWeightedGraphQ Editable EditButtonSettings EditCellTagsSettings EditDistance EffectiveInterest Eigensystem Eigenvalues EigenvectorCentrality Eigenvectors Element ElementData ElementwiseLayer ElidedForms Eliminate EliminationOrder Ellipsoid EllipticE EllipticExp EllipticExpPrime EllipticF EllipticFilterModel EllipticK EllipticLog EllipticNomeQ EllipticPi EllipticReducedHalfPeriods EllipticTheta EllipticThetaPrime EmbedCode EmbeddedHTML EmbeddedService EmbeddingLayer EmbeddingObject EmitSound EmphasizeSyntaxErrors EmpiricalDistribution Empty EmptyGraphQ EmptyRegion EnableConsolePrintPacket Enabled Encode Encrypt EncryptedObject EncryptFile End EndAdd EndDialogPacket EndFrontEndInteractionPacket EndOfBuffer EndOfFile EndOfLine EndOfString EndPackage EngineEnvironment EngineeringForm Enter EnterExpressionPacket EnterTextPacket Entity EntityClass EntityClassList EntityCopies EntityFunction EntityGroup EntityInstance EntityList EntityPrefetch EntityProperties EntityProperty EntityPropertyClass EntityRegister EntityStore EntityStores EntityTypeName EntityUnregister EntityValue Entropy EntropyFilter Environment Epilog EpilogFunction Equal EqualColumns EqualRows EqualTilde EqualTo EquatedTo Equilibrium EquirippleFilterKernel Equivalent Erf Erfc Erfi ErlangB ErlangC ErlangDistribution Erosion ErrorBox ErrorBoxOptions ErrorNorm ErrorPacket ErrorsDialogSettings EscapeRadius EstimatedBackground EstimatedDistribution EstimatedProcess EstimatorGains EstimatorRegulator EuclideanDistance EulerAngles EulerCharacteristic EulerE EulerGamma EulerianGraphQ EulerMatrix EulerPhi Evaluatable Evaluate Evaluated EvaluatePacket EvaluateScheduledTask EvaluationBox EvaluationCell EvaluationCompletionAction EvaluationData EvaluationElements EvaluationEnvironment EvaluationMode EvaluationMonitor EvaluationNotebook EvaluationObject EvaluationOrder Evaluator EvaluatorNames EvenQ EventData EventEvaluator EventHandler EventHandlerTag EventLabels EventSeries ExactBlackmanWindow ExactNumberQ ExactRootIsolation ExampleData Except ExcludedForms ExcludedLines ExcludedPhysicalQuantities ExcludePods Exclusions ExclusionsStyle Exists Exit ExitDialog ExoplanetData Exp Expand ExpandAll ExpandDenominator ExpandFileName ExpandNumerator Expectation ExpectationE ExpectedValue ExpGammaDistribution ExpIntegralE ExpIntegralEi ExpirationDate Exponent ExponentFunction ExponentialDistribution ExponentialFamily ExponentialGeneratingFunction ExponentialMovingAverage ExponentialPowerDistribution ExponentPosition ExponentStep Export ExportAutoReplacements ExportByteArray ExportForm ExportPacket ExportString Expression ExpressionCell ExpressionPacket ExpressionUUID ExpToTrig ExtendedEntityClass ExtendedGCD Extension ExtentElementFunction ExtentMarkers ExtentSize ExternalBundle ExternalCall ExternalDataCharacterEncoding ExternalEvaluate ExternalFunction ExternalFunctionName ExternalObject ExternalOptions ExternalSessionObject ExternalSessions ExternalTypeSignature ExternalValue Extract ExtractArchive ExtractLayer ExtremeValueDistribution ' +
       'FaceForm FaceGrids FaceGridsStyle FacialFeatures Factor FactorComplete Factorial Factorial2 FactorialMoment FactorialMomentGeneratingFunction FactorialPower FactorInteger FactorList FactorSquareFree FactorSquareFreeList FactorTerms FactorTermsList Fail Failure FailureAction FailureDistribution FailureQ False FareySequence FARIMAProcess FeatureDistance FeatureExtract FeatureExtraction FeatureExtractor FeatureExtractorFunction FeatureNames FeatureNearest FeatureSpacePlot FeatureSpacePlot3D FeatureTypes FEDisableConsolePrintPacket FeedbackLinearize FeedbackSector FeedbackSectorStyle FeedbackType FEEnableConsolePrintPacket FetalGrowthData Fibonacci Fibonorial FieldCompletionFunction FieldHint FieldHintStyle FieldMasked FieldSize File FileBaseName FileByteCount FileConvert FileDate FileExistsQ FileExtension FileFormat FileHandler FileHash FileInformation FileName FileNameDepth FileNameDialogSettings FileNameDrop FileNameForms FileNameJoin FileNames FileNameSetter FileNameSplit FileNameTake FilePrint FileSize FileSystemMap FileSystemScan FileTemplate FileTemplateApply FileType FilledCurve FilledCurveBox FilledCurveBoxOptions Filling FillingStyle FillingTransform FilteredEntityClass FilterRules FinancialBond FinancialData FinancialDerivative FinancialIndicator Find FindAnomalies FindArgMax FindArgMin FindChannels FindClique FindClusters FindCookies FindCurvePath FindCycle FindDevices FindDistribution FindDistributionParameters FindDivisions FindEdgeCover FindEdgeCut FindEdgeIndependentPaths FindEquationalProof FindEulerianCycle FindExternalEvaluators FindFaces FindFile FindFit FindFormula FindFundamentalCycles FindGeneratingFunction FindGeoLocation FindGeometricConjectures FindGeometricTransform FindGraphCommunities FindGraphIsomorphism FindGraphPartition FindHamiltonianCycle FindHamiltonianPath FindHiddenMarkovStates FindIndependentEdgeSet FindIndependentVertexSet FindInstance FindIntegerNullVector FindKClan FindKClique FindKClub FindKPlex FindLibrary FindLinearRecurrence FindList FindMatchingColor FindMaximum FindMaximumFlow FindMaxValue FindMeshDefects FindMinimum FindMinimumCostFlow FindMinimumCut FindMinValue FindMoleculeSubstructure FindPath FindPeaks FindPermutation FindPostmanTour FindProcessParameters FindRepeat FindRoot FindSequenceFunction FindSettings FindShortestPath FindShortestTour FindSpanningTree FindSystemModelEquilibrium FindTextualAnswer FindThreshold FindTransientRepeat FindVertexCover FindVertexCut FindVertexIndependentPaths Fine FinishDynamic FiniteAbelianGroupCount FiniteGroupCount FiniteGroupData First FirstCase FirstPassageTimeDistribution FirstPosition FischerGroupFi22 FischerGroupFi23 FischerGroupFi24Prime FisherHypergeometricDistribution FisherRatioTest FisherZDistribution Fit FitAll FitRegularization FittedModel FixedOrder FixedPoint FixedPointList FlashSelection Flat Flatten FlattenAt FlattenLayer FlatTopWindow FlipView Floor FlowPolynomial FlushPrintOutputPacket Fold FoldList FoldPair FoldPairList FollowRedirects Font FontColor FontFamily FontForm FontName FontOpacity FontPostScriptName FontProperties FontReencoding FontSize FontSlant FontSubstitutions FontTracking FontVariations FontWeight For ForAll Format FormatRules FormatType FormatTypeAutoConvert FormatValues FormBox FormBoxOptions FormControl FormFunction FormLayoutFunction FormObject FormPage FormTheme FormulaData FormulaLookup FortranForm Forward ForwardBackward Fourier FourierCoefficient FourierCosCoefficient FourierCosSeries FourierCosTransform FourierDCT FourierDCTFilter FourierDCTMatrix FourierDST FourierDSTMatrix FourierMatrix FourierParameters FourierSequenceTransform FourierSeries FourierSinCoefficient FourierSinSeries FourierSinTransform FourierTransform FourierTrigSeries FractionalBrownianMotionProcess FractionalGaussianNoiseProcess FractionalPart FractionBox FractionBoxOptions FractionLine Frame FrameBox FrameBoxOptions Framed FrameInset FrameLabel Frameless FrameMargins FrameRate FrameStyle FrameTicks FrameTicksStyle FRatioDistribution FrechetDistribution FreeQ FrenetSerretSystem FrequencySamplingFilterKernel FresnelC FresnelF FresnelG FresnelS Friday FrobeniusNumber FrobeniusSolve FromAbsoluteTime FromCharacterCode FromCoefficientRules FromContinuedFraction FromDate FromDigits FromDMS FromEntity FromJulianDate FromLetterNumber FromPolarCoordinates FromRomanNumeral FromSphericalCoordinates FromUnixTime Front FrontEndDynamicExpression FrontEndEventActions FrontEndExecute FrontEndObject FrontEndResource FrontEndResourceString FrontEndStackSize FrontEndToken FrontEndTokenExecute FrontEndValueCache FrontEndVersion FrontFaceColor FrontFaceOpacity Full FullAxes FullDefinition FullForm FullGraphics FullInformationOutputRegulator FullOptions FullRegion FullSimplify Function FunctionCompile FunctionCompileExport FunctionCompileExportByteArray FunctionCompileExportLibrary FunctionCompileExportString FunctionDomain FunctionExpand FunctionInterpolation FunctionPeriod FunctionRange FunctionSpace FussellVeselyImportance' +
-      'GaborFilter GaborMatrix GaborWavelet GainMargins GainPhaseMargins GalaxyData GalleryView Gamma GammaDistribution GammaRegularized GapPenalty GARCHProcess GatedRecurrentLayer Gather GatherBy GaugeFaceElementFunction GaugeFaceStyle GaugeFrameElementFunction GaugeFrameSize GaugeFrameStyle GaugeLabels GaugeMarkers GaugeStyle GaussianFilter GaussianIntegers GaussianMatrix GaussianOrthogonalMatrixDistribution GaussianSymplecticMatrixDistribution GaussianUnitaryMatrixDistribution GaussianWindow GCD GegenbauerC General GeneralizedLinearModelFit GenerateAsymmetricKeyPair GenerateConditions GeneratedCell GeneratedDocumentBinding GenerateDerivedKey GenerateDigitalSignature GenerateDocument GeneratedParameters GeneratedQuantityMagnitudes GenerateHTTPResponse GenerateSecuredAuthenticationKey GenerateSymmetricKey GeneratingFunction GeneratorDescription GeneratorHistoryLength GeneratorOutputType Generic GenericCylindricalDecomposition GenomeData GenomeLookup GeoAntipode GeoArea GeoArraySize GeoBackground GeoBoundingBox GeoBounds GeoBoundsRegion GeoBubbleChart GeoCenter GeoCircle GeodesicClosing GeodesicDilation GeodesicErosion GeodesicOpening GeoDestination GeodesyData GeoDirection GeoDisk GeoDisplacement GeoDistance GeoDistanceList GeoElevationData GeoEntities GeoGraphics GeogravityModelData GeoGridDirectionDifference GeoGridLines GeoGridLinesStyle GeoGridPosition GeoGridRange GeoGridRangePadding GeoGridUnitArea GeoGridUnitDistance GeoGridVector GeoGroup GeoHemisphere GeoHemisphereBoundary GeoHistogram GeoIdentify GeoImage GeoLabels GeoLength GeoListPlot GeoLocation GeologicalPeriodData GeomagneticModelData GeoMarker GeometricAssertion GeometricBrownianMotionProcess GeometricDistribution GeometricMean GeometricMeanFilter GeometricScene GeometricTransformation GeometricTransformation3DBox GeometricTransformation3DBoxOptions GeometricTransformationBox GeometricTransformationBoxOptions GeoModel GeoNearest GeoPath GeoPosition GeoPositionENU GeoPositionXYZ GeoProjection GeoProjectionData GeoRange GeoRangePadding GeoRegionValuePlot GeoResolution GeoScaleBar GeoServer GeoSmoothHistogram GeoStreamPlot GeoStyling GeoStylingImageFunction GeoVariant GeoVector GeoVectorENU GeoVectorPlot GeoVectorXYZ GeoVisibleRegion GeoVisibleRegionBoundary GeoWithinQ GeoZoomLevel GestureHandler GestureHandlerTag Get GetBoundingBoxSizePacket GetContext GetEnvironment GetFileName GetFrontEndOptionsDataPacket GetLinebreakInformationPacket GetMenusPacket GetPageBreakInformationPacket Glaisher GlobalClusteringCoefficient GlobalPreferences GlobalSession Glow GoldenAngle GoldenRatio GompertzMakehamDistribution GoodmanKruskalGamma GoodmanKruskalGammaTest Goto Grad Gradient GradientFilter GradientOrientationFilter GrammarApply GrammarRules GrammarToken Graph Graph3D GraphAssortativity GraphAutomorphismGroup GraphCenter GraphComplement GraphData GraphDensity GraphDiameter GraphDifference GraphDisjointUnion GraphDistance GraphDistanceMatrix GraphElementData GraphEmbedding GraphHighlight GraphHighlightStyle GraphHub Graphics Graphics3D Graphics3DBox Graphics3DBoxOptions GraphicsArray GraphicsBaseline GraphicsBox GraphicsBoxOptions GraphicsColor GraphicsColumn GraphicsComplex GraphicsComplex3DBox GraphicsComplex3DBoxOptions GraphicsComplexBox GraphicsComplexBoxOptions GraphicsContents GraphicsData GraphicsGrid GraphicsGridBox GraphicsGroup GraphicsGroup3DBox GraphicsGroup3DBoxOptions GraphicsGroupBox GraphicsGroupBoxOptions GraphicsGrouping GraphicsHighlightColor GraphicsRow GraphicsSpacing GraphicsStyle GraphIntersection GraphLayout GraphLinkEfficiency GraphPeriphery GraphPlot GraphPlot3D GraphPower GraphPropertyDistribution GraphQ GraphRadius GraphReciprocity GraphRoot GraphStyle GraphUnion Gray GrayLevel Greater GreaterEqual GreaterEqualLess GreaterEqualThan GreaterFullEqual GreaterGreater GreaterLess GreaterSlantEqual GreaterThan GreaterTilde Green GreenFunction Grid GridBaseline GridBox GridBoxAlignment GridBoxBackground GridBoxDividers GridBoxFrame GridBoxItemSize GridBoxItemStyle GridBoxOptions GridBoxSpacings GridCreationSettings GridDefaultElement GridElementStyleOptions GridFrame GridFrameMargins GridGraph GridLines GridLinesStyle GroebnerBasis GroupActionBase GroupBy GroupCentralizer GroupElementFromWord GroupElementPosition GroupElementQ GroupElements GroupElementToWord GroupGenerators Groupings GroupMultiplicationTable GroupOrbits GroupOrder GroupPageBreakWithin GroupSetwiseStabilizer GroupStabilizer GroupStabilizerChain GroupTogetherGrouping GroupTogetherNestedGrouping GrowCutComponents Gudermannian GuidedFilter GumbelDistribution' +
-      'HaarWavelet HadamardMatrix HalfLine HalfNormalDistribution HalfPlane HalfSpace HamiltonianGraphQ HammingDistance HammingWindow HandlerFunctions HandlerFunctionsKeys HankelH1 HankelH2 HankelMatrix HankelTransform HannPoissonWindow HannWindow HaradaNortonGroupHN HararyGraph HarmonicMean HarmonicMeanFilter HarmonicNumber Hash Haversine HazardFunction Head HeadCompose HeaderLines Heads HeavisideLambda HeavisidePi HeavisideTheta HeldGroupHe HeldPart HelpBrowserLookup HelpBrowserNotebook HelpBrowserSettings Here HermiteDecomposition HermiteH HermitianMatrixQ HessenbergDecomposition Hessian HexadecimalCharacter Hexahedron HexahedronBox HexahedronBoxOptions HiddenMarkovProcess HiddenSurface Highlighted HighlightGraph HighlightImage HighlightMesh HighpassFilter HigmanSimsGroupHS HilbertCurve HilbertFilter HilbertMatrix Histogram Histogram3D HistogramDistribution HistogramList HistogramTransform HistogramTransformInterpolation HistoricalPeriodData HitMissTransform HITSCentrality HjorthDistribution HodgeDual HoeffdingD HoeffdingDTest Hold HoldAll HoldAllComplete HoldComplete HoldFirst HoldForm HoldPattern HoldRest HolidayCalendar HomeDirectory HomePage Horizontal HorizontalForm HorizontalGauge HorizontalScrollPosition HornerForm HostLookup HotellingTSquareDistribution HoytDistribution HTMLSave HTTPErrorResponse HTTPRedirect HTTPRequest HTTPRequestData HTTPResponse Hue HumanGrowthData HumpDownHump HumpEqual HurwitzLerchPhi HurwitzZeta HyperbolicDistribution HypercubeGraph HyperexponentialDistribution Hyperfactorial Hypergeometric0F1 Hypergeometric0F1Regularized Hypergeometric1F1 Hypergeometric1F1Regularized Hypergeometric2F1 Hypergeometric2F1Regularized HypergeometricDistribution HypergeometricPFQ HypergeometricPFQRegularized HypergeometricU Hyperlink HyperlinkCreationSettings Hyperplane Hyphenation HyphenationOptions HypoexponentialDistribution HypothesisTestData' +
-      'I IconData Iconize IconizedObject IconRules Icosahedron Identity IdentityMatrix If IgnoreCase IgnoreDiacritics IgnorePunctuation IgnoreSpellCheck IgnoringInactive Im Image Image3D Image3DProjection Image3DSlices ImageAccumulate ImageAdd ImageAdjust ImageAlign ImageApply ImageApplyIndexed ImageAspectRatio ImageAssemble ImageAugmentationLayer ImageBoundingBoxes ImageCache ImageCacheValid ImageCapture ImageCaptureFunction ImageCases ImageChannels ImageClip ImageCollage ImageColorSpace ImageCompose ImageContainsQ ImageContents ImageConvolve ImageCooccurrence ImageCorners ImageCorrelate ImageCorrespondingPoints ImageCrop ImageData ImageDeconvolve ImageDemosaic ImageDifference ImageDimensions ImageDisplacements ImageDistance ImageEffect ImageExposureCombine ImageFeatureTrack ImageFileApply ImageFileFilter ImageFileScan ImageFilter ImageFocusCombine ImageForestingComponents ImageFormattingWidth ImageForwardTransformation ImageGraphics ImageHistogram ImageIdentify ImageInstanceQ ImageKeypoints ImageLevels ImageLines ImageMargins ImageMarker ImageMarkers ImageMeasurements ImageMesh ImageMultiply ImageOffset ImagePad ImagePadding ImagePartition ImagePeriodogram ImagePerspectiveTransformation ImagePosition ImagePreviewFunction ImagePyramid ImagePyramidApply ImageQ ImageRangeCache ImageRecolor ImageReflect ImageRegion ImageResize ImageResolution ImageRestyle ImageRotate ImageRotated ImageSaliencyFilter ImageScaled ImageScan ImageSize ImageSizeAction ImageSizeCache ImageSizeMultipliers ImageSizeRaw ImageSubtract ImageTake ImageTransformation ImageTrim ImageType ImageValue ImageValuePositions ImagingDevice ImplicitRegion Implies Import ImportAutoReplacements ImportByteArray ImportOptions ImportString ImprovementImportance In Inactivate Inactive IncidenceGraph IncidenceList IncidenceMatrix IncludeAromaticBonds IncludeConstantBasis IncludeDefinitions IncludeDirectories IncludeFileExtension IncludeGeneratorTasks IncludeHydrogens IncludeInflections IncludeMetaInformation IncludePods IncludeQuantities IncludeRelatedTables IncludeSingularTerm IncludeWindowTimes Increment IndefiniteMatrixQ Indent IndentingNewlineSpacings IndentMaxFraction IndependenceTest IndependentEdgeSetQ IndependentPhysicalQuantity IndependentUnit IndependentUnitDimension IndependentVertexSetQ Indeterminate IndeterminateThreshold IndexCreationOptions Indexed IndexGraph IndexTag Inequality InexactNumberQ InexactNumbers InfiniteLine InfinitePlane Infinity Infix InflationAdjust InflationMethod Information InformationData InformationDataGrid Inherited InheritScope InhomogeneousPoissonProcess InitialEvaluationHistory Initialization InitializationCell InitializationCellEvaluation InitializationCellWarning InitializationObjects InitializationValue Initialize InitialSeeding InlineCounterAssignments InlineCounterIncrements InlineRules Inner InnerPolygon InnerPolyhedron Inpaint Input InputAliases InputAssumptions InputAutoReplacements InputField InputFieldBox InputFieldBoxOptions InputForm InputGrouping InputNamePacket InputNotebook InputPacket InputSettings InputStream InputString InputStringPacket InputToBoxFormPacket Insert InsertionFunction InsertionPointObject InsertLinebreaks InsertResults Inset Inset3DBox Inset3DBoxOptions InsetBox InsetBoxOptions Insphere Install InstallService InstanceNormalizationLayer InString Integer IntegerDigits IntegerExponent IntegerLength IntegerName IntegerPart IntegerPartitions IntegerQ IntegerReverse Integers IntegerString Integral Integrate Interactive InteractiveTradingChart Interlaced Interleaving InternallyBalancedDecomposition InterpolatingFunction InterpolatingPolynomial Interpolation InterpolationOrder InterpolationPoints InterpolationPrecision Interpretation InterpretationBox InterpretationBoxOptions InterpretationFunction Interpreter InterpretTemplate InterquartileRange Interrupt InterruptSettings IntersectingQ Intersection Interval IntervalIntersection IntervalMarkers IntervalMarkersStyle IntervalMemberQ IntervalSlider IntervalUnion Into Inverse InverseBetaRegularized InverseCDF InverseChiSquareDistribution InverseContinuousWaveletTransform InverseDistanceTransform InverseEllipticNomeQ InverseErf InverseErfc InverseFourier InverseFourierCosTransform InverseFourierSequenceTransform InverseFourierSinTransform InverseFourierTransform InverseFunction InverseFunctions InverseGammaDistribution InverseGammaRegularized InverseGaussianDistribution InverseGudermannian InverseHankelTransform InverseHaversine InverseImagePyramid InverseJacobiCD InverseJacobiCN InverseJacobiCS InverseJacobiDC InverseJacobiDN InverseJacobiDS InverseJacobiNC InverseJacobiND InverseJacobiNS InverseJacobiSC InverseJacobiSD InverseJacobiSN InverseLaplaceTransform InverseMellinTransform InversePermutation InverseRadon InverseRadonTransform InverseSeries InverseShortTimeFourier InverseSpectrogram InverseSurvivalFunction InverseTransformedRegion InverseWaveletTransform InverseWeierstrassP InverseWishartMatrixDistribution InverseZTransform Invisible InvisibleApplication InvisibleTimes IPAddress IrreduciblePolynomialQ IslandData IsolatingInterval IsomorphicGraphQ IsotopeData Italic Item ItemAspectRatio ItemBox ItemBoxOptions ItemSize ItemStyle ItoProcess' +
-      'JaccardDissimilarity JacobiAmplitude Jacobian JacobiCD JacobiCN JacobiCS JacobiDC JacobiDN JacobiDS JacobiNC JacobiND JacobiNS JacobiP JacobiSC JacobiSD JacobiSN JacobiSymbol JacobiZeta JankoGroupJ1 JankoGroupJ2 JankoGroupJ3 JankoGroupJ4 JarqueBeraALMTest JohnsonDistribution Join JoinAcross Joined JoinedCurve JoinedCurveBox JoinedCurveBoxOptions JoinForm JordanDecomposition JordanModelDecomposition JulianDate JuliaSetBoettcher JuliaSetIterationCount JuliaSetPlot JuliaSetPoints' +
-      'K KagiChart KaiserBesselWindow KaiserWindow KalmanEstimator KalmanFilter KarhunenLoeveDecomposition KaryTree KatzCentrality KCoreComponents KDistribution KEdgeConnectedComponents KEdgeConnectedGraphQ KelvinBei KelvinBer KelvinKei KelvinKer KendallTau KendallTauTest KernelExecute KernelFunction KernelMixtureDistribution Kernels Ket Key KeyCollisionFunction KeyComplement KeyDrop KeyDropFrom KeyExistsQ KeyFreeQ KeyIntersection KeyMap KeyMemberQ KeypointStrength Keys KeySelect KeySort KeySortBy KeyTake KeyUnion KeyValueMap KeyValuePattern Khinchin KillProcess KirchhoffGraph KirchhoffMatrix KleinInvariantJ KnapsackSolve KnightTourGraph KnotData KnownUnitQ KochCurve KolmogorovSmirnovTest KroneckerDelta KroneckerModelDecomposition KroneckerProduct KroneckerSymbol KuiperTest KumaraswamyDistribution Kurtosis KuwaharaFilter KVertexConnectedComponents KVertexConnectedGraphQ' +
-      'LABColor Label Labeled LabeledSlider LabelingFunction LabelingSize LabelStyle LabelVisibility LaguerreL LakeData LambdaComponents LambertW LaminaData LanczosWindow LandauDistribution Language LanguageCategory LanguageData LanguageIdentify LanguageOptions LaplaceDistribution LaplaceTransform Laplacian LaplacianFilter LaplacianGaussianFilter Large Larger Last Latitude LatitudeLongitude LatticeData LatticeReduce Launch LaunchKernels LayeredGraphPlot LayerSizeFunction LayoutInformation LCHColor LCM LeaderSize LeafCount LeapYearQ LearnDistribution LearnedDistribution LearningRate LearningRateMultipliers LeastSquares LeastSquaresFilterKernel Left LeftArrow LeftArrowBar LeftArrowRightArrow LeftDownTeeVector LeftDownVector LeftDownVectorBar LeftRightArrow LeftRightVector LeftTee LeftTeeArrow LeftTeeVector LeftTriangle LeftTriangleBar LeftTriangleEqual LeftUpDownVector LeftUpTeeVector LeftUpVector LeftUpVectorBar LeftVector LeftVectorBar LegendAppearance Legended LegendFunction LegendLabel LegendLayout LegendMargins LegendMarkers LegendMarkerSize LegendreP LegendreQ LegendreType Length LengthWhile LerchPhi Less LessEqual LessEqualGreater LessEqualThan LessFullEqual LessGreater LessLess LessSlantEqual LessThan LessTilde LetterCharacter LetterCounts LetterNumber LetterQ Level LeveneTest LeviCivitaTensor LevyDistribution Lexicographic LibraryDataType LibraryFunction LibraryFunctionError LibraryFunctionInformation LibraryFunctionLoad LibraryFunctionUnload LibraryLoad LibraryUnload LicenseID LiftingFilterData LiftingWaveletTransform LightBlue LightBrown LightCyan Lighter LightGray LightGreen Lighting LightingAngle LightMagenta LightOrange LightPink LightPurple LightRed LightSources LightYellow Likelihood Limit LimitsPositioning LimitsPositioningTokens LindleyDistribution Line Line3DBox Line3DBoxOptions LinearFilter LinearFractionalOptimization LinearFractionalTransform LinearGradientImage LinearizingTransformationData LinearLayer LinearModelFit LinearOffsetFunction LinearOptimization LinearProgramming LinearRecurrence LinearSolve LinearSolveFunction LineBox LineBoxOptions LineBreak LinebreakAdjustments LineBreakChart LinebreakSemicolonWeighting LineBreakWithin LineColor LineGraph LineIndent LineIndentMaxFraction LineIntegralConvolutionPlot LineIntegralConvolutionScale LineLegend LineOpacity LineSpacing LineWrapParts LinkActivate LinkClose LinkConnect LinkConnectedQ LinkCreate LinkError LinkFlush LinkFunction LinkHost LinkInterrupt LinkLaunch LinkMode LinkObject LinkOpen LinkOptions LinkPatterns LinkProtocol LinkRankCentrality LinkRead LinkReadHeld LinkReadyQ Links LinkService LinkWrite LinkWriteHeld LiouvilleLambda List Listable ListAnimate ListContourPlot ListContourPlot3D ListConvolve ListCorrelate ListCurvePathPlot ListDeconvolve ListDensityPlot ListDensityPlot3D Listen ListFormat ListFourierSequenceTransform ListInterpolation ListLineIntegralConvolutionPlot ListLinePlot ListLogLinearPlot ListLogLogPlot ListLogPlot ListPicker ListPickerBox ListPickerBoxBackground ListPickerBoxOptions ListPlay ListPlot ListPlot3D ListPointPlot3D ListPolarPlot ListQ ListSliceContourPlot3D ListSliceDensityPlot3D ListSliceVectorPlot3D ListStepPlot ListStreamDensityPlot ListStreamPlot ListSurfacePlot3D ListVectorDensityPlot ListVectorPlot ListVectorPlot3D ListZTransform Literal LiteralSearch LocalAdaptiveBinarize LocalCache LocalClusteringCoefficient LocalizeDefinitions LocalizeVariables LocalObject LocalObjects LocalResponseNormalizationLayer LocalSubmit LocalSymbol LocalTime LocalTimeZone LocationEquivalenceTest LocationTest Locator LocatorAutoCreate LocatorBox LocatorBoxOptions LocatorCentering LocatorPane LocatorPaneBox LocatorPaneBoxOptions LocatorRegion Locked Log Log10 Log2 LogBarnesG LogGamma LogGammaDistribution LogicalExpand LogIntegral LogisticDistribution LogisticSigmoid LogitModelFit LogLikelihood LogLinearPlot LogLogisticDistribution LogLogPlot LogMultinormalDistribution LogNormalDistribution LogPlot LogRankTest LogSeriesDistribution LongEqual Longest LongestCommonSequence LongestCommonSequencePositions LongestCommonSubsequence LongestCommonSubsequencePositions LongestMatch LongestOrderedSequence LongForm Longitude LongLeftArrow LongLeftRightArrow LongRightArrow LongShortTermMemoryLayer Lookup Loopback LoopFreeGraphQ LossFunction LowerCaseQ LowerLeftArrow LowerRightArrow LowerTriangularize LowerTriangularMatrixQ LowpassFilter LQEstimatorGains LQGRegulator LQOutputRegulatorGains LQRegulatorGains LUBackSubstitution LucasL LuccioSamiComponents LUDecomposition LunarEclipse LUVColor LyapunovSolve LyonsGroupLy' +
-      'MachineID MachineName MachineNumberQ MachinePrecision MacintoshSystemPageSetup Magenta Magnification Magnify MailAddressValidation MailExecute MailFolder MailItem MailReceiverFunction MailResponseFunction MailSearch MailServerConnect MailServerConnection MailSettings MainSolve MaintainDynamicCaches Majority MakeBoxes MakeExpression MakeRules ManagedLibraryExpressionID ManagedLibraryExpressionQ MandelbrotSetBoettcher MandelbrotSetDistance MandelbrotSetIterationCount MandelbrotSetMemberQ MandelbrotSetPlot MangoldtLambda ManhattanDistance Manipulate Manipulator MannedSpaceMissionData MannWhitneyTest MantissaExponent Manual Map MapAll MapAt MapIndexed MAProcess MapThread MarchenkoPasturDistribution MarcumQ MardiaCombinedTest MardiaKurtosisTest MardiaSkewnessTest MarginalDistribution MarkovProcessProperties Masking MatchingDissimilarity MatchLocalNameQ MatchLocalNames MatchQ Material MathematicalFunctionData MathematicaNotation MathieuC MathieuCharacteristicA MathieuCharacteristicB MathieuCharacteristicExponent MathieuCPrime MathieuGroupM11 MathieuGroupM12 MathieuGroupM22 MathieuGroupM23 MathieuGroupM24 MathieuS MathieuSPrime MathMLForm MathMLText Matrices MatrixExp MatrixForm MatrixFunction MatrixLog MatrixNormalDistribution MatrixPlot MatrixPower MatrixPropertyDistribution MatrixQ MatrixRank MatrixTDistribution Max MaxBend MaxCellMeasure MaxColorDistance MaxDetect MaxDuration MaxExtraBandwidths MaxExtraConditions MaxFeatureDisplacement MaxFeatures MaxFilter MaximalBy Maximize MaxItems MaxIterations MaxLimit MaxMemoryUsed MaxMixtureKernels MaxOverlapFraction MaxPlotPoints MaxPoints MaxRecursion MaxStableDistribution MaxStepFraction MaxSteps MaxStepSize MaxTrainingRounds MaxValue MaxwellDistribution MaxWordGap McLaughlinGroupMcL Mean MeanAbsoluteLossLayer MeanAround MeanClusteringCoefficient MeanDegreeConnectivity MeanDeviation MeanFilter MeanGraphDistance MeanNeighborDegree MeanShift MeanShiftFilter MeanSquaredLossLayer Median MedianDeviation MedianFilter MedicalTestData Medium MeijerG MeijerGReduce MeixnerDistribution MellinConvolve MellinTransform MemberQ MemoryAvailable MemoryConstrained MemoryConstraint MemoryInUse MengerMesh Menu MenuAppearance MenuCommandKey MenuEvaluator MenuItem MenuList MenuPacket MenuSortingValue MenuStyle MenuView Merge MergeDifferences MergingFunction MersennePrimeExponent MersennePrimeExponentQ Mesh MeshCellCentroid MeshCellCount MeshCellHighlight MeshCellIndex MeshCellLabel MeshCellMarker MeshCellMeasure MeshCellQuality MeshCells MeshCellShapeFunction MeshCellStyle MeshCoordinates MeshFunctions MeshPrimitives MeshQualityGoal MeshRange MeshRefinementFunction MeshRegion MeshRegionQ MeshShading MeshStyle Message MessageDialog MessageList MessageName MessageObject MessageOptions MessagePacket Messages MessagesNotebook MetaCharacters MetaInformation MeteorShowerData Method MethodOptions MexicanHatWavelet MeyerWavelet Midpoint Min MinColorDistance MinDetect MineralData MinFilter MinimalBy MinimalPolynomial MinimalStateSpaceModel Minimize MinimumTimeIncrement MinIntervalSize MinkowskiQuestionMark MinLimit MinMax MinorPlanetData Minors MinRecursion MinSize MinStableDistribution Minus MinusPlus MinValue Missing MissingBehavior MissingDataMethod MissingDataRules MissingQ MissingString MissingStyle MissingValuePattern MittagLefflerE MixedFractionParts MixedGraphQ MixedMagnitude MixedRadix MixedRadixQuantity MixedUnit MixtureDistribution Mod Modal Mode Modular ModularInverse ModularLambda Module Modulus MoebiusMu Molecule MoleculeContainsQ MoleculeEquivalentQ MoleculeGraph MoleculeModify MoleculePattern MoleculePlot MoleculePlot3D MoleculeProperty MoleculeQ MoleculeValue Moment Momentary MomentConvert MomentEvaluate MomentGeneratingFunction MomentOfInertia Monday Monitor MonomialList MonomialOrder MonsterGroupM MoonPhase MoonPosition MorletWavelet MorphologicalBinarize MorphologicalBranchPoints MorphologicalComponents MorphologicalEulerNumber MorphologicalGraph MorphologicalPerimeter MorphologicalTransform MortalityData Most MountainData MouseAnnotation MouseAppearance MouseAppearanceTag MouseButtons Mouseover MousePointerNote MousePosition MovieData MovingAverage MovingMap MovingMedian MoyalDistribution Multicolumn MultiedgeStyle MultigraphQ MultilaunchWarning MultiLetterItalics MultiLetterStyle MultilineFunction Multinomial MultinomialDistribution MultinormalDistribution MultiplicativeOrder Multiplicity MultiplySides Multiselection MultivariateHypergeometricDistribution MultivariatePoissonDistribution MultivariateTDistribution' +
-      'N NakagamiDistribution NameQ Names NamespaceBox NamespaceBoxOptions Nand NArgMax NArgMin NBernoulliB NBodySimulation NBodySimulationData NCache NDEigensystem NDEigenvalues NDSolve NDSolveValue Nearest NearestFunction NearestNeighborGraph NearestTo NebulaData NeedCurrentFrontEndPackagePacket NeedCurrentFrontEndSymbolsPacket NeedlemanWunschSimilarity Needs Negative NegativeBinomialDistribution NegativeDefiniteMatrixQ NegativeIntegers NegativeMultinomialDistribution NegativeRationals NegativeReals NegativeSemidefiniteMatrixQ NeighborhoodData NeighborhoodGraph Nest NestedGreaterGreater NestedLessLess NestedScriptRules NestGraph NestList NestWhile NestWhileList NetAppend NetBidirectionalOperator NetChain NetDecoder NetDelete NetDrop NetEncoder NetEvaluationMode NetExtract NetFlatten NetFoldOperator NetGraph NetInformation NetInitialize NetInsert NetInsertSharedArrays NetJoin NetMapOperator NetMapThreadOperator NetMeasurements NetModel NetNestOperator NetPairEmbeddingOperator NetPort NetPortGradient NetPrepend NetRename NetReplace NetReplacePart NetSharedArray NetStateObject NetTake NetTrain NetTrainResultsObject NetworkPacketCapture NetworkPacketRecording NetworkPacketRecordingDuring NetworkPacketTrace NeumannValue NevilleThetaC NevilleThetaD NevilleThetaN NevilleThetaS NewPrimitiveStyle NExpectation Next NextCell NextDate NextPrime NextScheduledTaskTime NHoldAll NHoldFirst NHoldRest NicholsGridLines NicholsPlot NightHemisphere NIntegrate NMaximize NMaxValue NMinimize NMinValue NominalVariables NonAssociative NoncentralBetaDistribution NoncentralChiSquareDistribution NoncentralFRatioDistribution NoncentralStudentTDistribution NonCommutativeMultiply NonConstants NondimensionalizationTransform None NoneTrue NonlinearModelFit NonlinearStateSpaceModel NonlocalMeansFilter NonNegative NonNegativeIntegers NonNegativeRationals NonNegativeReals NonPositive NonPositiveIntegers NonPositiveRationals NonPositiveReals Nor NorlundB Norm Normal NormalDistribution NormalGrouping NormalizationLayer Normalize Normalized NormalizedSquaredEuclideanDistance NormalMatrixQ NormalsFunction NormFunction Not NotCongruent NotCupCap NotDoubleVerticalBar Notebook NotebookApply NotebookAutoSave NotebookClose NotebookConvertSettings NotebookCreate NotebookCreateReturnObject NotebookDefault NotebookDelete NotebookDirectory NotebookDynamicExpression NotebookEvaluate NotebookEventActions NotebookFileName NotebookFind NotebookFindReturnObject NotebookGet NotebookGetLayoutInformationPacket NotebookGetMisspellingsPacket NotebookImport NotebookInformation NotebookInterfaceObject NotebookLocate NotebookObject NotebookOpen NotebookOpenReturnObject NotebookPath NotebookPrint NotebookPut NotebookPutReturnObject NotebookRead NotebookResetGeneratedCells Notebooks NotebookSave NotebookSaveAs NotebookSelection NotebookSetupLayoutInformationPacket NotebooksMenu NotebookTemplate NotebookWrite NotElement NotEqualTilde NotExists NotGreater NotGreaterEqual NotGreaterFullEqual NotGreaterGreater NotGreaterLess NotGreaterSlantEqual NotGreaterTilde Nothing NotHumpDownHump NotHumpEqual NotificationFunction NotLeftTriangle NotLeftTriangleBar NotLeftTriangleEqual NotLess NotLessEqual NotLessFullEqual NotLessGreater NotLessLess NotLessSlantEqual NotLessTilde NotNestedGreaterGreater NotNestedLessLess NotPrecedes NotPrecedesEqual NotPrecedesSlantEqual NotPrecedesTilde NotReverseElement NotRightTriangle NotRightTriangleBar NotRightTriangleEqual NotSquareSubset NotSquareSubsetEqual NotSquareSuperset NotSquareSupersetEqual NotSubset NotSubsetEqual NotSucceeds NotSucceedsEqual NotSucceedsSlantEqual NotSucceedsTilde NotSuperset NotSupersetEqual NotTilde NotTildeEqual NotTildeFullEqual NotTildeTilde NotVerticalBar Now NoWhitespace NProbability NProduct NProductFactors NRoots NSolve NSum NSumTerms NuclearExplosionData NuclearReactorData Null NullRecords NullSpace NullWords Number NumberCompose NumberDecompose NumberExpand NumberFieldClassNumber NumberFieldDiscriminant NumberFieldFundamentalUnits NumberFieldIntegralBasis NumberFieldNormRepresentatives NumberFieldRegulator NumberFieldRootsOfUnity NumberFieldSignature NumberForm NumberFormat NumberLinePlot NumberMarks NumberMultiplier NumberPadding NumberPoint NumberQ NumberSeparator NumberSigns NumberString Numerator NumeratorDenominator NumericalOrder NumericalSort NumericArray NumericArrayQ NumericArrayType NumericFunction NumericQ NuttallWindow NValues NyquistGridLines NyquistPlot' +
-      'O ObservabilityGramian ObservabilityMatrix ObservableDecomposition ObservableModelQ OceanData Octahedron OddQ Off Offset OLEData On ONanGroupON Once OneIdentity Opacity OpacityFunction OpacityFunctionScaling Open OpenAppend Opener OpenerBox OpenerBoxOptions OpenerView OpenFunctionInspectorPacket Opening OpenRead OpenSpecialOptions OpenTemporary OpenWrite Operate OperatingSystem OptimumFlowData Optional OptionalElement OptionInspectorSettings OptionQ Options OptionsPacket OptionsPattern OptionValue OptionValueBox OptionValueBoxOptions Or Orange Order OrderDistribution OrderedQ Ordering OrderingBy OrderingLayer Orderless OrderlessPatternSequence OrnsteinUhlenbeckProcess Orthogonalize OrthogonalMatrixQ Out Outer OuterPolygon OuterPolyhedron OutputAutoOverwrite OutputControllabilityMatrix OutputControllableModelQ OutputForm OutputFormData OutputGrouping OutputMathEditExpression OutputNamePacket OutputResponse OutputSizeLimit OutputStream Over OverBar OverDot Overflow OverHat Overlaps Overlay OverlayBox OverlayBoxOptions Overscript OverscriptBox OverscriptBoxOptions OverTilde OverVector OverwriteTarget OwenT OwnValues' +
-      'Package PackingMethod PaddedForm Padding PaddingLayer PaddingSize PadeApproximant PadLeft PadRight PageBreakAbove PageBreakBelow PageBreakWithin PageFooterLines PageFooters PageHeaderLines PageHeaders PageHeight PageRankCentrality PageTheme PageWidth Pagination PairedBarChart PairedHistogram PairedSmoothHistogram PairedTTest PairedZTest PaletteNotebook PalettePath PalindromeQ Pane PaneBox PaneBoxOptions Panel PanelBox PanelBoxOptions Paneled PaneSelector PaneSelectorBox PaneSelectorBoxOptions PaperWidth ParabolicCylinderD ParagraphIndent ParagraphSpacing ParallelArray ParallelCombine ParallelDo Parallelepiped ParallelEvaluate Parallelization Parallelize ParallelMap ParallelNeeds Parallelogram ParallelProduct ParallelSubmit ParallelSum ParallelTable ParallelTry Parameter ParameterEstimator ParameterMixtureDistribution ParameterVariables ParametricFunction ParametricNDSolve ParametricNDSolveValue ParametricPlot ParametricPlot3D ParametricRegion ParentBox ParentCell ParentConnect ParentDirectory ParentForm Parenthesize ParentList ParentNotebook ParetoDistribution ParetoPickandsDistribution ParkData Part PartBehavior PartialCorrelationFunction PartialD ParticleAcceleratorData ParticleData Partition PartitionGranularity PartitionsP PartitionsQ PartLayer PartOfSpeech PartProtection ParzenWindow PascalDistribution PassEventsDown PassEventsUp Paste PasteAutoQuoteCharacters PasteBoxFormInlineCells PasteButton Path PathGraph PathGraphQ Pattern PatternSequence PatternTest PauliMatrix PaulWavelet Pause PausedTime PDF PeakDetect PeanoCurve PearsonChiSquareTest PearsonCorrelationTest PearsonDistribution PercentForm PerfectNumber PerfectNumberQ PerformanceGoal Perimeter PeriodicBoundaryCondition PeriodicInterpolation Periodogram PeriodogramArray Permanent Permissions PermissionsGroup PermissionsGroupMemberQ PermissionsGroups PermissionsKey PermissionsKeys PermutationCycles PermutationCyclesQ PermutationGroup PermutationLength PermutationList PermutationListQ PermutationMax PermutationMin PermutationOrder PermutationPower PermutationProduct PermutationReplace Permutations PermutationSupport Permute PeronaMalikFilter Perpendicular PerpendicularBisector PersistenceLocation PersistenceTime PersistentObject PersistentObjects PersistentValue PersonData PERTDistribution PetersenGraph PhaseMargins PhaseRange PhysicalSystemData Pi Pick PIDData PIDDerivativeFilter PIDFeedforward PIDTune Piecewise PiecewiseExpand PieChart PieChart3D PillaiTrace PillaiTraceTest PingTime Pink PitchRecognize Pivoting PixelConstrained PixelValue PixelValuePositions Placed Placeholder PlaceholderReplace Plain PlanarAngle PlanarGraph PlanarGraphQ PlanckRadiationLaw PlaneCurveData PlanetaryMoonData PlanetData PlantData Play PlayRange Plot Plot3D Plot3Matrix PlotDivision PlotJoined PlotLabel PlotLabels PlotLayout PlotLegends PlotMarkers PlotPoints PlotRange PlotRangeClipping PlotRangeClipPlanesStyle PlotRangePadding PlotRegion PlotStyle PlotTheme Pluralize Plus PlusMinus Pochhammer PodStates PodWidth Point Point3DBox Point3DBoxOptions PointBox PointBoxOptions PointFigureChart PointLegend PointSize PoissonConsulDistribution PoissonDistribution PoissonProcess PoissonWindow PolarAxes PolarAxesOrigin PolarGridLines PolarPlot PolarTicks PoleZeroMarkers PolyaAeppliDistribution PolyGamma Polygon Polygon3DBox Polygon3DBoxOptions PolygonalNumber PolygonAngle PolygonBox PolygonBoxOptions PolygonCoordinates PolygonDecomposition PolygonHoleScale PolygonIntersections PolygonScale Polyhedron PolyhedronAngle PolyhedronCoordinates PolyhedronData PolyhedronDecomposition PolyhedronGenus PolyLog PolynomialExtendedGCD PolynomialForm PolynomialGCD PolynomialLCM PolynomialMod PolynomialQ PolynomialQuotient PolynomialQuotientRemainder PolynomialReduce PolynomialRemainder Polynomials PoolingLayer PopupMenu PopupMenuBox PopupMenuBoxOptions PopupView PopupWindow Position PositionIndex Positive PositiveDefiniteMatrixQ PositiveIntegers PositiveRationals PositiveReals PositiveSemidefiniteMatrixQ PossibleZeroQ Postfix PostScript Power PowerDistribution PowerExpand PowerMod PowerModList PowerRange PowerSpectralDensity PowersRepresentations PowerSymmetricPolynomial Precedence PrecedenceForm Precedes PrecedesEqual PrecedesSlantEqual PrecedesTilde Precision PrecisionGoal PreDecrement Predict PredictionRoot PredictorFunction PredictorInformation PredictorMeasurements PredictorMeasurementsObject PreemptProtect PreferencesPath Prefix PreIncrement Prepend PrependLayer PrependTo PreprocessingRules PreserveColor PreserveImageOptions Previous PreviousCell PreviousDate PriceGraphDistribution PrimaryPlaceholder Prime PrimeNu PrimeOmega PrimePi PrimePowerQ PrimeQ Primes PrimeZetaP PrimitivePolynomialQ PrimitiveRoot PrimitiveRootList PrincipalComponents PrincipalValue Print PrintableASCIIQ PrintAction PrintForm PrintingCopies PrintingOptions PrintingPageRange PrintingStartingPageNumber PrintingStyleEnvironment Printout3D Printout3DPreviewer PrintPrecision PrintTemporary Prism PrismBox PrismBoxOptions PrivateCellOptions PrivateEvaluationOptions PrivateFontOptions PrivateFrontEndOptions PrivateKey PrivateNotebookOptions PrivatePaths Probability ProbabilityDistribution ProbabilityPlot ProbabilityPr ProbabilityScalePlot ProbitModelFit ProcessConnection ProcessDirectory ProcessEnvironment Processes ProcessEstimator ProcessInformation ProcessObject ProcessParameterAssumptions ProcessParameterQ ProcessStateDomain ProcessStatus ProcessTimeDomain Product ProductDistribution ProductLog ProgressIndicator ProgressIndicatorBox ProgressIndicatorBoxOptions Projection Prolog PromptForm ProofObject Properties Property PropertyList PropertyValue Proportion Proportional Protect Protected ProteinData Pruning PseudoInverse PsychrometricPropertyData PublicKey PublisherID PulsarData PunctuationCharacter Purple Put PutAppend Pyramid PyramidBox PyramidBoxOptions' +
-      'QBinomial QFactorial QGamma QHypergeometricPFQ QnDispersion QPochhammer QPolyGamma QRDecomposition QuadraticIrrationalQ QuadraticOptimization Quantile QuantilePlot Quantity QuantityArray QuantityDistribution QuantityForm QuantityMagnitude QuantityQ QuantityUnit QuantityVariable QuantityVariableCanonicalUnit QuantityVariableDimensions QuantityVariableIdentifier QuantityVariablePhysicalQuantity Quartics QuartileDeviation Quartiles QuartileSkewness Query QueueingNetworkProcess QueueingProcess QueueProperties Quiet Quit Quotient QuotientRemainder' +
-      'RadialGradientImage RadialityCentrality RadicalBox RadicalBoxOptions RadioButton RadioButtonBar RadioButtonBox RadioButtonBoxOptions Radon RadonTransform RamanujanTau RamanujanTauL RamanujanTauTheta RamanujanTauZ Ramp Random RandomChoice RandomColor RandomComplex RandomEntity RandomFunction RandomGeoPosition RandomGraph RandomImage RandomInstance RandomInteger RandomPermutation RandomPoint RandomPolygon RandomPolyhedron RandomPrime RandomReal RandomSample RandomSeed RandomSeeding RandomVariate RandomWalkProcess RandomWord Range RangeFilter RangeSpecification RankedMax RankedMin RarerProbability Raster Raster3D Raster3DBox Raster3DBoxOptions RasterArray RasterBox RasterBoxOptions Rasterize RasterSize Rational RationalFunctions Rationalize Rationals Ratios RawArray RawBoxes RawData RawMedium RayleighDistribution Re Read ReadByteArray ReadLine ReadList ReadProtected ReadString Real RealAbs RealBlockDiagonalForm RealDigits RealExponent Reals RealSign Reap RecognitionPrior RecognitionThreshold Record RecordLists RecordSeparators Rectangle RectangleBox RectangleBoxOptions RectangleChart RectangleChart3D RectangularRepeatingElement RecurrenceFilter RecurrenceTable RecurringDigitsForm Red Reduce RefBox ReferenceLineStyle ReferenceMarkers ReferenceMarkerStyle Refine ReflectionMatrix ReflectionTransform Refresh RefreshRate Region RegionBinarize RegionBoundary RegionBounds RegionCentroid RegionDifference RegionDimension RegionDisjoint RegionDistance RegionDistanceFunction RegionEmbeddingDimension RegionEqual RegionFunction RegionImage RegionIntersection RegionMeasure RegionMember RegionMemberFunction RegionMoment RegionNearest RegionNearestFunction RegionPlot RegionPlot3D RegionProduct RegionQ RegionResize RegionSize RegionSymmetricDifference RegionUnion RegionWithin RegisterExternalEvaluator RegularExpression Regularization RegularlySampledQ RegularPolygon ReIm ReImLabels ReImPlot ReImStyle Reinstall RelationalDatabase RelationGraph Release ReleaseHold ReliabilityDistribution ReliefImage ReliefPlot RemoteAuthorizationCaching RemoteConnect RemoteConnectionObject RemoteFile RemoteRun RemoteRunProcess Remove RemoveAlphaChannel RemoveAsynchronousTask RemoveAudioStream RemoveBackground RemoveChannelListener RemoveChannelSubscribers Removed RemoveDiacritics RemoveInputStreamMethod RemoveOutputStreamMethod RemoveProperty RemoveScheduledTask RemoveUsers RenameDirectory RenameFile RenderAll RenderingOptions RenewalProcess RenkoChart RepairMesh Repeated RepeatedNull RepeatedString RepeatedTiming RepeatingElement Replace ReplaceAll ReplaceHeldPart ReplaceImageValue ReplaceList ReplacePart ReplacePixelValue ReplaceRepeated ReplicateLayer RequiredPhysicalQuantities Resampling ResamplingAlgorithmData ResamplingMethod Rescale RescalingTransform ResetDirectory ResetMenusPacket ResetScheduledTask ReshapeLayer Residue ResizeLayer Resolve ResourceAcquire ResourceData ResourceFunction ResourceObject ResourceRegister ResourceRemove ResourceSearch ResourceSubmissionObject ResourceSubmit ResourceSystemBase ResourceUpdate ResponseForm Rest RestartInterval Restricted Resultant ResumePacket Return ReturnEntersInput ReturnExpressionPacket ReturnInputFormPacket ReturnPacket ReturnReceiptFunction ReturnTextPacket Reverse ReverseBiorthogonalSplineWavelet ReverseElement ReverseEquilibrium ReverseGraph ReverseSort ReverseSortBy ReverseUpEquilibrium RevolutionAxis RevolutionPlot3D RGBColor RiccatiSolve RiceDistribution RidgeFilter RiemannR RiemannSiegelTheta RiemannSiegelZ RiemannXi Riffle Right RightArrow RightArrowBar RightArrowLeftArrow RightComposition RightCosetRepresentative RightDownTeeVector RightDownVector RightDownVectorBar RightTee RightTeeArrow RightTeeVector RightTriangle RightTriangleBar RightTriangleEqual RightUpDownVector RightUpTeeVector RightUpVector RightUpVectorBar RightVector RightVectorBar RiskAchievementImportance RiskReductionImportance RogersTanimotoDissimilarity RollPitchYawAngles RollPitchYawMatrix RomanNumeral Root RootApproximant RootIntervals RootLocusPlot RootMeanSquare RootOfUnityQ RootReduce Roots RootSum Rotate RotateLabel RotateLeft RotateRight RotationAction RotationBox RotationBoxOptions RotationMatrix RotationTransform Round RoundImplies RoundingRadius Row RowAlignments RowBackgrounds RowBox RowHeights RowLines RowMinHeight RowReduce RowsEqual RowSpacings RSolve RSolveValue RudinShapiro RudvalisGroupRu Rule RuleCondition RuleDelayed RuleForm RulePlot RulerUnits Run RunProcess RunScheduledTask RunThrough RuntimeAttributes RuntimeOptions RussellRaoDissimilarity' +
-      'SameQ SameTest SampledEntityClass SampleDepth SampledSoundFunction SampledSoundList SampleRate SamplingPeriod SARIMAProcess SARMAProcess SASTriangle SatelliteData SatisfiabilityCount SatisfiabilityInstances SatisfiableQ Saturday Save Saveable SaveAutoDelete SaveConnection SaveDefinitions SavitzkyGolayMatrix SawtoothWave Scale Scaled ScaleDivisions ScaledMousePosition ScaleOrigin ScalePadding ScaleRanges ScaleRangeStyle ScalingFunctions ScalingMatrix ScalingTransform Scan ScheduledTask ScheduledTaskActiveQ ScheduledTaskInformation ScheduledTaskInformationData ScheduledTaskObject ScheduledTasks SchurDecomposition ScientificForm ScientificNotationThreshold ScorerGi ScorerGiPrime ScorerHi ScorerHiPrime ScreenRectangle ScreenStyleEnvironment ScriptBaselineShifts ScriptForm ScriptLevel ScriptMinSize ScriptRules ScriptSizeMultipliers Scrollbars ScrollingOptions ScrollPosition SearchAdjustment SearchIndexObject SearchIndices SearchQueryString SearchResultObject Sec Sech SechDistribution SecondOrderConeOptimization SectionGrouping SectorChart SectorChart3D SectorOrigin SectorSpacing SecuredAuthenticationKey SecuredAuthenticationKeys SeedRandom Select Selectable SelectComponents SelectedCells SelectedNotebook SelectFirst Selection SelectionAnimate SelectionCell SelectionCellCreateCell SelectionCellDefaultStyle SelectionCellParentStyle SelectionCreateCell SelectionDebuggerTag SelectionDuplicateCell SelectionEvaluate SelectionEvaluateCreateCell SelectionMove SelectionPlaceholder SelectionSetStyle SelectWithContents SelfLoops SelfLoopStyle SemanticImport SemanticImportString SemanticInterpretation SemialgebraicComponentInstances SemidefiniteOptimization SendMail SendMessage Sequence SequenceAlignment SequenceAttentionLayer SequenceCases SequenceCount SequenceFold SequenceFoldList SequenceForm SequenceHold SequenceLastLayer SequenceMostLayer SequencePosition SequencePredict SequencePredictorFunction SequenceReplace SequenceRestLayer SequenceReverseLayer SequenceSplit Series SeriesCoefficient SeriesData ServiceConnect ServiceDisconnect ServiceExecute ServiceObject ServiceRequest ServiceResponse ServiceSubmit SessionSubmit SessionTime Set SetAccuracy SetAlphaChannel SetAttributes Setbacks SetBoxFormNamesPacket SetCloudDirectory SetCookies SetDelayed SetDirectory SetEnvironment SetEvaluationNotebook SetFileDate SetFileLoadingContext SetNotebookStatusLine SetOptions SetOptionsPacket SetPermissions SetPrecision SetProperty SetSecuredAuthenticationKey SetSelectedNotebook SetSharedFunction SetSharedVariable SetSpeechParametersPacket SetStreamPosition SetSystemModel SetSystemOptions Setter SetterBar SetterBox SetterBoxOptions Setting SetUsers SetValue Shading Shallow ShannonWavelet ShapiroWilkTest Share SharingList Sharpen ShearingMatrix ShearingTransform ShellRegion ShenCastanMatrix ShiftedGompertzDistribution ShiftRegisterSequence Short ShortDownArrow Shortest ShortestMatch ShortestPathFunction ShortLeftArrow ShortRightArrow ShortTimeFourier ShortTimeFourierData ShortUpArrow Show ShowAutoConvert ShowAutoSpellCheck ShowAutoStyles ShowCellBracket ShowCellLabel ShowCellTags ShowClosedCellArea ShowCodeAssist ShowContents ShowControls ShowCursorTracker ShowGroupOpenCloseIcon ShowGroupOpener ShowInvisibleCharacters ShowPageBreaks ShowPredictiveInterface ShowSelection ShowShortBoxForm ShowSpecialCharacters ShowStringCharacters ShowSyntaxStyles ShrinkingDelay ShrinkWrapBoundingBox SiderealTime SiegelTheta SiegelTukeyTest SierpinskiCurve SierpinskiMesh Sign Signature SignedRankTest SignedRegionDistance SignificanceLevel SignPadding SignTest SimilarityRules SimpleGraph SimpleGraphQ SimplePolygonQ SimplePolyhedronQ Simplex Simplify Sin Sinc SinghMaddalaDistribution SingleEvaluation SingleLetterItalics SingleLetterStyle SingularValueDecomposition SingularValueList SingularValuePlot SingularValues Sinh SinhIntegral SinIntegral SixJSymbol Skeleton SkeletonTransform SkellamDistribution Skewness SkewNormalDistribution SkinStyle Skip SliceContourPlot3D SliceDensityPlot3D SliceDistribution SliceVectorPlot3D Slider Slider2D Slider2DBox Slider2DBoxOptions SliderBox SliderBoxOptions SlideView Slot SlotSequence Small SmallCircle Smaller SmithDecomposition SmithDelayCompensator SmithWatermanSimilarity SmoothDensityHistogram SmoothHistogram SmoothHistogram3D SmoothKernelDistribution SnDispersion Snippet SnubPolyhedron SocialMediaData Socket SocketConnect SocketListen SocketListener SocketObject SocketOpen SocketReadMessage SocketReadyQ Sockets SocketWaitAll SocketWaitNext SoftmaxLayer SokalSneathDissimilarity SolarEclipse SolarSystemFeatureData SolidAngle SolidData SolidRegionQ Solve SolveAlways SolveDelayed Sort SortBy SortedBy SortedEntityClass Sound SoundAndGraphics SoundNote SoundVolume SourceLink Sow Space SpaceCurveData SpaceForm Spacer Spacings Span SpanAdjustments SpanCharacterRounding SpanFromAbove SpanFromBoth SpanFromLeft SpanLineThickness SpanMaxSize SpanMinSize SpanningCharacters SpanSymmetric SparseArray SpatialGraphDistribution SpatialMedian SpatialTransformationLayer Speak SpeakTextPacket SpearmanRankTest SpearmanRho SpeciesData SpecificityGoal SpectralLineData Spectrogram SpectrogramArray Specularity SpeechRecognize SpeechSynthesize SpellingCorrection SpellingCorrectionList SpellingDictionaries SpellingDictionariesPath SpellingOptions SpellingSuggestionsPacket Sphere SphereBox SpherePoints SphericalBesselJ SphericalBesselY SphericalHankelH1 SphericalHankelH2 SphericalHarmonicY SphericalPlot3D SphericalRegion SphericalShell SpheroidalEigenvalue SpheroidalJoiningFactor SpheroidalPS SpheroidalPSPrime SpheroidalQS SpheroidalQSPrime SpheroidalRadialFactor SpheroidalS1 SpheroidalS1Prime SpheroidalS2 SpheroidalS2Prime Splice SplicedDistribution SplineClosed SplineDegree SplineKnots SplineWeights Split SplitBy SpokenString Sqrt SqrtBox SqrtBoxOptions Square SquaredEuclideanDistance SquareFreeQ SquareIntersection SquareMatrixQ SquareRepeatingElement SquaresR SquareSubset SquareSubsetEqual SquareSuperset SquareSupersetEqual SquareUnion SquareWave SSSTriangle StabilityMargins StabilityMarginsStyle StableDistribution Stack StackBegin StackComplete StackedDateListPlot StackedListPlot StackInhibit StadiumShape StandardAtmosphereData StandardDeviation StandardDeviationFilter StandardForm Standardize Standardized StandardOceanData StandbyDistribution Star StarClusterData StarData StarGraph StartAsynchronousTask StartExternalSession StartingStepSize StartOfLine StartOfString StartProcess StartScheduledTask StartupSound StartWebSession StateDimensions StateFeedbackGains StateOutputEstimator StateResponse StateSpaceModel StateSpaceRealization StateSpaceTransform StateTransformationLinearize StationaryDistribution StationaryWaveletPacketTransform StationaryWaveletTransform StatusArea StatusCentrality StepMonitor StereochemistryElements StieltjesGamma StirlingS1 StirlingS2 StopAsynchronousTask StoppingPowerData StopScheduledTask StrataVariables StratonovichProcess StreamColorFunction StreamColorFunctionScaling StreamDensityPlot StreamMarkers StreamPlot StreamPoints StreamPosition Streams StreamScale StreamStyle String StringBreak StringByteCount StringCases StringContainsQ StringCount StringDelete StringDrop StringEndsQ StringExpression StringExtract StringForm StringFormat StringFreeQ StringInsert StringJoin StringLength StringMatchQ StringPadLeft StringPadRight StringPart StringPartition StringPosition StringQ StringRepeat StringReplace StringReplaceList StringReplacePart StringReverse StringRiffle StringRotateLeft StringRotateRight StringSkeleton StringSplit StringStartsQ StringTake StringTemplate StringToByteArray StringToStream StringTrim StripBoxes StripOnInput StripWrapperBoxes StrokeForm StructuralImportance StructuredArray StructuredSelection StruveH StruveL Stub StudentTDistribution Style StyleBox StyleBoxAutoDelete StyleData StyleDefinitions StyleForm StyleHints StyleKeyMapping StyleMenuListing StyleNameDialogSettings StyleNames StylePrint StyleSheetPath Subdivide Subfactorial Subgraph SubMinus SubPlus SubresultantPolynomialRemainders SubresultantPolynomials Subresultants Subscript SubscriptBox SubscriptBoxOptions Subscripted Subsequences Subset SubsetEqual SubsetMap SubsetQ Subsets SubStar SubstitutionSystem Subsuperscript SubsuperscriptBox SubsuperscriptBoxOptions Subtract SubtractFrom SubtractSides SubValues Succeeds SucceedsEqual SucceedsSlantEqual SucceedsTilde Success SuchThat Sum SumConvergence SummationLayer Sunday SunPosition Sunrise Sunset SuperDagger SuperMinus SupernovaData SuperPlus Superscript SuperscriptBox SuperscriptBoxOptions Superset SupersetEqual SuperStar Surd SurdForm SurfaceArea SurfaceColor SurfaceData SurfaceGraphics SurvivalDistribution SurvivalFunction SurvivalModel SurvivalModelFit SuspendPacket SuzukiDistribution SuzukiGroupSuz SwatchLegend Switch Symbol SymbolName SymletWavelet Symmetric SymmetricGroup SymmetricKey SymmetricMatrixQ SymmetricPolynomial SymmetricReduction Symmetrize SymmetrizedArray SymmetrizedArrayRules SymmetrizedDependentComponents SymmetrizedIndependentComponents SymmetrizedReplacePart SynchronousInitialization SynchronousUpdating Synonyms Syntax SyntaxForm SyntaxInformation SyntaxLength SyntaxPacket SyntaxQ SynthesizeMissingValues SystemDialogInput SystemException SystemGet SystemHelpPath SystemInformation SystemInformationData SystemInstall SystemModel SystemModeler SystemModelExamples SystemModelLinearize SystemModelParametricSimulate SystemModelPlot SystemModelProgressReporting SystemModelReliability SystemModels SystemModelSimulate SystemModelSimulateSensitivity SystemModelSimulationData SystemOpen SystemOptions SystemProcessData SystemProcesses SystemsConnectionsModel SystemsModelDelay SystemsModelDelayApproximate SystemsModelDelete SystemsModelDimensions SystemsModelExtract SystemsModelFeedbackConnect SystemsModelLabels SystemsModelLinearity SystemsModelMerge SystemsModelOrder SystemsModelParallelConnect SystemsModelSeriesConnect SystemsModelStateFeedbackConnect SystemsModelVectorRelativeOrders SystemStub SystemTest' +
-      'Tab TabFilling Table TableAlignments TableDepth TableDirections TableForm TableHeadings TableSpacing TableView TableViewBox TableViewBoxBackground TableViewBoxOptions TabSpacings TabView TabViewBox TabViewBoxOptions TagBox TagBoxNote TagBoxOptions TaggingRules TagSet TagSetDelayed TagStyle TagUnset Take TakeDrop TakeLargest TakeLargestBy TakeList TakeSmallest TakeSmallestBy TakeWhile Tally Tan Tanh TargetDevice TargetFunctions TargetSystem TargetUnits TaskAbort TaskExecute TaskObject TaskRemove TaskResume Tasks TaskSuspend TaskWait TautologyQ TelegraphProcess TemplateApply TemplateArgBox TemplateBox TemplateBoxOptions TemplateEvaluate TemplateExpression TemplateIf TemplateObject TemplateSequence TemplateSlot TemplateSlotSequence TemplateUnevaluated TemplateVerbatim TemplateWith TemporalData TemporalRegularity Temporary TemporaryVariable TensorContract TensorDimensions TensorExpand TensorProduct TensorQ TensorRank TensorReduce TensorSymmetry TensorTranspose TensorWedge TestID TestReport TestReportObject TestResultObject Tetrahedron TetrahedronBox TetrahedronBoxOptions TeXForm TeXSave Text Text3DBox Text3DBoxOptions TextAlignment TextBand TextBoundingBox TextBox TextCases TextCell TextClipboardType TextContents TextData TextElement TextForm TextGrid TextJustification TextLine TextPacket TextParagraph TextPosition TextRecognize TextSearch TextSearchReport TextSentences TextString TextStructure TextStyle TextTranslation Texture TextureCoordinateFunction TextureCoordinateScaling TextWords Therefore ThermodynamicData ThermometerGauge Thick Thickness Thin Thinning ThisLink ThompsonGroupTh Thread ThreadingLayer ThreeJSymbol Threshold Through Throw ThueMorse Thumbnail Thursday Ticks TicksStyle TideData Tilde TildeEqual TildeFullEqual TildeTilde TimeConstrained TimeConstraint TimeDirection TimeFormat TimeGoal TimelinePlot TimeObject TimeObjectQ Times TimesBy TimeSeries TimeSeriesAggregate TimeSeriesForecast TimeSeriesInsert TimeSeriesInvertibility TimeSeriesMap TimeSeriesMapThread TimeSeriesModel TimeSeriesModelFit TimeSeriesResample TimeSeriesRescale TimeSeriesShift TimeSeriesThread TimeSeriesWindow TimeUsed TimeValue TimeWarpingCorrespondence TimeWarpingDistance TimeZone TimeZoneConvert TimeZoneOffset Timing Tiny TitleGrouping TitsGroupT ToBoxes ToCharacterCode ToColor ToContinuousTimeModel ToDate Today ToDiscreteTimeModel ToEntity ToeplitzMatrix ToExpression ToFileName Together Toggle ToggleFalse Toggler TogglerBar TogglerBox TogglerBoxOptions ToHeldExpression ToInvertibleTimeSeries TokenWords Tolerance ToLowerCase Tomorrow ToNumberField TooBig Tooltip TooltipBox TooltipBoxOptions TooltipDelay TooltipStyle Top TopHatTransform ToPolarCoordinates TopologicalSort ToRadicals ToRules ToSphericalCoordinates ToString Total TotalHeight TotalLayer TotalVariationFilter TotalWidth TouchPosition TouchscreenAutoZoom TouchscreenControlPlacement ToUpperCase Tr Trace TraceAbove TraceAction TraceBackward TraceDepth TraceDialog TraceForward TraceInternal TraceLevel TraceOff TraceOn TraceOriginal TracePrint TraceScan TrackedSymbols TrackingFunction TracyWidomDistribution TradingChart TraditionalForm TraditionalFunctionNotation TraditionalNotation TraditionalOrder TrainingProgressCheckpointing TrainingProgressFunction TrainingProgressMeasurements TrainingProgressReporting TrainingStoppingCriterion TransferFunctionCancel TransferFunctionExpand TransferFunctionFactor TransferFunctionModel TransferFunctionPoles TransferFunctionTransform TransferFunctionZeros TransformationClass TransformationFunction TransformationFunctions TransformationMatrix TransformedDistribution TransformedField TransformedProcess TransformedRegion TransitionDirection TransitionDuration TransitionEffect TransitiveClosureGraph TransitiveReductionGraph Translate TranslationOptions TranslationTransform Transliterate Transparent TransparentColor Transpose TransposeLayer TrapSelection TravelDirections TravelDirectionsData TravelDistance TravelDistanceList TravelMethod TravelTime TreeForm TreeGraph TreeGraphQ TreePlot TrendStyle Triangle TriangleCenter TriangleConstruct TriangleMeasurement TriangleWave TriangularDistribution TriangulateMesh Trig TrigExpand TrigFactor TrigFactorList Trigger TrigReduce TrigToExp TrimmedMean TrimmedVariance TropicalStormData True TrueQ TruncatedDistribution TruncatedPolyhedron TsallisQExponentialDistribution TsallisQGaussianDistribution TTest Tube TubeBezierCurveBox TubeBezierCurveBoxOptions TubeBox TubeBoxOptions TubeBSplineCurveBox TubeBSplineCurveBoxOptions Tuesday TukeyLambdaDistribution TukeyWindow TunnelData Tuples TuranGraph TuringMachine TuttePolynomial TwoWayRule Typed TypeSpecifier' +
-      'UnateQ Uncompress UnconstrainedParameters Undefined UnderBar Underflow Underlined Underoverscript UnderoverscriptBox UnderoverscriptBoxOptions Underscript UnderscriptBox UnderscriptBoxOptions UnderseaFeatureData UndirectedEdge UndirectedGraph UndirectedGraphQ UndoOptions UndoTrackedVariables Unequal UnequalTo Unevaluated UniformDistribution UniformGraphDistribution UniformPolyhedron UniformSumDistribution Uninstall Union UnionPlus Unique UnitaryMatrixQ UnitBox UnitConvert UnitDimensions Unitize UnitRootTest UnitSimplify UnitStep UnitSystem UnitTriangle UnitVector UnitVectorLayer UnityDimensions UniverseModelData UniversityData UnixTime Unprotect UnregisterExternalEvaluator UnsameQ UnsavedVariables Unset UnsetShared UntrackedVariables Up UpArrow UpArrowBar UpArrowDownArrow Update UpdateDynamicObjects UpdateDynamicObjectsSynchronous UpdateInterval UpdateSearchIndex UpDownArrow UpEquilibrium UpperCaseQ UpperLeftArrow UpperRightArrow UpperTriangularize UpperTriangularMatrixQ Upsample UpSet UpSetDelayed UpTee UpTeeArrow UpTo UpValues URL URLBuild URLDecode URLDispatcher URLDownload URLDownloadSubmit URLEncode URLExecute URLExpand URLFetch URLFetchAsynchronous URLParse URLQueryDecode URLQueryEncode URLRead URLResponseTime URLSave URLSaveAsynchronous URLShorten URLSubmit UseGraphicsRange UserDefinedWavelet Using UsingFrontEnd UtilityFunction' +
-      'V2Get ValenceErrorHandling ValidationLength ValidationSet Value ValueBox ValueBoxOptions ValueDimensions ValueForm ValuePreprocessingFunction ValueQ Values ValuesData Variables Variance VarianceEquivalenceTest VarianceEstimatorFunction VarianceGammaDistribution VarianceTest VectorAngle VectorAround VectorColorFunction VectorColorFunctionScaling VectorDensityPlot VectorGlyphData VectorGreater VectorGreaterEqual VectorLess VectorLessEqual VectorMarkers VectorPlot VectorPlot3D VectorPoints VectorQ Vectors VectorScale VectorStyle Vee Verbatim Verbose VerboseConvertToPostScriptPacket VerificationTest VerifyConvergence VerifyDerivedKey VerifyDigitalSignature VerifyInterpretation VerifySecurityCertificates VerifySolutions VerifyTestAssumptions Version VersionNumber VertexAdd VertexCapacity VertexColors VertexComponent VertexConnectivity VertexContract VertexCoordinateRules VertexCoordinates VertexCorrelationSimilarity VertexCosineSimilarity VertexCount VertexCoverQ VertexDataCoordinates VertexDegree VertexDelete VertexDiceSimilarity VertexEccentricity VertexInComponent VertexInDegree VertexIndex VertexJaccardSimilarity VertexLabeling VertexLabels VertexLabelStyle VertexList VertexNormals VertexOutComponent VertexOutDegree VertexQ VertexRenderingFunction VertexReplace VertexShape VertexShapeFunction VertexSize VertexStyle VertexTextureCoordinates VertexWeight VertexWeightedGraphQ Vertical VerticalBar VerticalForm VerticalGauge VerticalSeparator VerticalSlider VerticalTilde ViewAngle ViewCenter ViewMatrix ViewPoint ViewPointSelectorSettings ViewPort ViewProjection ViewRange ViewVector ViewVertical VirtualGroupData Visible VisibleCell VoiceStyleData VoigtDistribution VolcanoData Volume VonMisesDistribution VoronoiMesh' +
-      'WaitAll WaitAsynchronousTask WaitNext WaitUntil WakebyDistribution WalleniusHypergeometricDistribution WaringYuleDistribution WarpingCorrespondence WarpingDistance WatershedComponents WatsonUSquareTest WattsStrogatzGraphDistribution WaveletBestBasis WaveletFilterCoefficients WaveletImagePlot WaveletListPlot WaveletMapIndexed WaveletMatrixPlot WaveletPhi WaveletPsi WaveletScale WaveletScalogram WaveletThreshold WeaklyConnectedComponents WeaklyConnectedGraphComponents WeaklyConnectedGraphQ WeakStationarity WeatherData WeatherForecastData WebAudioSearch WebElementObject WeberE WebExecute WebImage WebImageSearch WebSearch WebSessionObject WebSessions WebWindowObject Wedge Wednesday WeibullDistribution WeierstrassE1 WeierstrassE2 WeierstrassE3 WeierstrassEta1 WeierstrassEta2 WeierstrassEta3 WeierstrassHalfPeriods WeierstrassHalfPeriodW1 WeierstrassHalfPeriodW2 WeierstrassHalfPeriodW3 WeierstrassInvariantG2 WeierstrassInvariantG3 WeierstrassInvariants WeierstrassP WeierstrassPPrime WeierstrassSigma WeierstrassZeta WeightedAdjacencyGraph WeightedAdjacencyMatrix WeightedData WeightedGraphQ Weights WelchWindow WheelGraph WhenEvent Which While White WhiteNoiseProcess WhitePoint Whitespace WhitespaceCharacter WhittakerM WhittakerW WienerFilter WienerProcess WignerD WignerSemicircleDistribution WikipediaData WikipediaSearch WilksW WilksWTest WindDirectionData WindingCount WindingPolygon WindowClickSelect WindowElements WindowFloating WindowFrame WindowFrameElements WindowMargins WindowMovable WindowOpacity WindowPersistentStyles WindowSelected WindowSize WindowStatusArea WindowTitle WindowToolbars WindowWidth WindSpeedData WindVectorData WinsorizedMean WinsorizedVariance WishartMatrixDistribution With WolframAlpha WolframAlphaDate WolframAlphaQuantity WolframAlphaResult WolframLanguageData Word WordBoundary WordCharacter WordCloud WordCount WordCounts WordData WordDefinition WordFrequency WordFrequencyData WordList WordOrientation WordSearch WordSelectionFunction WordSeparators WordSpacings WordStem WordTranslation WorkingPrecision WrapAround Write WriteLine WriteString Wronskian' +
-      'XMLElement XMLObject XMLTemplate Xnor Xor XYZColor' +
-      'Yellow Yesterday YuleDissimilarity' +
-      'ZernikeR ZeroSymmetric ZeroTest ZeroWidthTimes Zeta ZetaZero ZIPCodeData ZipfDistribution ZoomCenter ZoomFactor ZTest ZTransform' +
+      'GaborFilter GaborMatrix GaborWavelet GainMargins GainPhaseMargins GalaxyData GalleryView Gamma GammaDistribution GammaRegularized GapPenalty GARCHProcess GatedRecurrentLayer Gather GatherBy GaugeFaceElementFunction GaugeFaceStyle GaugeFrameElementFunction GaugeFrameSize GaugeFrameStyle GaugeLabels GaugeMarkers GaugeStyle GaussianFilter GaussianIntegers GaussianMatrix GaussianOrthogonalMatrixDistribution GaussianSymplecticMatrixDistribution GaussianUnitaryMatrixDistribution GaussianWindow GCD GegenbauerC General GeneralizedLinearModelFit GenerateAsymmetricKeyPair GenerateConditions GeneratedCell GeneratedDocumentBinding GenerateDerivedKey GenerateDigitalSignature GenerateDocument GeneratedParameters GeneratedQuantityMagnitudes GenerateHTTPResponse GenerateSecuredAuthenticationKey GenerateSymmetricKey GeneratingFunction GeneratorDescription GeneratorHistoryLength GeneratorOutputType Generic GenericCylindricalDecomposition GenomeData GenomeLookup GeoAntipode GeoArea GeoArraySize GeoBackground GeoBoundingBox GeoBounds GeoBoundsRegion GeoBubbleChart GeoCenter GeoCircle GeodesicClosing GeodesicDilation GeodesicErosion GeodesicOpening GeoDestination GeodesyData GeoDirection GeoDisk GeoDisplacement GeoDistance GeoDistanceList GeoElevationData GeoEntities GeoGraphics GeogravityModelData GeoGridDirectionDifference GeoGridLines GeoGridLinesStyle GeoGridPosition GeoGridRange GeoGridRangePadding GeoGridUnitArea GeoGridUnitDistance GeoGridVector GeoGroup GeoHemisphere GeoHemisphereBoundary GeoHistogram GeoIdentify GeoImage GeoLabels GeoLength GeoListPlot GeoLocation GeologicalPeriodData GeomagneticModelData GeoMarker GeometricAssertion GeometricBrownianMotionProcess GeometricDistribution GeometricMean GeometricMeanFilter GeometricScene GeometricTransformation GeometricTransformation3DBox GeometricTransformation3DBoxOptions GeometricTransformationBox GeometricTransformationBoxOptions GeoModel GeoNearest GeoPath GeoPosition GeoPositionENU GeoPositionXYZ GeoProjection GeoProjectionData GeoRange GeoRangePadding GeoRegionValuePlot GeoResolution GeoScaleBar GeoServer GeoSmoothHistogram GeoStreamPlot GeoStyling GeoStylingImageFunction GeoVariant GeoVector GeoVectorENU GeoVectorPlot GeoVectorXYZ GeoVisibleRegion GeoVisibleRegionBoundary GeoWithinQ GeoZoomLevel GestureHandler GestureHandlerTag Get GetBoundingBoxSizePacket GetContext GetEnvironment GetFileName GetFrontEndOptionsDataPacket GetLinebreakInformationPacket GetMenusPacket GetPageBreakInformationPacket Glaisher GlobalClusteringCoefficient GlobalPreferences GlobalSession Glow GoldenAngle GoldenRatio GompertzMakehamDistribution GoodmanKruskalGamma GoodmanKruskalGammaTest Goto Grad Gradient GradientFilter GradientOrientationFilter GrammarApply GrammarRules GrammarToken Graph Graph3D GraphAssortativity GraphAutomorphismGroup GraphCenter GraphComplement GraphData GraphDensity GraphDiameter GraphDifference GraphDisjointUnion GraphDistance GraphDistanceMatrix GraphElementData GraphEmbedding GraphHighlight GraphHighlightStyle GraphHub Graphics Graphics3D Graphics3DBox Graphics3DBoxOptions GraphicsArray GraphicsBaseline GraphicsBox GraphicsBoxOptions GraphicsColor GraphicsColumn GraphicsComplex GraphicsComplex3DBox GraphicsComplex3DBoxOptions GraphicsComplexBox GraphicsComplexBoxOptions GraphicsContents GraphicsData GraphicsGrid GraphicsGridBox GraphicsGroup GraphicsGroup3DBox GraphicsGroup3DBoxOptions GraphicsGroupBox GraphicsGroupBoxOptions GraphicsGrouping GraphicsHighlightColor GraphicsRow GraphicsSpacing GraphicsStyle GraphIntersection GraphLayout GraphLinkEfficiency GraphPeriphery GraphPlot GraphPlot3D GraphPower GraphPropertyDistribution GraphQ GraphRadius GraphReciprocity GraphRoot GraphStyle GraphUnion Gray GrayLevel Greater GreaterEqual GreaterEqualLess GreaterEqualThan GreaterFullEqual GreaterGreater GreaterLess GreaterSlantEqual GreaterThan GreaterTilde Green GreenFunction Grid GridBaseline GridBox GridBoxAlignment GridBoxBackground GridBoxDividers GridBoxFrame GridBoxItemSize GridBoxItemStyle GridBoxOptions GridBoxSpacings GridCreationSettings GridDefaultElement GridElementStyleOptions GridFrame GridFrameMargins GridGraph GridLines GridLinesStyle GroebnerBasis GroupActionBase GroupBy GroupCentralizer GroupElementFromWord GroupElementPosition GroupElementQ GroupElements GroupElementToWord GroupGenerators Groupings GroupMultiplicationTable GroupOrbits GroupOrder GroupPageBreakWithin GroupSetwiseStabilizer GroupStabilizer GroupStabilizerChain GroupTogetherGrouping GroupTogetherNestedGrouping GrowCutComponents Gudermannian GuidedFilter GumbelDistribution ' +
+      'HaarWavelet HadamardMatrix HalfLine HalfNormalDistribution HalfPlane HalfSpace HamiltonianGraphQ HammingDistance HammingWindow HandlerFunctions HandlerFunctionsKeys HankelH1 HankelH2 HankelMatrix HankelTransform HannPoissonWindow HannWindow HaradaNortonGroupHN HararyGraph HarmonicMean HarmonicMeanFilter HarmonicNumber Hash Haversine HazardFunction Head HeadCompose HeaderLines Heads HeavisideLambda HeavisidePi HeavisideTheta HeldGroupHe HeldPart HelpBrowserLookup HelpBrowserNotebook HelpBrowserSettings Here HermiteDecomposition HermiteH HermitianMatrixQ HessenbergDecomposition Hessian HexadecimalCharacter Hexahedron HexahedronBox HexahedronBoxOptions HiddenMarkovProcess HiddenSurface Highlighted HighlightGraph HighlightImage HighlightMesh HighpassFilter HigmanSimsGroupHS HilbertCurve HilbertFilter HilbertMatrix Histogram Histogram3D HistogramDistribution HistogramList HistogramTransform HistogramTransformInterpolation HistoricalPeriodData HitMissTransform HITSCentrality HjorthDistribution HodgeDual HoeffdingD HoeffdingDTest Hold HoldAll HoldAllComplete HoldComplete HoldFirst HoldForm HoldPattern HoldRest HolidayCalendar HomeDirectory HomePage Horizontal HorizontalForm HorizontalGauge HorizontalScrollPosition HornerForm HostLookup HotellingTSquareDistribution HoytDistribution HTMLSave HTTPErrorResponse HTTPRedirect HTTPRequest HTTPRequestData HTTPResponse Hue HumanGrowthData HumpDownHump HumpEqual HurwitzLerchPhi HurwitzZeta HyperbolicDistribution HypercubeGraph HyperexponentialDistribution Hyperfactorial Hypergeometric0F1 Hypergeometric0F1Regularized Hypergeometric1F1 Hypergeometric1F1Regularized Hypergeometric2F1 Hypergeometric2F1Regularized HypergeometricDistribution HypergeometricPFQ HypergeometricPFQRegularized HypergeometricU Hyperlink HyperlinkCreationSettings Hyperplane Hyphenation HyphenationOptions HypoexponentialDistribution HypothesisTestData ' +
+      'I IconData Iconize IconizedObject IconRules Icosahedron Identity IdentityMatrix If IgnoreCase IgnoreDiacritics IgnorePunctuation IgnoreSpellCheck IgnoringInactive Im Image Image3D Image3DProjection Image3DSlices ImageAccumulate ImageAdd ImageAdjust ImageAlign ImageApply ImageApplyIndexed ImageAspectRatio ImageAssemble ImageAugmentationLayer ImageBoundingBoxes ImageCache ImageCacheValid ImageCapture ImageCaptureFunction ImageCases ImageChannels ImageClip ImageCollage ImageColorSpace ImageCompose ImageContainsQ ImageContents ImageConvolve ImageCooccurrence ImageCorners ImageCorrelate ImageCorrespondingPoints ImageCrop ImageData ImageDeconvolve ImageDemosaic ImageDifference ImageDimensions ImageDisplacements ImageDistance ImageEffect ImageExposureCombine ImageFeatureTrack ImageFileApply ImageFileFilter ImageFileScan ImageFilter ImageFocusCombine ImageForestingComponents ImageFormattingWidth ImageForwardTransformation ImageGraphics ImageHistogram ImageIdentify ImageInstanceQ ImageKeypoints ImageLevels ImageLines ImageMargins ImageMarker ImageMarkers ImageMeasurements ImageMesh ImageMultiply ImageOffset ImagePad ImagePadding ImagePartition ImagePeriodogram ImagePerspectiveTransformation ImagePosition ImagePreviewFunction ImagePyramid ImagePyramidApply ImageQ ImageRangeCache ImageRecolor ImageReflect ImageRegion ImageResize ImageResolution ImageRestyle ImageRotate ImageRotated ImageSaliencyFilter ImageScaled ImageScan ImageSize ImageSizeAction ImageSizeCache ImageSizeMultipliers ImageSizeRaw ImageSubtract ImageTake ImageTransformation ImageTrim ImageType ImageValue ImageValuePositions ImagingDevice ImplicitRegion Implies Import ImportAutoReplacements ImportByteArray ImportOptions ImportString ImprovementImportance In Inactivate Inactive IncidenceGraph IncidenceList IncidenceMatrix IncludeAromaticBonds IncludeConstantBasis IncludeDefinitions IncludeDirectories IncludeFileExtension IncludeGeneratorTasks IncludeHydrogens IncludeInflections IncludeMetaInformation IncludePods IncludeQuantities IncludeRelatedTables IncludeSingularTerm IncludeWindowTimes Increment IndefiniteMatrixQ Indent IndentingNewlineSpacings IndentMaxFraction IndependenceTest IndependentEdgeSetQ IndependentPhysicalQuantity IndependentUnit IndependentUnitDimension IndependentVertexSetQ Indeterminate IndeterminateThreshold IndexCreationOptions Indexed IndexGraph IndexTag Inequality InexactNumberQ InexactNumbers InfiniteLine InfinitePlane Infinity Infix InflationAdjust InflationMethod Information InformationData InformationDataGrid Inherited InheritScope InhomogeneousPoissonProcess InitialEvaluationHistory Initialization InitializationCell InitializationCellEvaluation InitializationCellWarning InitializationObjects InitializationValue Initialize InitialSeeding InlineCounterAssignments InlineCounterIncrements InlineRules Inner InnerPolygon InnerPolyhedron Inpaint Input InputAliases InputAssumptions InputAutoReplacements InputField InputFieldBox InputFieldBoxOptions InputForm InputGrouping InputNamePacket InputNotebook InputPacket InputSettings InputStream InputString InputStringPacket InputToBoxFormPacket Insert InsertionFunction InsertionPointObject InsertLinebreaks InsertResults Inset Inset3DBox Inset3DBoxOptions InsetBox InsetBoxOptions Insphere Install InstallService InstanceNormalizationLayer InString Integer IntegerDigits IntegerExponent IntegerLength IntegerName IntegerPart IntegerPartitions IntegerQ IntegerReverse Integers IntegerString Integral Integrate Interactive InteractiveTradingChart Interlaced Interleaving InternallyBalancedDecomposition InterpolatingFunction InterpolatingPolynomial Interpolation InterpolationOrder InterpolationPoints InterpolationPrecision Interpretation InterpretationBox InterpretationBoxOptions InterpretationFunction Interpreter InterpretTemplate InterquartileRange Interrupt InterruptSettings IntersectingQ Intersection Interval IntervalIntersection IntervalMarkers IntervalMarkersStyle IntervalMemberQ IntervalSlider IntervalUnion Into Inverse InverseBetaRegularized InverseCDF InverseChiSquareDistribution InverseContinuousWaveletTransform InverseDistanceTransform InverseEllipticNomeQ InverseErf InverseErfc InverseFourier InverseFourierCosTransform InverseFourierSequenceTransform InverseFourierSinTransform InverseFourierTransform InverseFunction InverseFunctions InverseGammaDistribution InverseGammaRegularized InverseGaussianDistribution InverseGudermannian InverseHankelTransform InverseHaversine InverseImagePyramid InverseJacobiCD InverseJacobiCN InverseJacobiCS InverseJacobiDC InverseJacobiDN InverseJacobiDS InverseJacobiNC InverseJacobiND InverseJacobiNS InverseJacobiSC InverseJacobiSD InverseJacobiSN InverseLaplaceTransform InverseMellinTransform InversePermutation InverseRadon InverseRadonTransform InverseSeries InverseShortTimeFourier InverseSpectrogram InverseSurvivalFunction InverseTransformedRegion InverseWaveletTransform InverseWeierstrassP InverseWishartMatrixDistribution InverseZTransform Invisible InvisibleApplication InvisibleTimes IPAddress IrreduciblePolynomialQ IslandData IsolatingInterval IsomorphicGraphQ IsotopeData Italic Item ItemAspectRatio ItemBox ItemBoxOptions ItemSize ItemStyle ItoProcess ' +
+      'JaccardDissimilarity JacobiAmplitude Jacobian JacobiCD JacobiCN JacobiCS JacobiDC JacobiDN JacobiDS JacobiNC JacobiND JacobiNS JacobiP JacobiSC JacobiSD JacobiSN JacobiSymbol JacobiZeta JankoGroupJ1 JankoGroupJ2 JankoGroupJ3 JankoGroupJ4 JarqueBeraALMTest JohnsonDistribution Join JoinAcross Joined JoinedCurve JoinedCurveBox JoinedCurveBoxOptions JoinForm JordanDecomposition JordanModelDecomposition JulianDate JuliaSetBoettcher JuliaSetIterationCount JuliaSetPlot JuliaSetPoints ' +
+      'K KagiChart KaiserBesselWindow KaiserWindow KalmanEstimator KalmanFilter KarhunenLoeveDecomposition KaryTree KatzCentrality KCoreComponents KDistribution KEdgeConnectedComponents KEdgeConnectedGraphQ KelvinBei KelvinBer KelvinKei KelvinKer KendallTau KendallTauTest KernelExecute KernelFunction KernelMixtureDistribution Kernels Ket Key KeyCollisionFunction KeyComplement KeyDrop KeyDropFrom KeyExistsQ KeyFreeQ KeyIntersection KeyMap KeyMemberQ KeypointStrength Keys KeySelect KeySort KeySortBy KeyTake KeyUnion KeyValueMap KeyValuePattern Khinchin KillProcess KirchhoffGraph KirchhoffMatrix KleinInvariantJ KnapsackSolve KnightTourGraph KnotData KnownUnitQ KochCurve KolmogorovSmirnovTest KroneckerDelta KroneckerModelDecomposition KroneckerProduct KroneckerSymbol KuiperTest KumaraswamyDistribution Kurtosis KuwaharaFilter KVertexConnectedComponents KVertexConnectedGraphQ ' +
+      'LABColor Label Labeled LabeledSlider LabelingFunction LabelingSize LabelStyle LabelVisibility LaguerreL LakeData LambdaComponents LambertW LaminaData LanczosWindow LandauDistribution Language LanguageCategory LanguageData LanguageIdentify LanguageOptions LaplaceDistribution LaplaceTransform Laplacian LaplacianFilter LaplacianGaussianFilter Large Larger Last Latitude LatitudeLongitude LatticeData LatticeReduce Launch LaunchKernels LayeredGraphPlot LayerSizeFunction LayoutInformation LCHColor LCM LeaderSize LeafCount LeapYearQ LearnDistribution LearnedDistribution LearningRate LearningRateMultipliers LeastSquares LeastSquaresFilterKernel Left LeftArrow LeftArrowBar LeftArrowRightArrow LeftDownTeeVector LeftDownVector LeftDownVectorBar LeftRightArrow LeftRightVector LeftTee LeftTeeArrow LeftTeeVector LeftTriangle LeftTriangleBar LeftTriangleEqual LeftUpDownVector LeftUpTeeVector LeftUpVector LeftUpVectorBar LeftVector LeftVectorBar LegendAppearance Legended LegendFunction LegendLabel LegendLayout LegendMargins LegendMarkers LegendMarkerSize LegendreP LegendreQ LegendreType Length LengthWhile LerchPhi Less LessEqual LessEqualGreater LessEqualThan LessFullEqual LessGreater LessLess LessSlantEqual LessThan LessTilde LetterCharacter LetterCounts LetterNumber LetterQ Level LeveneTest LeviCivitaTensor LevyDistribution Lexicographic LibraryDataType LibraryFunction LibraryFunctionError LibraryFunctionInformation LibraryFunctionLoad LibraryFunctionUnload LibraryLoad LibraryUnload LicenseID LiftingFilterData LiftingWaveletTransform LightBlue LightBrown LightCyan Lighter LightGray LightGreen Lighting LightingAngle LightMagenta LightOrange LightPink LightPurple LightRed LightSources LightYellow Likelihood Limit LimitsPositioning LimitsPositioningTokens LindleyDistribution Line Line3DBox Line3DBoxOptions LinearFilter LinearFractionalOptimization LinearFractionalTransform LinearGradientImage LinearizingTransformationData LinearLayer LinearModelFit LinearOffsetFunction LinearOptimization LinearProgramming LinearRecurrence LinearSolve LinearSolveFunction LineBox LineBoxOptions LineBreak LinebreakAdjustments LineBreakChart LinebreakSemicolonWeighting LineBreakWithin LineColor LineGraph LineIndent LineIndentMaxFraction LineIntegralConvolutionPlot LineIntegralConvolutionScale LineLegend LineOpacity LineSpacing LineWrapParts LinkActivate LinkClose LinkConnect LinkConnectedQ LinkCreate LinkError LinkFlush LinkFunction LinkHost LinkInterrupt LinkLaunch LinkMode LinkObject LinkOpen LinkOptions LinkPatterns LinkProtocol LinkRankCentrality LinkRead LinkReadHeld LinkReadyQ Links LinkService LinkWrite LinkWriteHeld LiouvilleLambda List Listable ListAnimate ListContourPlot ListContourPlot3D ListConvolve ListCorrelate ListCurvePathPlot ListDeconvolve ListDensityPlot ListDensityPlot3D Listen ListFormat ListFourierSequenceTransform ListInterpolation ListLineIntegralConvolutionPlot ListLinePlot ListLogLinearPlot ListLogLogPlot ListLogPlot ListPicker ListPickerBox ListPickerBoxBackground ListPickerBoxOptions ListPlay ListPlot ListPlot3D ListPointPlot3D ListPolarPlot ListQ ListSliceContourPlot3D ListSliceDensityPlot3D ListSliceVectorPlot3D ListStepPlot ListStreamDensityPlot ListStreamPlot ListSurfacePlot3D ListVectorDensityPlot ListVectorPlot ListVectorPlot3D ListZTransform Literal LiteralSearch LocalAdaptiveBinarize LocalCache LocalClusteringCoefficient LocalizeDefinitions LocalizeVariables LocalObject LocalObjects LocalResponseNormalizationLayer LocalSubmit LocalSymbol LocalTime LocalTimeZone LocationEquivalenceTest LocationTest Locator LocatorAutoCreate LocatorBox LocatorBoxOptions LocatorCentering LocatorPane LocatorPaneBox LocatorPaneBoxOptions LocatorRegion Locked Log Log10 Log2 LogBarnesG LogGamma LogGammaDistribution LogicalExpand LogIntegral LogisticDistribution LogisticSigmoid LogitModelFit LogLikelihood LogLinearPlot LogLogisticDistribution LogLogPlot LogMultinormalDistribution LogNormalDistribution LogPlot LogRankTest LogSeriesDistribution LongEqual Longest LongestCommonSequence LongestCommonSequencePositions LongestCommonSubsequence LongestCommonSubsequencePositions LongestMatch LongestOrderedSequence LongForm Longitude LongLeftArrow LongLeftRightArrow LongRightArrow LongShortTermMemoryLayer Lookup Loopback LoopFreeGraphQ LossFunction LowerCaseQ LowerLeftArrow LowerRightArrow LowerTriangularize LowerTriangularMatrixQ LowpassFilter LQEstimatorGains LQGRegulator LQOutputRegulatorGains LQRegulatorGains LUBackSubstitution LucasL LuccioSamiComponents LUDecomposition LunarEclipse LUVColor LyapunovSolve LyonsGroupLy ' +
+      'MachineID MachineName MachineNumberQ MachinePrecision MacintoshSystemPageSetup Magenta Magnification Magnify MailAddressValidation MailExecute MailFolder MailItem MailReceiverFunction MailResponseFunction MailSearch MailServerConnect MailServerConnection MailSettings MainSolve MaintainDynamicCaches Majority MakeBoxes MakeExpression MakeRules ManagedLibraryExpressionID ManagedLibraryExpressionQ MandelbrotSetBoettcher MandelbrotSetDistance MandelbrotSetIterationCount MandelbrotSetMemberQ MandelbrotSetPlot MangoldtLambda ManhattanDistance Manipulate Manipulator MannedSpaceMissionData MannWhitneyTest MantissaExponent Manual Map MapAll MapAt MapIndexed MAProcess MapThread MarchenkoPasturDistribution MarcumQ MardiaCombinedTest MardiaKurtosisTest MardiaSkewnessTest MarginalDistribution MarkovProcessProperties Masking MatchingDissimilarity MatchLocalNameQ MatchLocalNames MatchQ Material MathematicalFunctionData MathematicaNotation MathieuC MathieuCharacteristicA MathieuCharacteristicB MathieuCharacteristicExponent MathieuCPrime MathieuGroupM11 MathieuGroupM12 MathieuGroupM22 MathieuGroupM23 MathieuGroupM24 MathieuS MathieuSPrime MathMLForm MathMLText Matrices MatrixExp MatrixForm MatrixFunction MatrixLog MatrixNormalDistribution MatrixPlot MatrixPower MatrixPropertyDistribution MatrixQ MatrixRank MatrixTDistribution Max MaxBend MaxCellMeasure MaxColorDistance MaxDetect MaxDuration MaxExtraBandwidths MaxExtraConditions MaxFeatureDisplacement MaxFeatures MaxFilter MaximalBy Maximize MaxItems MaxIterations MaxLimit MaxMemoryUsed MaxMixtureKernels MaxOverlapFraction MaxPlotPoints MaxPoints MaxRecursion MaxStableDistribution MaxStepFraction MaxSteps MaxStepSize MaxTrainingRounds MaxValue MaxwellDistribution MaxWordGap McLaughlinGroupMcL Mean MeanAbsoluteLossLayer MeanAround MeanClusteringCoefficient MeanDegreeConnectivity MeanDeviation MeanFilter MeanGraphDistance MeanNeighborDegree MeanShift MeanShiftFilter MeanSquaredLossLayer Median MedianDeviation MedianFilter MedicalTestData Medium MeijerG MeijerGReduce MeixnerDistribution MellinConvolve MellinTransform MemberQ MemoryAvailable MemoryConstrained MemoryConstraint MemoryInUse MengerMesh Menu MenuAppearance MenuCommandKey MenuEvaluator MenuItem MenuList MenuPacket MenuSortingValue MenuStyle MenuView Merge MergeDifferences MergingFunction MersennePrimeExponent MersennePrimeExponentQ Mesh MeshCellCentroid MeshCellCount MeshCellHighlight MeshCellIndex MeshCellLabel MeshCellMarker MeshCellMeasure MeshCellQuality MeshCells MeshCellShapeFunction MeshCellStyle MeshCoordinates MeshFunctions MeshPrimitives MeshQualityGoal MeshRange MeshRefinementFunction MeshRegion MeshRegionQ MeshShading MeshStyle Message MessageDialog MessageList MessageName MessageObject MessageOptions MessagePacket Messages MessagesNotebook MetaCharacters MetaInformation MeteorShowerData Method MethodOptions MexicanHatWavelet MeyerWavelet Midpoint Min MinColorDistance MinDetect MineralData MinFilter MinimalBy MinimalPolynomial MinimalStateSpaceModel Minimize MinimumTimeIncrement MinIntervalSize MinkowskiQuestionMark MinLimit MinMax MinorPlanetData Minors MinRecursion MinSize MinStableDistribution Minus MinusPlus MinValue Missing MissingBehavior MissingDataMethod MissingDataRules MissingQ MissingString MissingStyle MissingValuePattern MittagLefflerE MixedFractionParts MixedGraphQ MixedMagnitude MixedRadix MixedRadixQuantity MixedUnit MixtureDistribution Mod Modal Mode Modular ModularInverse ModularLambda Module Modulus MoebiusMu Molecule MoleculeContainsQ MoleculeEquivalentQ MoleculeGraph MoleculeModify MoleculePattern MoleculePlot MoleculePlot3D MoleculeProperty MoleculeQ MoleculeValue Moment Momentary MomentConvert MomentEvaluate MomentGeneratingFunction MomentOfInertia Monday Monitor MonomialList MonomialOrder MonsterGroupM MoonPhase MoonPosition MorletWavelet MorphologicalBinarize MorphologicalBranchPoints MorphologicalComponents MorphologicalEulerNumber MorphologicalGraph MorphologicalPerimeter MorphologicalTransform MortalityData Most MountainData MouseAnnotation MouseAppearance MouseAppearanceTag MouseButtons Mouseover MousePointerNote MousePosition MovieData MovingAverage MovingMap MovingMedian MoyalDistribution Multicolumn MultiedgeStyle MultigraphQ MultilaunchWarning MultiLetterItalics MultiLetterStyle MultilineFunction Multinomial MultinomialDistribution MultinormalDistribution MultiplicativeOrder Multiplicity MultiplySides Multiselection MultivariateHypergeometricDistribution MultivariatePoissonDistribution MultivariateTDistribution ' +
+      'N NakagamiDistribution NameQ Names NamespaceBox NamespaceBoxOptions Nand NArgMax NArgMin NBernoulliB NBodySimulation NBodySimulationData NCache NDEigensystem NDEigenvalues NDSolve NDSolveValue Nearest NearestFunction NearestNeighborGraph NearestTo NebulaData NeedCurrentFrontEndPackagePacket NeedCurrentFrontEndSymbolsPacket NeedlemanWunschSimilarity Needs Negative NegativeBinomialDistribution NegativeDefiniteMatrixQ NegativeIntegers NegativeMultinomialDistribution NegativeRationals NegativeReals NegativeSemidefiniteMatrixQ NeighborhoodData NeighborhoodGraph Nest NestedGreaterGreater NestedLessLess NestedScriptRules NestGraph NestList NestWhile NestWhileList NetAppend NetBidirectionalOperator NetChain NetDecoder NetDelete NetDrop NetEncoder NetEvaluationMode NetExtract NetFlatten NetFoldOperator NetGraph NetInformation NetInitialize NetInsert NetInsertSharedArrays NetJoin NetMapOperator NetMapThreadOperator NetMeasurements NetModel NetNestOperator NetPairEmbeddingOperator NetPort NetPortGradient NetPrepend NetRename NetReplace NetReplacePart NetSharedArray NetStateObject NetTake NetTrain NetTrainResultsObject NetworkPacketCapture NetworkPacketRecording NetworkPacketRecordingDuring NetworkPacketTrace NeumannValue NevilleThetaC NevilleThetaD NevilleThetaN NevilleThetaS NewPrimitiveStyle NExpectation Next NextCell NextDate NextPrime NextScheduledTaskTime NHoldAll NHoldFirst NHoldRest NicholsGridLines NicholsPlot NightHemisphere NIntegrate NMaximize NMaxValue NMinimize NMinValue NominalVariables NonAssociative NoncentralBetaDistribution NoncentralChiSquareDistribution NoncentralFRatioDistribution NoncentralStudentTDistribution NonCommutativeMultiply NonConstants NondimensionalizationTransform None NoneTrue NonlinearModelFit NonlinearStateSpaceModel NonlocalMeansFilter NonNegative NonNegativeIntegers NonNegativeRationals NonNegativeReals NonPositive NonPositiveIntegers NonPositiveRationals NonPositiveReals Nor NorlundB Norm Normal NormalDistribution NormalGrouping NormalizationLayer Normalize Normalized NormalizedSquaredEuclideanDistance NormalMatrixQ NormalsFunction NormFunction Not NotCongruent NotCupCap NotDoubleVerticalBar Notebook NotebookApply NotebookAutoSave NotebookClose NotebookConvertSettings NotebookCreate NotebookCreateReturnObject NotebookDefault NotebookDelete NotebookDirectory NotebookDynamicExpression NotebookEvaluate NotebookEventActions NotebookFileName NotebookFind NotebookFindReturnObject NotebookGet NotebookGetLayoutInformationPacket NotebookGetMisspellingsPacket NotebookImport NotebookInformation NotebookInterfaceObject NotebookLocate NotebookObject NotebookOpen NotebookOpenReturnObject NotebookPath NotebookPrint NotebookPut NotebookPutReturnObject NotebookRead NotebookResetGeneratedCells Notebooks NotebookSave NotebookSaveAs NotebookSelection NotebookSetupLayoutInformationPacket NotebooksMenu NotebookTemplate NotebookWrite NotElement NotEqualTilde NotExists NotGreater NotGreaterEqual NotGreaterFullEqual NotGreaterGreater NotGreaterLess NotGreaterSlantEqual NotGreaterTilde Nothing NotHumpDownHump NotHumpEqual NotificationFunction NotLeftTriangle NotLeftTriangleBar NotLeftTriangleEqual NotLess NotLessEqual NotLessFullEqual NotLessGreater NotLessLess NotLessSlantEqual NotLessTilde NotNestedGreaterGreater NotNestedLessLess NotPrecedes NotPrecedesEqual NotPrecedesSlantEqual NotPrecedesTilde NotReverseElement NotRightTriangle NotRightTriangleBar NotRightTriangleEqual NotSquareSubset NotSquareSubsetEqual NotSquareSuperset NotSquareSupersetEqual NotSubset NotSubsetEqual NotSucceeds NotSucceedsEqual NotSucceedsSlantEqual NotSucceedsTilde NotSuperset NotSupersetEqual NotTilde NotTildeEqual NotTildeFullEqual NotTildeTilde NotVerticalBar Now NoWhitespace NProbability NProduct NProductFactors NRoots NSolve NSum NSumTerms NuclearExplosionData NuclearReactorData Null NullRecords NullSpace NullWords Number NumberCompose NumberDecompose NumberExpand NumberFieldClassNumber NumberFieldDiscriminant NumberFieldFundamentalUnits NumberFieldIntegralBasis NumberFieldNormRepresentatives NumberFieldRegulator NumberFieldRootsOfUnity NumberFieldSignature NumberForm NumberFormat NumberLinePlot NumberMarks NumberMultiplier NumberPadding NumberPoint NumberQ NumberSeparator NumberSigns NumberString Numerator NumeratorDenominator NumericalOrder NumericalSort NumericArray NumericArrayQ NumericArrayType NumericFunction NumericQ NuttallWindow NValues NyquistGridLines NyquistPlot ' +
+      'O ObservabilityGramian ObservabilityMatrix ObservableDecomposition ObservableModelQ OceanData Octahedron OddQ Off Offset OLEData On ONanGroupON Once OneIdentity Opacity OpacityFunction OpacityFunctionScaling Open OpenAppend Opener OpenerBox OpenerBoxOptions OpenerView OpenFunctionInspectorPacket Opening OpenRead OpenSpecialOptions OpenTemporary OpenWrite Operate OperatingSystem OptimumFlowData Optional OptionalElement OptionInspectorSettings OptionQ Options OptionsPacket OptionsPattern OptionValue OptionValueBox OptionValueBoxOptions Or Orange Order OrderDistribution OrderedQ Ordering OrderingBy OrderingLayer Orderless OrderlessPatternSequence OrnsteinUhlenbeckProcess Orthogonalize OrthogonalMatrixQ Out Outer OuterPolygon OuterPolyhedron OutputAutoOverwrite OutputControllabilityMatrix OutputControllableModelQ OutputForm OutputFormData OutputGrouping OutputMathEditExpression OutputNamePacket OutputResponse OutputSizeLimit OutputStream Over OverBar OverDot Overflow OverHat Overlaps Overlay OverlayBox OverlayBoxOptions Overscript OverscriptBox OverscriptBoxOptions OverTilde OverVector OverwriteTarget OwenT OwnValues ' +
+      'Package PackingMethod PaddedForm Padding PaddingLayer PaddingSize PadeApproximant PadLeft PadRight PageBreakAbove PageBreakBelow PageBreakWithin PageFooterLines PageFooters PageHeaderLines PageHeaders PageHeight PageRankCentrality PageTheme PageWidth Pagination PairedBarChart PairedHistogram PairedSmoothHistogram PairedTTest PairedZTest PaletteNotebook PalettePath PalindromeQ Pane PaneBox PaneBoxOptions Panel PanelBox PanelBoxOptions Paneled PaneSelector PaneSelectorBox PaneSelectorBoxOptions PaperWidth ParabolicCylinderD ParagraphIndent ParagraphSpacing ParallelArray ParallelCombine ParallelDo Parallelepiped ParallelEvaluate Parallelization Parallelize ParallelMap ParallelNeeds Parallelogram ParallelProduct ParallelSubmit ParallelSum ParallelTable ParallelTry Parameter ParameterEstimator ParameterMixtureDistribution ParameterVariables ParametricFunction ParametricNDSolve ParametricNDSolveValue ParametricPlot ParametricPlot3D ParametricRegion ParentBox ParentCell ParentConnect ParentDirectory ParentForm Parenthesize ParentList ParentNotebook ParetoDistribution ParetoPickandsDistribution ParkData Part PartBehavior PartialCorrelationFunction PartialD ParticleAcceleratorData ParticleData Partition PartitionGranularity PartitionsP PartitionsQ PartLayer PartOfSpeech PartProtection ParzenWindow PascalDistribution PassEventsDown PassEventsUp Paste PasteAutoQuoteCharacters PasteBoxFormInlineCells PasteButton Path PathGraph PathGraphQ Pattern PatternSequence PatternTest PauliMatrix PaulWavelet Pause PausedTime PDF PeakDetect PeanoCurve PearsonChiSquareTest PearsonCorrelationTest PearsonDistribution PercentForm PerfectNumber PerfectNumberQ PerformanceGoal Perimeter PeriodicBoundaryCondition PeriodicInterpolation Periodogram PeriodogramArray Permanent Permissions PermissionsGroup PermissionsGroupMemberQ PermissionsGroups PermissionsKey PermissionsKeys PermutationCycles PermutationCyclesQ PermutationGroup PermutationLength PermutationList PermutationListQ PermutationMax PermutationMin PermutationOrder PermutationPower PermutationProduct PermutationReplace Permutations PermutationSupport Permute PeronaMalikFilter Perpendicular PerpendicularBisector PersistenceLocation PersistenceTime PersistentObject PersistentObjects PersistentValue PersonData PERTDistribution PetersenGraph PhaseMargins PhaseRange PhysicalSystemData Pi Pick PIDData PIDDerivativeFilter PIDFeedforward PIDTune Piecewise PiecewiseExpand PieChart PieChart3D PillaiTrace PillaiTraceTest PingTime Pink PitchRecognize Pivoting PixelConstrained PixelValue PixelValuePositions Placed Placeholder PlaceholderReplace Plain PlanarAngle PlanarGraph PlanarGraphQ PlanckRadiationLaw PlaneCurveData PlanetaryMoonData PlanetData PlantData Play PlayRange Plot Plot3D Plot3Matrix PlotDivision PlotJoined PlotLabel PlotLabels PlotLayout PlotLegends PlotMarkers PlotPoints PlotRange PlotRangeClipping PlotRangeClipPlanesStyle PlotRangePadding PlotRegion PlotStyle PlotTheme Pluralize Plus PlusMinus Pochhammer PodStates PodWidth Point Point3DBox Point3DBoxOptions PointBox PointBoxOptions PointFigureChart PointLegend PointSize PoissonConsulDistribution PoissonDistribution PoissonProcess PoissonWindow PolarAxes PolarAxesOrigin PolarGridLines PolarPlot PolarTicks PoleZeroMarkers PolyaAeppliDistribution PolyGamma Polygon Polygon3DBox Polygon3DBoxOptions PolygonalNumber PolygonAngle PolygonBox PolygonBoxOptions PolygonCoordinates PolygonDecomposition PolygonHoleScale PolygonIntersections PolygonScale Polyhedron PolyhedronAngle PolyhedronCoordinates PolyhedronData PolyhedronDecomposition PolyhedronGenus PolyLog PolynomialExtendedGCD PolynomialForm PolynomialGCD PolynomialLCM PolynomialMod PolynomialQ PolynomialQuotient PolynomialQuotientRemainder PolynomialReduce PolynomialRemainder Polynomials PoolingLayer PopupMenu PopupMenuBox PopupMenuBoxOptions PopupView PopupWindow Position PositionIndex Positive PositiveDefiniteMatrixQ PositiveIntegers PositiveRationals PositiveReals PositiveSemidefiniteMatrixQ PossibleZeroQ Postfix PostScript Power PowerDistribution PowerExpand PowerMod PowerModList PowerRange PowerSpectralDensity PowersRepresentations PowerSymmetricPolynomial Precedence PrecedenceForm Precedes PrecedesEqual PrecedesSlantEqual PrecedesTilde Precision PrecisionGoal PreDecrement Predict PredictionRoot PredictorFunction PredictorInformation PredictorMeasurements PredictorMeasurementsObject PreemptProtect PreferencesPath Prefix PreIncrement Prepend PrependLayer PrependTo PreprocessingRules PreserveColor PreserveImageOptions Previous PreviousCell PreviousDate PriceGraphDistribution PrimaryPlaceholder Prime PrimeNu PrimeOmega PrimePi PrimePowerQ PrimeQ Primes PrimeZetaP PrimitivePolynomialQ PrimitiveRoot PrimitiveRootList PrincipalComponents PrincipalValue Print PrintableASCIIQ PrintAction PrintForm PrintingCopies PrintingOptions PrintingPageRange PrintingStartingPageNumber PrintingStyleEnvironment Printout3D Printout3DPreviewer PrintPrecision PrintTemporary Prism PrismBox PrismBoxOptions PrivateCellOptions PrivateEvaluationOptions PrivateFontOptions PrivateFrontEndOptions PrivateKey PrivateNotebookOptions PrivatePaths Probability ProbabilityDistribution ProbabilityPlot ProbabilityPr ProbabilityScalePlot ProbitModelFit ProcessConnection ProcessDirectory ProcessEnvironment Processes ProcessEstimator ProcessInformation ProcessObject ProcessParameterAssumptions ProcessParameterQ ProcessStateDomain ProcessStatus ProcessTimeDomain Product ProductDistribution ProductLog ProgressIndicator ProgressIndicatorBox ProgressIndicatorBoxOptions Projection Prolog PromptForm ProofObject Properties Property PropertyList PropertyValue Proportion Proportional Protect Protected ProteinData Pruning PseudoInverse PsychrometricPropertyData PublicKey PublisherID PulsarData PunctuationCharacter Purple Put PutAppend Pyramid PyramidBox PyramidBoxOptions ' +
+      'QBinomial QFactorial QGamma QHypergeometricPFQ QnDispersion QPochhammer QPolyGamma QRDecomposition QuadraticIrrationalQ QuadraticOptimization Quantile QuantilePlot Quantity QuantityArray QuantityDistribution QuantityForm QuantityMagnitude QuantityQ QuantityUnit QuantityVariable QuantityVariableCanonicalUnit QuantityVariableDimensions QuantityVariableIdentifier QuantityVariablePhysicalQuantity Quartics QuartileDeviation Quartiles QuartileSkewness Query QueueingNetworkProcess QueueingProcess QueueProperties Quiet Quit Quotient QuotientRemainder ' +
+      'RadialGradientImage RadialityCentrality RadicalBox RadicalBoxOptions RadioButton RadioButtonBar RadioButtonBox RadioButtonBoxOptions Radon RadonTransform RamanujanTau RamanujanTauL RamanujanTauTheta RamanujanTauZ Ramp Random RandomChoice RandomColor RandomComplex RandomEntity RandomFunction RandomGeoPosition RandomGraph RandomImage RandomInstance RandomInteger RandomPermutation RandomPoint RandomPolygon RandomPolyhedron RandomPrime RandomReal RandomSample RandomSeed RandomSeeding RandomVariate RandomWalkProcess RandomWord Range RangeFilter RangeSpecification RankedMax RankedMin RarerProbability Raster Raster3D Raster3DBox Raster3DBoxOptions RasterArray RasterBox RasterBoxOptions Rasterize RasterSize Rational RationalFunctions Rationalize Rationals Ratios RawArray RawBoxes RawData RawMedium RayleighDistribution Re Read ReadByteArray ReadLine ReadList ReadProtected ReadString Real RealAbs RealBlockDiagonalForm RealDigits RealExponent Reals RealSign Reap RecognitionPrior RecognitionThreshold Record RecordLists RecordSeparators Rectangle RectangleBox RectangleBoxOptions RectangleChart RectangleChart3D RectangularRepeatingElement RecurrenceFilter RecurrenceTable RecurringDigitsForm Red Reduce RefBox ReferenceLineStyle ReferenceMarkers ReferenceMarkerStyle Refine ReflectionMatrix ReflectionTransform Refresh RefreshRate Region RegionBinarize RegionBoundary RegionBounds RegionCentroid RegionDifference RegionDimension RegionDisjoint RegionDistance RegionDistanceFunction RegionEmbeddingDimension RegionEqual RegionFunction RegionImage RegionIntersection RegionMeasure RegionMember RegionMemberFunction RegionMoment RegionNearest RegionNearestFunction RegionPlot RegionPlot3D RegionProduct RegionQ RegionResize RegionSize RegionSymmetricDifference RegionUnion RegionWithin RegisterExternalEvaluator RegularExpression Regularization RegularlySampledQ RegularPolygon ReIm ReImLabels ReImPlot ReImStyle Reinstall RelationalDatabase RelationGraph Release ReleaseHold ReliabilityDistribution ReliefImage ReliefPlot RemoteAuthorizationCaching RemoteConnect RemoteConnectionObject RemoteFile RemoteRun RemoteRunProcess Remove RemoveAlphaChannel RemoveAsynchronousTask RemoveAudioStream RemoveBackground RemoveChannelListener RemoveChannelSubscribers Removed RemoveDiacritics RemoveInputStreamMethod RemoveOutputStreamMethod RemoveProperty RemoveScheduledTask RemoveUsers RenameDirectory RenameFile RenderAll RenderingOptions RenewalProcess RenkoChart RepairMesh Repeated RepeatedNull RepeatedString RepeatedTiming RepeatingElement Replace ReplaceAll ReplaceHeldPart ReplaceImageValue ReplaceList ReplacePart ReplacePixelValue ReplaceRepeated ReplicateLayer RequiredPhysicalQuantities Resampling ResamplingAlgorithmData ResamplingMethod Rescale RescalingTransform ResetDirectory ResetMenusPacket ResetScheduledTask ReshapeLayer Residue ResizeLayer Resolve ResourceAcquire ResourceData ResourceFunction ResourceObject ResourceRegister ResourceRemove ResourceSearch ResourceSubmissionObject ResourceSubmit ResourceSystemBase ResourceUpdate ResponseForm Rest RestartInterval Restricted Resultant ResumePacket Return ReturnEntersInput ReturnExpressionPacket ReturnInputFormPacket ReturnPacket ReturnReceiptFunction ReturnTextPacket Reverse ReverseBiorthogonalSplineWavelet ReverseElement ReverseEquilibrium ReverseGraph ReverseSort ReverseSortBy ReverseUpEquilibrium RevolutionAxis RevolutionPlot3D RGBColor RiccatiSolve RiceDistribution RidgeFilter RiemannR RiemannSiegelTheta RiemannSiegelZ RiemannXi Riffle Right RightArrow RightArrowBar RightArrowLeftArrow RightComposition RightCosetRepresentative RightDownTeeVector RightDownVector RightDownVectorBar RightTee RightTeeArrow RightTeeVector RightTriangle RightTriangleBar RightTriangleEqual RightUpDownVector RightUpTeeVector RightUpVector RightUpVectorBar RightVector RightVectorBar RiskAchievementImportance RiskReductionImportance RogersTanimotoDissimilarity RollPitchYawAngles RollPitchYawMatrix RomanNumeral Root RootApproximant RootIntervals RootLocusPlot RootMeanSquare RootOfUnityQ RootReduce Roots RootSum Rotate RotateLabel RotateLeft RotateRight RotationAction RotationBox RotationBoxOptions RotationMatrix RotationTransform Round RoundImplies RoundingRadius Row RowAlignments RowBackgrounds RowBox RowHeights RowLines RowMinHeight RowReduce RowsEqual RowSpacings RSolve RSolveValue RudinShapiro RudvalisGroupRu Rule RuleCondition RuleDelayed RuleForm RulePlot RulerUnits Run RunProcess RunScheduledTask RunThrough RuntimeAttributes RuntimeOptions RussellRaoDissimilarity ' +
+      'SameQ SameTest SampledEntityClass SampleDepth SampledSoundFunction SampledSoundList SampleRate SamplingPeriod SARIMAProcess SARMAProcess SASTriangle SatelliteData SatisfiabilityCount SatisfiabilityInstances SatisfiableQ Saturday Save Saveable SaveAutoDelete SaveConnection SaveDefinitions SavitzkyGolayMatrix SawtoothWave Scale Scaled ScaleDivisions ScaledMousePosition ScaleOrigin ScalePadding ScaleRanges ScaleRangeStyle ScalingFunctions ScalingMatrix ScalingTransform Scan ScheduledTask ScheduledTaskActiveQ ScheduledTaskInformation ScheduledTaskInformationData ScheduledTaskObject ScheduledTasks SchurDecomposition ScientificForm ScientificNotationThreshold ScorerGi ScorerGiPrime ScorerHi ScorerHiPrime ScreenRectangle ScreenStyleEnvironment ScriptBaselineShifts ScriptForm ScriptLevel ScriptMinSize ScriptRules ScriptSizeMultipliers Scrollbars ScrollingOptions ScrollPosition SearchAdjustment SearchIndexObject SearchIndices SearchQueryString SearchResultObject Sec Sech SechDistribution SecondOrderConeOptimization SectionGrouping SectorChart SectorChart3D SectorOrigin SectorSpacing SecuredAuthenticationKey SecuredAuthenticationKeys SeedRandom Select Selectable SelectComponents SelectedCells SelectedNotebook SelectFirst Selection SelectionAnimate SelectionCell SelectionCellCreateCell SelectionCellDefaultStyle SelectionCellParentStyle SelectionCreateCell SelectionDebuggerTag SelectionDuplicateCell SelectionEvaluate SelectionEvaluateCreateCell SelectionMove SelectionPlaceholder SelectionSetStyle SelectWithContents SelfLoops SelfLoopStyle SemanticImport SemanticImportString SemanticInterpretation SemialgebraicComponentInstances SemidefiniteOptimization SendMail SendMessage Sequence SequenceAlignment SequenceAttentionLayer SequenceCases SequenceCount SequenceFold SequenceFoldList SequenceForm SequenceHold SequenceLastLayer SequenceMostLayer SequencePosition SequencePredict SequencePredictorFunction SequenceReplace SequenceRestLayer SequenceReverseLayer SequenceSplit Series SeriesCoefficient SeriesData ServiceConnect ServiceDisconnect ServiceExecute ServiceObject ServiceRequest ServiceResponse ServiceSubmit SessionSubmit SessionTime Set SetAccuracy SetAlphaChannel SetAttributes Setbacks SetBoxFormNamesPacket SetCloudDirectory SetCookies SetDelayed SetDirectory SetEnvironment SetEvaluationNotebook SetFileDate SetFileLoadingContext SetNotebookStatusLine SetOptions SetOptionsPacket SetPermissions SetPrecision SetProperty SetSecuredAuthenticationKey SetSelectedNotebook SetSharedFunction SetSharedVariable SetSpeechParametersPacket SetStreamPosition SetSystemModel SetSystemOptions Setter SetterBar SetterBox SetterBoxOptions Setting SetUsers SetValue Shading Shallow ShannonWavelet ShapiroWilkTest Share SharingList Sharpen ShearingMatrix ShearingTransform ShellRegion ShenCastanMatrix ShiftedGompertzDistribution ShiftRegisterSequence Short ShortDownArrow Shortest ShortestMatch ShortestPathFunction ShortLeftArrow ShortRightArrow ShortTimeFourier ShortTimeFourierData ShortUpArrow Show ShowAutoConvert ShowAutoSpellCheck ShowAutoStyles ShowCellBracket ShowCellLabel ShowCellTags ShowClosedCellArea ShowCodeAssist ShowContents ShowControls ShowCursorTracker ShowGroupOpenCloseIcon ShowGroupOpener ShowInvisibleCharacters ShowPageBreaks ShowPredictiveInterface ShowSelection ShowShortBoxForm ShowSpecialCharacters ShowStringCharacters ShowSyntaxStyles ShrinkingDelay ShrinkWrapBoundingBox SiderealTime SiegelTheta SiegelTukeyTest SierpinskiCurve SierpinskiMesh Sign Signature SignedRankTest SignedRegionDistance SignificanceLevel SignPadding SignTest SimilarityRules SimpleGraph SimpleGraphQ SimplePolygonQ SimplePolyhedronQ Simplex Simplify Sin Sinc SinghMaddalaDistribution SingleEvaluation SingleLetterItalics SingleLetterStyle SingularValueDecomposition SingularValueList SingularValuePlot SingularValues Sinh SinhIntegral SinIntegral SixJSymbol Skeleton SkeletonTransform SkellamDistribution Skewness SkewNormalDistribution SkinStyle Skip SliceContourPlot3D SliceDensityPlot3D SliceDistribution SliceVectorPlot3D Slider Slider2D Slider2DBox Slider2DBoxOptions SliderBox SliderBoxOptions SlideView Slot SlotSequence Small SmallCircle Smaller SmithDecomposition SmithDelayCompensator SmithWatermanSimilarity SmoothDensityHistogram SmoothHistogram SmoothHistogram3D SmoothKernelDistribution SnDispersion Snippet SnubPolyhedron SocialMediaData Socket SocketConnect SocketListen SocketListener SocketObject SocketOpen SocketReadMessage SocketReadyQ Sockets SocketWaitAll SocketWaitNext SoftmaxLayer SokalSneathDissimilarity SolarEclipse SolarSystemFeatureData SolidAngle SolidData SolidRegionQ Solve SolveAlways SolveDelayed Sort SortBy SortedBy SortedEntityClass Sound SoundAndGraphics SoundNote SoundVolume SourceLink Sow Space SpaceCurveData SpaceForm Spacer Spacings Span SpanAdjustments SpanCharacterRounding SpanFromAbove SpanFromBoth SpanFromLeft SpanLineThickness SpanMaxSize SpanMinSize SpanningCharacters SpanSymmetric SparseArray SpatialGraphDistribution SpatialMedian SpatialTransformationLayer Speak SpeakTextPacket SpearmanRankTest SpearmanRho SpeciesData SpecificityGoal SpectralLineData Spectrogram SpectrogramArray Specularity SpeechRecognize SpeechSynthesize SpellingCorrection SpellingCorrectionList SpellingDictionaries SpellingDictionariesPath SpellingOptions SpellingSuggestionsPacket Sphere SphereBox SpherePoints SphericalBesselJ SphericalBesselY SphericalHankelH1 SphericalHankelH2 SphericalHarmonicY SphericalPlot3D SphericalRegion SphericalShell SpheroidalEigenvalue SpheroidalJoiningFactor SpheroidalPS SpheroidalPSPrime SpheroidalQS SpheroidalQSPrime SpheroidalRadialFactor SpheroidalS1 SpheroidalS1Prime SpheroidalS2 SpheroidalS2Prime Splice SplicedDistribution SplineClosed SplineDegree SplineKnots SplineWeights Split SplitBy SpokenString Sqrt SqrtBox SqrtBoxOptions Square SquaredEuclideanDistance SquareFreeQ SquareIntersection SquareMatrixQ SquareRepeatingElement SquaresR SquareSubset SquareSubsetEqual SquareSuperset SquareSupersetEqual SquareUnion SquareWave SSSTriangle StabilityMargins StabilityMarginsStyle StableDistribution Stack StackBegin StackComplete StackedDateListPlot StackedListPlot StackInhibit StadiumShape StandardAtmosphereData StandardDeviation StandardDeviationFilter StandardForm Standardize Standardized StandardOceanData StandbyDistribution Star StarClusterData StarData StarGraph StartAsynchronousTask StartExternalSession StartingStepSize StartOfLine StartOfString StartProcess StartScheduledTask StartupSound StartWebSession StateDimensions StateFeedbackGains StateOutputEstimator StateResponse StateSpaceModel StateSpaceRealization StateSpaceTransform StateTransformationLinearize StationaryDistribution StationaryWaveletPacketTransform StationaryWaveletTransform StatusArea StatusCentrality StepMonitor StereochemistryElements StieltjesGamma StirlingS1 StirlingS2 StopAsynchronousTask StoppingPowerData StopScheduledTask StrataVariables StratonovichProcess StreamColorFunction StreamColorFunctionScaling StreamDensityPlot StreamMarkers StreamPlot StreamPoints StreamPosition Streams StreamScale StreamStyle String StringBreak StringByteCount StringCases StringContainsQ StringCount StringDelete StringDrop StringEndsQ StringExpression StringExtract StringForm StringFormat StringFreeQ StringInsert StringJoin StringLength StringMatchQ StringPadLeft StringPadRight StringPart StringPartition StringPosition StringQ StringRepeat StringReplace StringReplaceList StringReplacePart StringReverse StringRiffle StringRotateLeft StringRotateRight StringSkeleton StringSplit StringStartsQ StringTake StringTemplate StringToByteArray StringToStream StringTrim StripBoxes StripOnInput StripWrapperBoxes StrokeForm StructuralImportance StructuredArray StructuredSelection StruveH StruveL Stub StudentTDistribution Style StyleBox StyleBoxAutoDelete StyleData StyleDefinitions StyleForm StyleHints StyleKeyMapping StyleMenuListing StyleNameDialogSettings StyleNames StylePrint StyleSheetPath Subdivide Subfactorial Subgraph SubMinus SubPlus SubresultantPolynomialRemainders SubresultantPolynomials Subresultants Subscript SubscriptBox SubscriptBoxOptions Subscripted Subsequences Subset SubsetEqual SubsetMap SubsetQ Subsets SubStar SubstitutionSystem Subsuperscript SubsuperscriptBox SubsuperscriptBoxOptions Subtract SubtractFrom SubtractSides SubValues Succeeds SucceedsEqual SucceedsSlantEqual SucceedsTilde Success SuchThat Sum SumConvergence SummationLayer Sunday SunPosition Sunrise Sunset SuperDagger SuperMinus SupernovaData SuperPlus Superscript SuperscriptBox SuperscriptBoxOptions Superset SupersetEqual SuperStar Surd SurdForm SurfaceArea SurfaceColor SurfaceData SurfaceGraphics SurvivalDistribution SurvivalFunction SurvivalModel SurvivalModelFit SuspendPacket SuzukiDistribution SuzukiGroupSuz SwatchLegend Switch Symbol SymbolName SymletWavelet Symmetric SymmetricGroup SymmetricKey SymmetricMatrixQ SymmetricPolynomial SymmetricReduction Symmetrize SymmetrizedArray SymmetrizedArrayRules SymmetrizedDependentComponents SymmetrizedIndependentComponents SymmetrizedReplacePart SynchronousInitialization SynchronousUpdating Synonyms Syntax SyntaxForm SyntaxInformation SyntaxLength SyntaxPacket SyntaxQ SynthesizeMissingValues SystemDialogInput SystemException SystemGet SystemHelpPath SystemInformation SystemInformationData SystemInstall SystemModel SystemModeler SystemModelExamples SystemModelLinearize SystemModelParametricSimulate SystemModelPlot SystemModelProgressReporting SystemModelReliability SystemModels SystemModelSimulate SystemModelSimulateSensitivity SystemModelSimulationData SystemOpen SystemOptions SystemProcessData SystemProcesses SystemsConnectionsModel SystemsModelDelay SystemsModelDelayApproximate SystemsModelDelete SystemsModelDimensions SystemsModelExtract SystemsModelFeedbackConnect SystemsModelLabels SystemsModelLinearity SystemsModelMerge SystemsModelOrder SystemsModelParallelConnect SystemsModelSeriesConnect SystemsModelStateFeedbackConnect SystemsModelVectorRelativeOrders SystemStub SystemTest ' +
+      'Tab TabFilling Table TableAlignments TableDepth TableDirections TableForm TableHeadings TableSpacing TableView TableViewBox TableViewBoxBackground TableViewBoxOptions TabSpacings TabView TabViewBox TabViewBoxOptions TagBox TagBoxNote TagBoxOptions TaggingRules TagSet TagSetDelayed TagStyle TagUnset Take TakeDrop TakeLargest TakeLargestBy TakeList TakeSmallest TakeSmallestBy TakeWhile Tally Tan Tanh TargetDevice TargetFunctions TargetSystem TargetUnits TaskAbort TaskExecute TaskObject TaskRemove TaskResume Tasks TaskSuspend TaskWait TautologyQ TelegraphProcess TemplateApply TemplateArgBox TemplateBox TemplateBoxOptions TemplateEvaluate TemplateExpression TemplateIf TemplateObject TemplateSequence TemplateSlot TemplateSlotSequence TemplateUnevaluated TemplateVerbatim TemplateWith TemporalData TemporalRegularity Temporary TemporaryVariable TensorContract TensorDimensions TensorExpand TensorProduct TensorQ TensorRank TensorReduce TensorSymmetry TensorTranspose TensorWedge TestID TestReport TestReportObject TestResultObject Tetrahedron TetrahedronBox TetrahedronBoxOptions TeXForm TeXSave Text Text3DBox Text3DBoxOptions TextAlignment TextBand TextBoundingBox TextBox TextCases TextCell TextClipboardType TextContents TextData TextElement TextForm TextGrid TextJustification TextLine TextPacket TextParagraph TextPosition TextRecognize TextSearch TextSearchReport TextSentences TextString TextStructure TextStyle TextTranslation Texture TextureCoordinateFunction TextureCoordinateScaling TextWords Therefore ThermodynamicData ThermometerGauge Thick Thickness Thin Thinning ThisLink ThompsonGroupTh Thread ThreadingLayer ThreeJSymbol Threshold Through Throw ThueMorse Thumbnail Thursday Ticks TicksStyle TideData Tilde TildeEqual TildeFullEqual TildeTilde TimeConstrained TimeConstraint TimeDirection TimeFormat TimeGoal TimelinePlot TimeObject TimeObjectQ Times TimesBy TimeSeries TimeSeriesAggregate TimeSeriesForecast TimeSeriesInsert TimeSeriesInvertibility TimeSeriesMap TimeSeriesMapThread TimeSeriesModel TimeSeriesModelFit TimeSeriesResample TimeSeriesRescale TimeSeriesShift TimeSeriesThread TimeSeriesWindow TimeUsed TimeValue TimeWarpingCorrespondence TimeWarpingDistance TimeZone TimeZoneConvert TimeZoneOffset Timing Tiny TitleGrouping TitsGroupT ToBoxes ToCharacterCode ToColor ToContinuousTimeModel ToDate Today ToDiscreteTimeModel ToEntity ToeplitzMatrix ToExpression ToFileName Together Toggle ToggleFalse Toggler TogglerBar TogglerBox TogglerBoxOptions ToHeldExpression ToInvertibleTimeSeries TokenWords Tolerance ToLowerCase Tomorrow ToNumberField TooBig Tooltip TooltipBox TooltipBoxOptions TooltipDelay TooltipStyle Top TopHatTransform ToPolarCoordinates TopologicalSort ToRadicals ToRules ToSphericalCoordinates ToString Total TotalHeight TotalLayer TotalVariationFilter TotalWidth TouchPosition TouchscreenAutoZoom TouchscreenControlPlacement ToUpperCase Tr Trace TraceAbove TraceAction TraceBackward TraceDepth TraceDialog TraceForward TraceInternal TraceLevel TraceOff TraceOn TraceOriginal TracePrint TraceScan TrackedSymbols TrackingFunction TracyWidomDistribution TradingChart TraditionalForm TraditionalFunctionNotation TraditionalNotation TraditionalOrder TrainingProgressCheckpointing TrainingProgressFunction TrainingProgressMeasurements TrainingProgressReporting TrainingStoppingCriterion TransferFunctionCancel TransferFunctionExpand TransferFunctionFactor TransferFunctionModel TransferFunctionPoles TransferFunctionTransform TransferFunctionZeros TransformationClass TransformationFunction TransformationFunctions TransformationMatrix TransformedDistribution TransformedField TransformedProcess TransformedRegion TransitionDirection TransitionDuration TransitionEffect TransitiveClosureGraph TransitiveReductionGraph Translate TranslationOptions TranslationTransform Transliterate Transparent TransparentColor Transpose TransposeLayer TrapSelection TravelDirections TravelDirectionsData TravelDistance TravelDistanceList TravelMethod TravelTime TreeForm TreeGraph TreeGraphQ TreePlot TrendStyle Triangle TriangleCenter TriangleConstruct TriangleMeasurement TriangleWave TriangularDistribution TriangulateMesh Trig TrigExpand TrigFactor TrigFactorList Trigger TrigReduce TrigToExp TrimmedMean TrimmedVariance TropicalStormData True TrueQ TruncatedDistribution TruncatedPolyhedron TsallisQExponentialDistribution TsallisQGaussianDistribution TTest Tube TubeBezierCurveBox TubeBezierCurveBoxOptions TubeBox TubeBoxOptions TubeBSplineCurveBox TubeBSplineCurveBoxOptions Tuesday TukeyLambdaDistribution TukeyWindow TunnelData Tuples TuranGraph TuringMachine TuttePolynomial TwoWayRule Typed TypeSpecifier ' +
+      'UnateQ Uncompress UnconstrainedParameters Undefined UnderBar Underflow Underlined Underoverscript UnderoverscriptBox UnderoverscriptBoxOptions Underscript UnderscriptBox UnderscriptBoxOptions UnderseaFeatureData UndirectedEdge UndirectedGraph UndirectedGraphQ UndoOptions UndoTrackedVariables Unequal UnequalTo Unevaluated UniformDistribution UniformGraphDistribution UniformPolyhedron UniformSumDistribution Uninstall Union UnionPlus Unique UnitaryMatrixQ UnitBox UnitConvert UnitDimensions Unitize UnitRootTest UnitSimplify UnitStep UnitSystem UnitTriangle UnitVector UnitVectorLayer UnityDimensions UniverseModelData UniversityData UnixTime Unprotect UnregisterExternalEvaluator UnsameQ UnsavedVariables Unset UnsetShared UntrackedVariables Up UpArrow UpArrowBar UpArrowDownArrow Update UpdateDynamicObjects UpdateDynamicObjectsSynchronous UpdateInterval UpdateSearchIndex UpDownArrow UpEquilibrium UpperCaseQ UpperLeftArrow UpperRightArrow UpperTriangularize UpperTriangularMatrixQ Upsample UpSet UpSetDelayed UpTee UpTeeArrow UpTo UpValues URL URLBuild URLDecode URLDispatcher URLDownload URLDownloadSubmit URLEncode URLExecute URLExpand URLFetch URLFetchAsynchronous URLParse URLQueryDecode URLQueryEncode URLRead URLResponseTime URLSave URLSaveAsynchronous URLShorten URLSubmit UseGraphicsRange UserDefinedWavelet Using UsingFrontEnd UtilityFunction ' +
+      'V2Get ValenceErrorHandling ValidationLength ValidationSet Value ValueBox ValueBoxOptions ValueDimensions ValueForm ValuePreprocessingFunction ValueQ Values ValuesData Variables Variance VarianceEquivalenceTest VarianceEstimatorFunction VarianceGammaDistribution VarianceTest VectorAngle VectorAround VectorColorFunction VectorColorFunctionScaling VectorDensityPlot VectorGlyphData VectorGreater VectorGreaterEqual VectorLess VectorLessEqual VectorMarkers VectorPlot VectorPlot3D VectorPoints VectorQ Vectors VectorScale VectorStyle Vee Verbatim Verbose VerboseConvertToPostScriptPacket VerificationTest VerifyConvergence VerifyDerivedKey VerifyDigitalSignature VerifyInterpretation VerifySecurityCertificates VerifySolutions VerifyTestAssumptions Version VersionNumber VertexAdd VertexCapacity VertexColors VertexComponent VertexConnectivity VertexContract VertexCoordinateRules VertexCoordinates VertexCorrelationSimilarity VertexCosineSimilarity VertexCount VertexCoverQ VertexDataCoordinates VertexDegree VertexDelete VertexDiceSimilarity VertexEccentricity VertexInComponent VertexInDegree VertexIndex VertexJaccardSimilarity VertexLabeling VertexLabels VertexLabelStyle VertexList VertexNormals VertexOutComponent VertexOutDegree VertexQ VertexRenderingFunction VertexReplace VertexShape VertexShapeFunction VertexSize VertexStyle VertexTextureCoordinates VertexWeight VertexWeightedGraphQ Vertical VerticalBar VerticalForm VerticalGauge VerticalSeparator VerticalSlider VerticalTilde ViewAngle ViewCenter ViewMatrix ViewPoint ViewPointSelectorSettings ViewPort ViewProjection ViewRange ViewVector ViewVertical VirtualGroupData Visible VisibleCell VoiceStyleData VoigtDistribution VolcanoData Volume VonMisesDistribution VoronoiMesh ' +
+      'WaitAll WaitAsynchronousTask WaitNext WaitUntil WakebyDistribution WalleniusHypergeometricDistribution WaringYuleDistribution WarpingCorrespondence WarpingDistance WatershedComponents WatsonUSquareTest WattsStrogatzGraphDistribution WaveletBestBasis WaveletFilterCoefficients WaveletImagePlot WaveletListPlot WaveletMapIndexed WaveletMatrixPlot WaveletPhi WaveletPsi WaveletScale WaveletScalogram WaveletThreshold WeaklyConnectedComponents WeaklyConnectedGraphComponents WeaklyConnectedGraphQ WeakStationarity WeatherData WeatherForecastData WebAudioSearch WebElementObject WeberE WebExecute WebImage WebImageSearch WebSearch WebSessionObject WebSessions WebWindowObject Wedge Wednesday WeibullDistribution WeierstrassE1 WeierstrassE2 WeierstrassE3 WeierstrassEta1 WeierstrassEta2 WeierstrassEta3 WeierstrassHalfPeriods WeierstrassHalfPeriodW1 WeierstrassHalfPeriodW2 WeierstrassHalfPeriodW3 WeierstrassInvariantG2 WeierstrassInvariantG3 WeierstrassInvariants WeierstrassP WeierstrassPPrime WeierstrassSigma WeierstrassZeta WeightedAdjacencyGraph WeightedAdjacencyMatrix WeightedData WeightedGraphQ Weights WelchWindow WheelGraph WhenEvent Which While White WhiteNoiseProcess WhitePoint Whitespace WhitespaceCharacter WhittakerM WhittakerW WienerFilter WienerProcess WignerD WignerSemicircleDistribution WikipediaData WikipediaSearch WilksW WilksWTest WindDirectionData WindingCount WindingPolygon WindowClickSelect WindowElements WindowFloating WindowFrame WindowFrameElements WindowMargins WindowMovable WindowOpacity WindowPersistentStyles WindowSelected WindowSize WindowStatusArea WindowTitle WindowToolbars WindowWidth WindSpeedData WindVectorData WinsorizedMean WinsorizedVariance WishartMatrixDistribution With WolframAlpha WolframAlphaDate WolframAlphaQuantity WolframAlphaResult WolframLanguageData Word WordBoundary WordCharacter WordCloud WordCount WordCounts WordData WordDefinition WordFrequency WordFrequencyData WordList WordOrientation WordSearch WordSelectionFunction WordSeparators WordSpacings WordStem WordTranslation WorkingPrecision WrapAround Write WriteLine WriteString Wronskian ' +
+      'XMLElement XMLObject XMLTemplate Xnor Xor XYZColor ' +
+      'Yellow Yesterday YuleDissimilarity ' +
+      'ZernikeR ZeroSymmetric ZeroTest ZeroWidthTimes Zeta ZetaZero ZIPCodeData ZipfDistribution ZoomCenter ZoomFactor ZTest ZTransform ' +
       '$Aborted $ActivationGroupID $ActivationKey $ActivationUserRegistered $AddOnsDirectory $AllowExternalChannelFunctions $AssertFunction $Assumptions $AsynchronousTask $AudioInputDevices $AudioOutputDevices $BaseDirectory $BatchInput $BatchOutput $BlockchainBase $BoxForms $ByteOrdering $CacheBaseDirectory $Canceled $ChannelBase $CharacterEncoding $CharacterEncodings $CloudBase $CloudConnected $CloudCreditsAvailable $CloudEvaluation $CloudExpressionBase $CloudObjectNameFormat $CloudObjectURLType $CloudRootDirectory $CloudSymbolBase $CloudUserID $CloudUserUUID $CloudVersion $CloudVersionNumber $CloudWolframEngineVersionNumber $CommandLine $CompilationTarget $ConditionHold $ConfiguredKernels $Context $ContextPath $ControlActiveSetting $Cookies $CookieStore $CreationDate $CurrentLink $CurrentTask $CurrentWebSession $DateStringFormat $DefaultAudioInputDevice $DefaultAudioOutputDevice $DefaultFont $DefaultFrontEnd $DefaultImagingDevice $DefaultLocalBase $DefaultMailbox $DefaultNetworkInterface $DefaultPath $Display $DisplayFunction $DistributedContexts $DynamicEvaluation $Echo $EmbedCodeEnvironments $EmbeddableServices $EntityStores $Epilog $EvaluationCloudBase $EvaluationCloudObject $EvaluationEnvironment $ExportFormats $Failed $FinancialDataSource $FontFamilies $FormatType $FrontEnd $FrontEndSession $GeoEntityTypes $GeoLocation $GeoLocationCity $GeoLocationCountry $GeoLocationPrecision $GeoLocationSource $HistoryLength $HomeDirectory $HTMLExportRules $HTTPCookies $HTTPRequest $IgnoreEOF $ImageFormattingWidth $ImagingDevice $ImagingDevices $ImportFormats $IncomingMailSettings $InitialDirectory $Initialization $InitializationContexts $Input $InputFileName $InputStreamMethods $Inspector $InstallationDate $InstallationDirectory $InterfaceEnvironment $InterpreterTypes $IterationLimit $KernelCount $KernelID $Language $LaunchDirectory $LibraryPath $LicenseExpirationDate $LicenseID $LicenseProcesses $LicenseServer $LicenseSubprocesses $LicenseType $Line $Linked $LinkSupported $LoadedFiles $LocalBase $LocalSymbolBase $MachineAddresses $MachineDomain $MachineDomains $MachineEpsilon $MachineID $MachineName $MachinePrecision $MachineType $MaxExtraPrecision $MaxLicenseProcesses $MaxLicenseSubprocesses $MaxMachineNumber $MaxNumber $MaxPiecewiseCases $MaxPrecision $MaxRootDegree $MessageGroups $MessageList $MessagePrePrint $Messages $MinMachineNumber $MinNumber $MinorReleaseNumber $MinPrecision $MobilePhone $ModuleNumber $NetworkConnected $NetworkInterfaces $NetworkLicense $NewMessage $NewSymbol $Notebooks $NoValue $NumberMarks $Off $OperatingSystem $Output $OutputForms $OutputSizeLimit $OutputStreamMethods $Packages $ParentLink $ParentProcessID $PasswordFile $PatchLevelID $Path $PathnameSeparator $PerformanceGoal $Permissions $PermissionsGroupBase $PersistenceBase $PersistencePath $PipeSupported $PlotTheme $Post $Pre $PreferencesDirectory $PreInitialization $PrePrint $PreRead $PrintForms $PrintLiteral $Printout3DPreviewer $ProcessID $ProcessorCount $ProcessorType $ProductInformation $ProgramName $PublisherID $RandomState $RecursionLimit $RegisteredDeviceClasses $RegisteredUserName $ReleaseNumber $RequesterAddress $RequesterWolframID $RequesterWolframUUID $ResourceSystemBase $RootDirectory $ScheduledTask $ScriptCommandLine $ScriptInputString $SecuredAuthenticationKeyTokens $ServiceCreditsAvailable $Services $SessionID $SetParentLink $SharedFunctions $SharedVariables $SoundDisplay $SoundDisplayFunction $SourceLink $SSHAuthentication $SummaryBoxDataSizeLimit $SuppressInputFormHeads $SynchronousEvaluation $SyntaxHandler $System $SystemCharacterEncoding $SystemID $SystemMemory $SystemShell $SystemTimeZone $SystemWordLength $TemplatePath $TemporaryDirectory $TemporaryPrefix $TestFileName $TextStyle $TimedOut $TimeUnit $TimeZone $TimeZoneEntity $TopDirectory $TraceOff $TraceOn $TracePattern $TracePostAction $TracePreAction $UnitSystem $Urgent $UserAddOnsDirectory $UserAgentLanguages $UserAgentMachine $UserAgentName $UserAgentOperatingSystem $UserAgentString $UserAgentVersion $UserBaseDirectory $UserDocumentsDirectory $Username $UserName $UserURLBase $Version $VersionNumber $VoiceStyles $WolframID $WolframUUID',
     contains: [
       hljs.COMMENT('\\(\\*', '\\*\\)', {contains: ['self']}),
@@ -26815,17 +28670,28 @@ module.exports = function(hljs) {
       hljs.C_NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = mathematica;
+
 
 /***/ }),
-/* 193 */
+/* 196 */
 /***/ (function(module, exports) {
 
-module.exports = /*
+/*
+Language: Matlab
+Author: Denis Bardadym <bardadymchik@gmail.com>
+Contributors: Eugene Nizhibitsky <nizhibitsky@ya.ru>, Egor Rogov <e.rogov@postgrespro.ru>
+Website: https://www.mathworks.com/products/matlab.html
+Category: scientific
+*/
+
+/*
   Formal syntax is not published, helpful link:
   https://github.com/kornilova-l/matlab-IntelliJ-plugin/blob/master/src/main/grammar/Matlab.bnf
 */
-function(hljs) {
+function matlab(hljs) {
 
   var TRANSPOSE_RE = '(\'|\\.\')+';
   var TRANSPOSE = {
@@ -26836,6 +28702,7 @@ function(hljs) {
   };
 
   return {
+    name: 'Matlab',
     keywords: {
       keyword:
         'break case catch classdef continue else elseif end enumerated events for function ' +
@@ -26915,13 +28782,23 @@ function(hljs) {
       hljs.COMMENT('\\%', '$')
     ]
   };
-};
+}
+
+module.exports = matlab;
+
 
 /***/ }),
-/* 194 */
+/* 197 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Maxima
+Author: Robert Dodier <robert.dodier@gmail.com>
+Website: http://maxima.sourceforge.net
+Category: scientific
+*/
+
+function maxima(hljs) {
   var KEYWORDS = 'if then else elseif for thru do while unless step in and or not';
   var LITERALS = 'true false unknown inf minf ind und %e %i %pi %phi %gamma';
   var BUILTIN_FUNCTIONS =
@@ -27281,6 +29158,7 @@ module.exports = function(hljs) {
   var SYMBOLS = '_ __ %|0 %%|0';
 
   return {
+    name: 'Maxima',
     lexemes: '[A-Za-z_%][0-9A-Za-z_%]*',
     keywords: {
       keyword: KEYWORDS,
@@ -27325,14 +29203,26 @@ module.exports = function(hljs) {
     ],
     illegal: /@/
   }
-};
+}
+
+module.exports = maxima;
+
 
 /***/ }),
-/* 195 */
+/* 198 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: MEL
+Description: Maya Embedded Language
+Author: Shuen-Huei Guan <drake.guan@gmail.com>
+Website: http://www.autodesk.com/products/autodesk-maya/overview
+Category: graphics
+*/
+
+function mel(hljs) {
   return {
+    name: 'MEL',
     keywords:
       'int float string vector matrix if else switch case default while do for in break ' +
       'continue global proc return about abs addAttr addAttributeEditorNodeHelp addDynamic ' +
@@ -27554,13 +29444,23 @@ module.exports = function(hljs) {
       hljs.C_BLOCK_COMMENT_MODE
     ]
   };
-};
+}
+
+module.exports = mel;
+
 
 /***/ }),
-/* 196 */
+/* 199 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Mercury
+Author: mucaho <mkucko@gmail.com>
+Description: Mercury is a logic/functional programming language which combines the clarity and expressiveness of declarative programming with advanced static analysis and error detection features.
+Website: https://www.mercurylang.org
+*/
+
+function mercury(hljs) {
   var KEYWORDS = {
     keyword:
       'module use_module import_module include_module end_module initialise ' +
@@ -27604,7 +29504,7 @@ module.exports = function(hljs) {
     begin: '\\\\[abfnrtv]\\|\\\\x[0-9a-fA-F]*\\\\\\|%[-+# *.0-9]*[dioxXucsfeEgGp]',
     relevance: 0
   };
-  STRING.contains = STRING.contains.slice() // we need our own copy of contains
+  STRING.contains = STRING.contains.slice(); // we need our own copy of contains
   STRING.contains.push(STRING_FMT);
 
   var IMPLICATION = {
@@ -27627,6 +29527,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Mercury',
     aliases: ['m', 'moo'],
     keywords: KEYWORDS,
     contains: [
@@ -27642,15 +29543,27 @@ module.exports = function(hljs) {
       {begin: /\.$/} // relevance booster
     ]
   };
-};
+}
+
+module.exports = mercury;
+
 
 /***/ }),
-/* 197 */
+/* 200 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: MIPS Assembly
+Author: Nebuleon Fumika <nebuleon.fumika@gmail.com>
+Description: MIPS Assembly (up to MIPS32R2)
+Website: https://en.wikipedia.org/wiki/MIPS_architecture
+Category: assembler
+*/
+
+function mipsasm(hljs) {
     //local labels: %?[FB]?[AT]?\d{1,2}\w+
   return {
+    name: 'MIPS Assembly',
     case_insensitive: true,
     aliases: ['mips'],
     lexemes: '\\.?' + hljs.IDENT_RE,
@@ -27733,14 +29646,26 @@ module.exports = function(hljs) {
     ],
     illegal: '\/'
   };
-};
+}
+
+module.exports = mipsasm;
+
 
 /***/ }),
-/* 198 */
+/* 201 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Mizar
+Description: The Mizar Language is a formal language derived from the mathematical vernacular.
+Author: Kelley van Evert <kelleyvanevert@gmail.com>
+Website: http://mizar.org/language/
+Category: scientific
+*/
+
+function mizar(hljs) {
   return {
+    name: 'Mizar',
     keywords:
       'environ vocabularies notations constructors definitions ' +
       'registrations theorems schemes requirements begin end definition ' +
@@ -27756,18 +29681,28 @@ module.exports = function(hljs) {
       hljs.COMMENT('::', '$')
     ]
   };
-};
+}
+
+module.exports = mizar;
+
 
 /***/ }),
-/* 199 */
+/* 202 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Perl
+Author: Peter Leonov <gojpeg@yandex.ru>
+Website: https://www.perl.org
+Category: common
+*/
+
+function perl(hljs) {
   var PERL_KEYWORDS = 'getpwent getservent quotemeta msgrcv scalar kill dbmclose undef lc ' +
     'ma syswrite tr send umask sysopen shmwrite vec qx utime local oct semctl localtime ' +
-    'readpipe do return format read sprintf dbmopen pop getpgrp not getpwnam rewinddir qq' +
+    'readpipe do return format read sprintf dbmopen pop getpgrp not getpwnam rewinddir qq ' +
     'fileno qw endprotoent wait sethostent bless s|0 opendir continue each sleep endgrent ' +
-    'shutdown dump chomp connect getsockname die socketpair close flock exists index shmget' +
+    'shutdown dump chomp connect getsockname die socketpair close flock exists index shmget ' +
     'sub for endpwent redo lstat msgctl setpgrp abs exit select print ref gethostbyaddr ' +
     'unshift fcntl syscall goto getnetbyaddr join gmtime symlink semget splice x|0 ' +
     'getpeername recv log setsockopt cos last reverse gethostbyname getgrnam study formline ' +
@@ -27779,7 +29714,7 @@ module.exports = function(hljs) {
     'lcfirst until warn while values shift telldir getpwuid my getprotobynumber delete and ' +
     'sort uc defined srand accept package seekdir getprotobyname semop our rename seek if q|0 ' +
     'chroot sysread setpwent no crypt getc chown sqrt write setnetent setpriority foreach ' +
-    'tie sin msgget map stat getlogin unless elsif truncate exec keys glob tied closedir' +
+    'tie sin msgget map stat getlogin unless elsif truncate exec keys glob tied closedir ' +
     'ioctl socket readlink eval xor readline binmode setservent eof ord bind alarm pipe ' +
     'atan2 getgrent exp time push setgrent gt lt or ne m|0 break given say state when';
   var SUBST = {
@@ -27912,19 +29847,32 @@ module.exports = function(hljs) {
   METHOD.contains = PERL_DEFAULT_CONTAINS;
 
   return {
+    name: 'Perl',
     aliases: ['pl', 'pm'],
     lexemes: /[\w\.]+/,
     keywords: PERL_KEYWORDS,
     contains: PERL_DEFAULT_CONTAINS
   };
-};
+}
+
+module.exports = perl;
+
 
 /***/ }),
-/* 200 */
+/* 203 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Mojolicious
+Requires: xml.js, perl.js
+Author: Dotan Dimet <dotan@corky.net>
+Description: Mojolicious .ep (Embedded Perl) templates
+Website: https://mojolicious.org
+Category: template
+*/
+function mojolicious(hljs) {
   return {
+    name: 'Mojolicious',
     subLanguage: 'xml',
     contains: [
       {
@@ -27946,13 +29894,23 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = mojolicious;
+
 
 /***/ }),
-/* 201 */
+/* 204 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Monkey
+Description: Monkey2 is an easy to use, cross platform, games oriented programming language from Blitz Research.
+Author: Arthur Bikmullin <devolonter@gmail.com>
+Website: https://blitzresearch.itch.io/monkey2
+*/
+
+function monkey(hljs) {
   var NUMBER = {
     className: 'number', relevance: 0,
     variants: [
@@ -27964,6 +29922,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Monkey',
     case_insensitive: true,
     keywords: {
       keyword: 'public private property continue exit extern new try catch ' +
@@ -28025,13 +29984,25 @@ module.exports = function(hljs) {
       NUMBER
     ]
   }
-};
+}
+
+module.exports = monkey;
+
 
 /***/ }),
-/* 202 */
+/* 205 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: MoonScript
+Author: Billy Quith <chinbillybilbo@gmail.com>
+Description: MoonScript is a programming language that transcompiles to Lua.
+Origin: coffeescript.js
+Website: http://moonscript.org/
+Category: scripting
+*/
+
+function moonscript(hljs) {
   var KEYWORDS = {
     keyword:
       // Moonscript keywords
@@ -28095,6 +30066,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'MoonScript',
     aliases: ['moon'],
     keywords: KEYWORDS,
     illegal: /\/\*/,
@@ -28141,14 +30113,26 @@ module.exports = function(hljs) {
       }
     ])
   };
-};
+}
+
+module.exports = moonscript;
+
 
 /***/ }),
-/* 203 */
+/* 206 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: N1QL
+ Author: Andres Täht <andres.taht@gmail.com>
+ Contributors: Rene Saarsoo <nene@triin.net>
+ Description: Couchbase query language
+ Website: https://www.couchbase.com/products/n1ql
+ */
+
+function n1ql(hljs) {
   return {
+    name: 'N1QL',
     case_insensitive: true,
     contains: [
       {
@@ -28214,13 +30198,24 @@ module.exports = function(hljs) {
       hljs.C_BLOCK_COMMENT_MODE
     ]
   };
-};
+}
+
+module.exports = n1ql;
+
 
 /***/ }),
-/* 204 */
+/* 207 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Nginx config
+Author: Peter Leonov <gojpeg@yandex.ru>
+Contributors: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Category: common, config
+Website: https://www.nginx.com
+*/
+
+function nginx(hljs) {
   var VAR = {
     className: 'variable',
     variants: [
@@ -28283,6 +30278,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Nginx config',
     aliases: ['nginxconf'],
     contains: [
       hljs.HASH_COMMENT_MODE,
@@ -28311,20 +30307,31 @@ module.exports = function(hljs) {
     ],
     illegal: '[^\\s\\}]'
   };
-};
+}
+
+module.exports = nginx;
+
 
 /***/ }),
-/* 205 */
+/* 208 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Nim
+Description: Nim is a statically typed compiled systems programming language.
+Website: https://nim-lang.org
+Category: system
+*/
+
+function nim(hljs) {
   return {
+    name: 'Nim',
     aliases: ['nim'],
     keywords: {
       keyword:
         'addr and as asm bind block break case cast const continue converter ' +
         'discard distinct div do elif else end enum except export finally ' +
-        'for from generic if import in include interface is isnot iterator ' +
+        'for from func generic if import in include interface is isnot iterator ' +
         'let macro method mixin mod nil not notin object of or out proc ptr ' +
         'raise ref return shl shr static template try tuple type using var ' +
         'when while with without xor yield',
@@ -28370,13 +30377,24 @@ module.exports = function(hljs) {
       hljs.HASH_COMMENT_MODE
     ]
   }
-};
+}
+
+module.exports = nim;
+
 
 /***/ }),
-/* 206 */
+/* 209 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Nix
+Author: Domen Kožar <domen@dev.si>
+Description: Nix functional language
+Website: http://nixos.org/nix
+*/
+
+
+function nix(hljs) {
   var NIX_KEYWORDS = {
     keyword:
       'rec with let in inherit assert if else then',
@@ -28419,17 +30437,28 @@ module.exports = function(hljs) {
   ];
   ANTIQUOTE.contains = EXPRESSIONS;
   return {
+    name: 'Nix',
     aliases: ["nixos"],
     keywords: NIX_KEYWORDS,
     contains: EXPRESSIONS
   };
-};
+}
+
+module.exports = nix;
+
 
 /***/ }),
-/* 207 */
+/* 210 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: NSIS
+Description: Nullsoft Scriptable Install System
+Author: Jan T. Sott <jan.sott@gmail.com>
+Website: https://nsis.sourceforge.io/Main_Page
+*/
+
+function nsis(hljs) {
   var CONSTANTS = {
     className: 'variable',
     begin: /\$(ADMINTOOLS|APPDATA|CDBURN_AREA|CMDLINE|COMMONFILES32|COMMONFILES64|COMMONFILES|COOKIES|DESKTOP|DOCUMENTS|EXEDIR|EXEFILE|EXEPATH|FAVORITES|FONTS|HISTORY|HWNDPARENT|INSTDIR|INTERNET_CACHE|LANGUAGE|LOCALAPPDATA|MUSIC|NETHOOD|OUTDIR|PICTURES|PLUGINSDIR|PRINTHOOD|PROFILE|PROGRAMFILES32|PROGRAMFILES64|PROGRAMFILES|QUICKLAUNCH|RECENT|RESOURCES_LOCALIZED|RESOURCES|SENDTO|SMPROGRAMS|SMSTARTUP|STARTMENU|SYSDIR|TEMP|TEMPLATES|VIDEOS|WINDIR)/
@@ -28502,6 +30531,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'NSIS',
     case_insensitive: false,
     keywords: {
       keyword:
@@ -28533,13 +30563,24 @@ module.exports = function(hljs) {
       hljs.NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = nsis;
+
 
 /***/ }),
-/* 208 */
+/* 211 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Objective-C
+Author: Valerii Hiora <valerii.hiora@gmail.com>
+Contributors: Angel G. Olloqui <angelgarcia.mail@gmail.com>, Matt Diephouse <matt@diephouse.com>, Andrew Farmer <ahfarmer@gmail.com>, Minh Nguyễn <mxn@1ec5.org>
+Website: https://developer.apple.com/documentation/objectivec
+Category: common
+*/
+
+function objectivec(hljs) {
   var API_CLASS = {
     className: 'built_in',
     begin: '\\b(AV|CA|CF|CG|CI|CL|CM|CN|CT|MK|MP|MTK|MTL|NS|SCN|SK|UI|WK|XC)\\w+',
@@ -28576,6 +30617,7 @@ module.exports = function(hljs) {
   var LEXEMES = /[a-zA-Z@][a-zA-Z0-9_]*/;
   var CLASS_KEYWORDS = '@interface @class @protocol @implementation';
   return {
+    name: 'Objective-C',
     aliases: ['mm', 'objc', 'obj-c'],
     keywords: OBJC_KEYWORDS,
     lexemes: LEXEMES,
@@ -28633,15 +30675,28 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = objectivec;
+
 
 /***/ }),
-/* 209 */
+/* 212 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: OCaml
+Author: Mehdi Dogguy <mehdi@dogguy.org>
+Contributors: Nicolas Braud-Santoni <nicolas.braud-santoni@ens-cachan.fr>, Mickael Delahaye <mickael.delahaye@gmail.com>
+Description: OCaml language definition.
+Website: https://ocaml.org
+Category: functional
+*/
+
+function ocaml(hljs) {
   /* missing support for heredoc-like string (OCaml 4.0.2+) */
   return {
+    name: 'OCaml',
     aliases: ['ml'],
     keywords: {
       keyword:
@@ -28708,13 +30763,24 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = ocaml;
+
 
 /***/ }),
-/* 210 */
+/* 213 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: OpenSCAD
+Author: Dan Panzarella <alsoelp@gmail.com>
+Description: OpenSCAD is a language for the 3D CAD modeling software of the same name.
+Website: https://www.openscad.org
+Category: scientific
+*/
+
+function openscad(hljs) {
 	var SPECIAL_VARS = {
 		className: 'keyword',
 		begin: '\\$(f[asn]|t|vp[rtd]|children)'
@@ -28752,6 +30818,7 @@ module.exports = function(hljs) {
 	};
 
 	return {
+		name: 'OpenSCAD',
 		aliases: ['scad'],
 		keywords: {
 			keyword: 'function module include use for intersection_for if else \\%',
@@ -28769,13 +30836,23 @@ module.exports = function(hljs) {
 			FUNCTIONS
 		]
 	}
-};
+}
+
+module.exports = openscad;
+
 
 /***/ }),
-/* 211 */
+/* 214 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Oxygene
+Author: Carlo Kok <ck@remobjects.com>
+Description: Oxygene is built on the foundation of Object Pascal, revamped and extended to be a modern language for the twenty-first century.
+Website: https://www.elementscompiler.com/elements/default.aspx
+*/
+
+function oxygene(hljs) {
   var OXYGENE_KEYWORDS = 'abstract add and array as asc aspect assembly async begin break block by case class concat const copy constructor continue '+
     'create default delegate desc distinct div do downto dynamic each else empty end ensure enum equals event except exit extension external false '+
     'final finalize finalizer finally flags for forward from function future global group has if implementation implements implies in index inherited '+
@@ -28822,6 +30899,7 @@ module.exports = function(hljs) {
     ]
   };
   return {
+    name: 'Oxygene',
     case_insensitive: true,
     lexemes: /\.?\w+/,
     keywords: OXYGENE_KEYWORDS,
@@ -28843,13 +30921,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = oxygene;
+
 
 /***/ }),
-/* 212 */
+/* 215 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Parser3
+Requires: xml.js
+Author: Oleg Volchkov <oleg@volchkov.net>
+Website: https://www.parser.ru/en/
+Category: template
+*/
+
+function parser3(hljs) {
   var CURLY_SUBCOMMENT = hljs.COMMENT(
     '{',
     '}',
@@ -28858,6 +30947,7 @@ module.exports = function(hljs) {
     }
   );
   return {
+    name: 'Parser3',
     subLanguage: 'xml', relevance: 0,
     contains: [
       hljs.COMMENT('^#', '$'),
@@ -28895,13 +30985,24 @@ module.exports = function(hljs) {
       hljs.C_NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = parser3;
+
 
 /***/ }),
-/* 213 */
+/* 216 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Packet Filter config
+Description: pf.conf — packet filter configuration file (OpenBSD)
+Author: Peter Piwowarski <oldlaptop654@aol.com>
+Website: http://man.openbsd.org/pf.conf
+Category: config
+*/
+
+function pf(hljs) {
   var MACRO = {
     className: 'variable',
     begin: /\$[\w\d#@][\w\d_]*/
@@ -28910,12 +31011,9 @@ module.exports = function(hljs) {
     className: 'variable',
     begin: /<(?!\/)/, end: />/
   };
-  var QUOTE_STRING = {
-    className: 'string',
-    begin: /"/, end: /"/
-  };
 
   return {
+    name: 'Packet Filter config',
     aliases: ['pf.conf'],
     lexemes: /[a-z0-9_<>-]+/,
     keywords: {
@@ -28924,21 +31022,21 @@ module.exports = function(hljs) {
                  */
         'block match pass load anchor|5 antispoof|10 set table',
       keyword:
-        'in out log quick on rdomain inet inet6 proto from port os to route' +
-        'allow-opts divert-packet divert-reply divert-to flags group icmp-type' +
-        'icmp6-type label once probability recieved-on rtable prio queue' +
-        'tos tag tagged user keep fragment for os drop' +
-        'af-to|10 binat-to|10 nat-to|10 rdr-to|10 bitmask least-stats random round-robin' +
-        'source-hash static-port' +
-        'dup-to reply-to route-to' +
-        'parent bandwidth default min max qlimit' +
-        'block-policy debug fingerprints hostid limit loginterface optimization' +
-        'reassemble ruleset-optimization basic none profile skip state-defaults' +
-        'state-policy timeout' +
-        'const counters persist' +
-        'no modulate synproxy state|5 floating if-bound no-sync pflow|10 sloppy' +
-        'source-track global rule max-src-nodes max-src-states max-src-conn' +
-        'max-src-conn-rate overload flush' +
+        'in out log quick on rdomain inet inet6 proto from port os to route ' +
+        'allow-opts divert-packet divert-reply divert-to flags group icmp-type ' +
+        'icmp6-type label once probability recieved-on rtable prio queue ' +
+        'tos tag tagged user keep fragment for os drop ' +
+        'af-to|10 binat-to|10 nat-to|10 rdr-to|10 bitmask least-stats random round-robin ' +
+        'source-hash static-port ' +
+        'dup-to reply-to route-to ' +
+        'parent bandwidth default min max qlimit ' +
+        'block-policy debug fingerprints hostid limit loginterface optimization ' +
+        'reassemble ruleset-optimization basic none profile skip state-defaults ' +
+        'state-policy timeout ' +
+        'const counters persist ' +
+        'no modulate synproxy state|5 floating if-bound no-sync pflow|10 sloppy ' +
+        'source-track global rule max-src-nodes max-src-states max-src-conn ' +
+        'max-src-conn-rate overload flush ' +
         'scrub|5 max-mss min-ttl no-df|10 random-id',
       literal:
         'all any no-route self urpf-failed egress|5 unknown'
@@ -28951,13 +31049,34 @@ module.exports = function(hljs) {
       TABLE
     ]
   };
-};
+}
+
+module.exports = pf;
+
 
 /***/ }),
-/* 214 */
+/* 217 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: PostgreSQL and PL/pgSQL
+Author: Egor Rogov (e.rogov@postgrespro.ru)
+Website: https://www.postgresql.org/docs/11/sql.html
+Description:
+    This language incorporates both PostgreSQL SQL dialect and PL/pgSQL language.
+    It is based on PostgreSQL version 11. Some notes:
+    - Text in double-dollar-strings is _always_ interpreted as some programming code. Text
+      in ordinary quotes is _never_ interpreted that way and highlighted just as a string.
+    - There are quite a bit "special cases". That's because many keywords are not strictly
+      they are keywords in some contexts and ordinary identifiers in others. Only some
+      of such cases are handled; you still can get some of your identifiers highlighted
+      wrong way.
+    - Function names deliberately are not highlighted. There is no way to tell function
+      call from other constructs, hence we can't highlight _all_ function names. And
+      some names highlighted while others not looks ugly.
+*/
+
+function pgsql(hljs) {
   var COMMENT_MODE = hljs.COMMENT('--', '$');
   var UNQUOTED_IDENT = '[a-zA-Z_][a-zA-Z_0-9$]*';
   var DOLLAR_STRING = '\\$([a-zA-Z_]?|[a-zA-Z_][a-zA-Z_0-9]*)\\$';
@@ -29034,8 +31153,6 @@ module.exports = function(hljs) {
     // OID-types
     'OID REGPROC|10 REGPROCEDURE|10 REGOPER|10 REGOPERATOR|10 REGCLASS|10 REGTYPE|10 REGROLE|10 ' +
     'REGNAMESPACE|10 REGCONFIG|10 REGDICTIONARY|10 ';// +
-    // some types from standard extensions
-    'HSTORE|10 LO LTREE|10 ';
 
   var TYPES_RE =
     TYPES.trim()
@@ -29151,7 +31268,7 @@ module.exports = function(hljs) {
     'ACOS ACOSD ASIN ASIND ATAN ATAND ATAN2 ATAN2D COS COSD COT COTD SIN SIND TAN TAND ' +
     // https://www.postgresql.org/docs/11/static/functions-string.html
     'BIT_LENGTH CHAR_LENGTH CHARACTER_LENGTH LOWER OCTET_LENGTH OVERLAY POSITION SUBSTRING TREAT TRIM UPPER ' +
-    'ASCII BTRIM CHR CONCAT CONCAT_WS CONVERT CONVERT_FROM CONVERT_TO DECODE ENCODE INITCAP' +
+    'ASCII BTRIM CHR CONCAT CONCAT_WS CONVERT CONVERT_FROM CONVERT_TO DECODE ENCODE INITCAP ' +
     'LEFT LENGTH LPAD LTRIM MD5 PARSE_IDENT PG_CLIENT_ENCODING QUOTE_IDENT|10 QUOTE_LITERAL|10 ' +
     'QUOTE_NULLABLE|10 REGEXP_MATCH REGEXP_MATCHES REGEXP_REPLACE REGEXP_SPLIT_TO_ARRAY ' +
     'REGEXP_SPLIT_TO_TABLE REPEAT REPLACE REVERSE RIGHT RPAD RTRIM SPLIT_PART STRPOS SUBSTR ' +
@@ -29170,7 +31287,7 @@ module.exports = function(hljs) {
     'AREA CENTER DIAMETER HEIGHT ISCLOSED ISOPEN NPOINTS PCLOSE POPEN RADIUS WIDTH ' +
     'BOX BOUND_BOX CIRCLE LINE LSEG PATH POLYGON ' +
     // https://www.postgresql.org/docs/11/static/functions-net.html
-    'ABBREV BROADCAST HOST HOSTMASK MASKLEN NETMASK NETWORK SET_MASKLEN TEXT INET_SAME_FAMILY' +
+    'ABBREV BROADCAST HOST HOSTMASK MASKLEN NETMASK NETWORK SET_MASKLEN TEXT INET_SAME_FAMILY ' +
     'INET_MERGE MACADDR8_SET7BIT ' +
     // https://www.postgresql.org/docs/11/static/functions-textsearch.html
     'ARRAY_TO_TSVECTOR GET_CURRENT_TS_CONFIG NUMNODE PLAINTO_TSQUERY PHRASETO_TSQUERY WEBSEARCH_TO_TSQUERY ' +
@@ -29231,6 +31348,7 @@ module.exports = function(hljs) {
                .join('|');
 
     return {
+        name: 'PostgreSQL',
         aliases: ['postgres','postgresql'],
         case_insensitive: true,
         keywords: {
@@ -29443,18 +31561,34 @@ module.exports = function(hljs) {
           }
         ]
   };
-};
+}
+
+module.exports = pgsql;
+
 
 /***/ }),
-/* 215 */
+/* 218 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: PHP
+Author: Victor Karamzin <Victor.Karamzin@enterra-inc.com>
+Contributors: Evgeny Stepanischev <imbolk@gmail.com>, Ivan Sagalaev <maniac@softwaremaniacs.org>
+Website: https://www.php.net
+Category: common
+*/
+
+function php(hljs) {
   var VARIABLE = {
     begin: '\\$+[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*'
   };
   var PREPROCESSOR = {
-    className: 'meta', begin: /<\?(php)?|\?>/
+    className: 'meta',
+    variants: [
+      { begin: /<\?php/, relevance: 10 }, // boost for obvious PHP
+      { begin: /<\?[=]?/ },
+      { begin: /\?>/ } // end php tag
+    ]
   };
   var STRING = {
     className: 'string',
@@ -29471,18 +31605,37 @@ module.exports = function(hljs) {
     ]
   };
   var NUMBER = {variants: [hljs.BINARY_NUMBER_MODE, hljs.C_NUMBER_MODE]};
+  var KEYWORDS = {
+    keyword:
+    // Magic constants:
+    // <https://www.php.net/manual/en/language.constants.predefined.php>
+    '__CLASS__ __DIR__ __FILE__ __FUNCTION__ __LINE__ __METHOD__ __NAMESPACE__ __TRAIT__ ' +
+    // Function that look like language construct or language construct that look like function:
+    // List of keywords that may not require parenthesis
+    'die echo exit include include_once print require require_once ' +
+    // These are not language construct (function) but operate on the currently-executing function and can access the current symbol table
+    // 'compact extract func_get_arg func_get_args func_num_args get_called_class get_parent_class ' +
+    // Other keywords:
+    // <https://www.php.net/manual/en/reserved.php>
+    // <https://www.php.net/manual/en/language.types.type-juggling.php>
+    'array abstract and as binary bool boolean break callable case catch class clone const continue declare default do double else elseif empty enddeclare endfor endforeach endif endswitch endwhile eval extends final finally float for foreach from global goto if implements instanceof insteadof int integer interface isset iterable list new object or private protected public real return string switch throw trait try unset use var void while xor yield',
+    literal: 'false null true',
+    built_in:
+    // Standard PHP library:
+    // <https://www.php.net/manual/en/book.spl.php>
+    'Error|0 ' + // error is too common a name esp since PHP is case in-sensitive
+    'AppendIterator ArgumentCountError ArithmeticError ArrayIterator ArrayObject AssertionError BadFunctionCallException BadMethodCallException CachingIterator CallbackFilterIterator CompileError Countable DirectoryIterator DivisionByZeroError DomainException EmptyIterator ErrorException Exception FilesystemIterator FilterIterator GlobIterator InfiniteIterator InvalidArgumentException IteratorIterator LengthException LimitIterator LogicException MultipleIterator NoRewindIterator OutOfBoundsException OutOfRangeException OuterIterator OverflowException ParentIterator ParseError RangeException RecursiveArrayIterator RecursiveCachingIterator RecursiveCallbackFilterIterator RecursiveDirectoryIterator RecursiveFilterIterator RecursiveIterator RecursiveIteratorIterator RecursiveRegexIterator RecursiveTreeIterator RegexIterator RuntimeException SeekableIterator SplDoublyLinkedList SplFileInfo SplFileObject SplFixedArray SplHeap SplMaxHeap SplMinHeap SplObjectStorage SplObserver SplObserver SplPriorityQueue SplQueue SplStack SplSubject SplSubject SplTempFileObject TypeError UnderflowException UnexpectedValueException ' +
+    // Reserved interfaces:
+    // <https://www.php.net/manual/en/reserved.interfaces.php>
+    'ArrayAccess Closure Generator Iterator IteratorAggregate Serializable Throwable Traversable WeakReference ' +
+    // Reserved classes:
+    // <https://www.php.net/manual/en/reserved.classes.php>
+    'Directory __PHP_Incomplete_Class parent php_user_filter self static stdClass'
+  };
   return {
     aliases: ['php', 'php3', 'php4', 'php5', 'php6', 'php7'],
     case_insensitive: true,
-    keywords:
-      'and include_once list abstract global private echo interface as static endswitch ' +
-      'array null if endwhile or const for endforeach self var while isset public ' +
-      'protected exit foreach throw elseif include __FILE__ empty require_once do xor ' +
-      'return parent clone use __CLASS__ __LINE__ else break print eval new ' +
-      'catch __METHOD__ case exception default die require __FUNCTION__ ' +
-      'enddeclare final try switch continue endfor endif declare unset true false ' +
-      'trait goto instanceof insteadof __DIR__ __NAMESPACE__ ' +
-      'yield finally',
+    keywords: KEYWORDS,
     contains: [
       hljs.HASH_COMMENT_MODE,
       hljs.COMMENT('//', '$', {contains: [PREPROCESSOR]}),
@@ -29532,13 +31685,16 @@ module.exports = function(hljs) {
       },
       {
         className: 'function',
-        beginKeywords: 'function', end: /[;{]/, excludeEnd: true,
-        illegal: '\\$|\\[|%',
+        beginKeywords: 'fn function', end: /[;{]/, excludeEnd: true,
+        illegal: '[$%\\[]',
         contains: [
           hljs.UNDERSCORE_TITLE_MODE,
           {
             className: 'params',
             begin: '\\(', end: '\\)',
+            excludeBegin: true,
+            excludeEnd: true,
+            keywords: KEYWORDS,
             contains: [
               'self',
               VARIABLE,
@@ -29574,23 +31730,84 @@ module.exports = function(hljs) {
       NUMBER
     ]
   };
-};
+}
+
+module.exports = php;
+
 
 /***/ }),
-/* 216 */
+/* 219 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: PHP Template
+Requires: xml.js, php.js
+Author: Josh Goebel <hello@joshgoebel.com>
+Website: https://www.php.net
+Category: common
+*/
+
+function phpTemplate(hljs) {
+  return {
+    name: "PHP template",
+    subLanguage: 'xml',
+    contains: [
+      {
+        begin: /<\?(php|=)?/,
+        end: /\?>/,
+        subLanguage: 'php',
+        contains: [
+          // We don't want the php closing tag ?> to close the PHP block when
+          // inside any of the following blocks:
+          {begin: '/\\*', end: '\\*/', skip: true},
+          {begin: 'b"', end: '"', skip: true},
+          {begin: 'b\'', end: '\'', skip: true},
+          hljs.inherit(hljs.APOS_STRING_MODE, {illegal: null, className: null, contains: null, skip: true}),
+          hljs.inherit(hljs.QUOTE_STRING_MODE, {illegal: null, className: null, contains: null, skip: true})
+        ]
+      }
+    ]
+  };
+}
+
+module.exports = phpTemplate;
+
+
+/***/ }),
+/* 220 */
+/***/ (function(module, exports) {
+
+/*
+Language: Plain text
+Author: Egor Rogov (e.rogov@postgrespro.ru)
+Description: Plain text without any highlighting.
+Category: common
+*/
+
+function plaintext(hljs) {
     return {
+        name: 'Plain text',
+        aliases: ['text', 'txt'],
         disableAutodetect: true
     };
-};
+}
+
+module.exports = plaintext;
+
 
 /***/ }),
-/* 217 */
+/* 221 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Pony
+Author: Joe Eli McIlvain <joe.eli.mac@gmail.com>
+Description: Pony is an open-source, object-oriented, actor-model,
+             capabilities-secure, high performance programming language.
+Website: https://www.ponylang.io
+*/
+
+function pony(hljs) {
   var KEYWORDS = {
     keyword:
       'actor addressof and as be break class compile_error compile_intrinsic ' +
@@ -29651,6 +31868,7 @@ module.exports = function(hljs) {
    */
 
   return {
+    name: 'Pony',
     keywords: KEYWORDS,
     contains: [
       TYPE_NAME,
@@ -29663,13 +31881,24 @@ module.exports = function(hljs) {
       hljs.C_BLOCK_COMMENT_MODE
     ]
   };
-};
+}
+
+module.exports = pony;
+
 
 /***/ }),
-/* 218 */
+/* 222 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs){
+/*
+Language: PowerShell
+Description: PowerShell is a task-based command-line shell and scripting language built on .NET.
+Author: David Mohundro <david@mohundro.com>
+Contributors: Nicholas Blumhardt <nblumhardt@nblumhardt.com>, Victor Zhou <OiCMudkips@users.noreply.github.com>, Nicolas Le Gall <contact@nlegall.fr>
+Website: https://docs.microsoft.com/en-us/powershell/
+*/
+
+function powershell(hljs){
 
   var TYPES =
     ["string", "char", "byte", "int", "long", "bool",  "decimal",  "single",
@@ -29701,7 +31930,16 @@ module.exports = function(hljs){
   var KEYWORDS = {
     keyword: 'if else foreach return do while until elseif begin for trap data dynamicparam ' +
     'end break throw param continue finally in switch exit filter try process catch ' +
-    'hidden static parameter'
+    'hidden static parameter',
+    // "echo" relevance has been set to 0 to avoid auto-detect conflicts with shell transcripts
+    built_in: 'ac asnp cat cd CFS chdir clc clear clhy cli clp cls clv cnsn compare copy cp ' +
+    'cpi cpp curl cvpa dbp del diff dir dnsn ebp echo|0 epal epcsv epsn erase etsn exsn fc fhx ' +
+    'fl ft fw gal gbp gc gcb gci gcm gcs gdr gerr ghy gi gin gjb gl gm gmo gp gps gpv group ' +
+    'gsn gsnp gsv gtz gu gv gwmi h history icm iex ihy ii ipal ipcsv ipmo ipsn irm ise iwmi ' +
+    'iwr kill lp ls man md measure mi mount move mp mv nal ndr ni nmo npssc nsn nv ogv oh ' +
+    'popd ps pushd pwd r rbp rcjb rcsn rd rdr ren ri rjb rm rmdir rmo rni rnp rp rsn rsnp ' +
+    'rujb rv rvpa rwmi sajb sal saps sasv sbp sc scb select set shcm si sl sleep sls sort sp ' +
+    'spjb spps spsv start stz sujb sv swmi tee trcm type wget where wjb write'
     // TODO: 'validate[A-Z]+' can't work in keywords
   };
 
@@ -29823,29 +32061,10 @@ module.exports = function(hljs){
     ]
   };
 
-  var STATIC_MEMBER = {
-    className: 'selector-tag',
-    begin: /::\w+\b/, end: /$/,
-    returnBegin: true,
-    contains: [
-      { className: 'attribute', begin: /\w+/, endsParent: true }
-    ]
-  };
-
   var HASH_SIGNS = {
     className: 'selector-tag',
     begin: /\@\B/,
     relevance: 0
-  };
-
-  var PS_NEW_OBJECT_TYPE = {
-    className: 'built_in',
-    begin: /New-Object\s+\w/, end: /$/,
-    returnBegin: true,
-    contains: [
-      { begin: /New-Object\s+/, relevance: 0 },
-      { className: 'meta', begin: /([\w\.])+/, endsParent: true }
-    ]
   };
 
   // It's a very general rule so I'll narrow it a bit with some strict boundaries
@@ -29895,11 +32114,12 @@ module.exports = function(hljs){
     )
   };
 
-  PS_METHODS.contains.unshift(PS_TYPE)
+  PS_METHODS.contains.unshift(PS_TYPE);
 
   return {
+    name: 'PowerShell',
     aliases: ["ps", "ps1"],
-    lexemes: /-?[A-z\.\-]+/,
+    lexemes: /-?[A-z\.\-]+\b/,
     case_insensitive: true,
     keywords: KEYWORDS,
     contains: GENTLEMANS_SET.concat(
@@ -29910,14 +32130,26 @@ module.exports = function(hljs){
       PS_TYPE
     )
   };
-};
+}
+
+module.exports = powershell;
+
 
 /***/ }),
-/* 219 */
+/* 223 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Processing
+Description: Processing is a flexible software sketchbook and a language for learning how to code within the context of the visual arts.
+Author: Erik Paluka <erik.paluka@gmail.com>
+Website: https://processing.org
+Category: graphics
+*/
+
+function processing(hljs) {
   return {
+    name: 'Processing',
     keywords: {
       keyword: 'BufferedReader PVector PFont PImage PGraphics HashMap boolean byte char color ' +
         'double float int long String Array FloatDict FloatList IntDict IntList JSONArray JSONObject ' +
@@ -29962,14 +32194,24 @@ module.exports = function(hljs) {
       hljs.C_NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = processing;
+
 
 /***/ }),
-/* 220 */
+/* 224 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Python profiler
+Description: Python profiler results
+Author: Brian Beck <exogen@gmail.com>
+*/
+
+function profile(hljs) {
   return {
+    name: 'Python profiler',
     contains: [
       hljs.C_NUMBER_MODE,
       {
@@ -29996,13 +32238,23 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = profile;
+
 
 /***/ }),
-/* 221 */
+/* 225 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Prolog
+Description: Prolog is a general purpose logic programming language associated with artificial intelligence and computational linguistics.
+Author: Raivo Laanemets <raivo@infdot.com>
+Website: https://en.wikipedia.org/wiki/Prolog
+*/
+
+function prolog(hljs) {
 
   var ATOM = {
 
@@ -30084,17 +32336,28 @@ module.exports = function(hljs) {
   LIST.contains = inner;
 
   return {
+    name: 'Prolog',
     contains: inner.concat([
       {begin: /\.$/} // relevance booster
     ])
   };
-};
+}
+
+module.exports = prolog;
+
 
 /***/ }),
-/* 222 */
+/* 226 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: .properties
+Contributors: Valentin Aitken <valentin@nalisbg.com>, Egor Rogov <e.rogov@postgrespro.ru>
+Website: https://en.wikipedia.org/wiki/.properties
+Category: common, config
+*/
+
+function properties(hljs) {
 
   // whitespaces: space, tab, formfeed
   var WS0 = '[ \\t\\f]*';
@@ -30120,6 +32383,7 @@ module.exports = function(hljs) {
         };
 
   return {
+    name: '.properties',
     case_insensitive: true,
     illegal: /\S/,
     contains: [
@@ -30162,14 +32426,26 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = properties;
+
 
 /***/ }),
-/* 223 */
+/* 227 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Protocol Buffers
+Author: Dan Tao <daniel.tao@gmail.com>
+Description: Protocol buffer message definition format
+Website: https://developers.google.com/protocol-buffers/docs/proto3
+Category: protocols
+*/
+
+function protobuf(hljs) {
   return {
+    name: 'Protocol Buffers',
     keywords: {
       keyword: 'package import option optional required repeated group oneof',
       built_in: 'double float int32 int64 uint32 uint64 sint32 sint64 ' +
@@ -30193,7 +32469,7 @@ module.exports = function(hljs) {
       {
         className: 'function',
         beginKeywords: 'rpc',
-        end: /;/, excludeEnd: true,
+        end: /[{;]/, excludeEnd: true,
         keywords: 'rpc returns'
       },
       {
@@ -30202,13 +32478,23 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = protobuf;
+
 
 /***/ }),
-/* 224 */
+/* 228 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Puppet
+Author: Jose Molina Colmenero <gaudy41@gmail.com>
+Website: https://puppet.com/docs
+Category: config
+*/
+
+function puppet(hljs) {
 
   var PUPPET_KEYWORDS = {
     keyword:
@@ -30265,6 +32551,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Puppet',
     aliases: ['pp'],
     contains: [
       COMMENT,
@@ -30321,15 +32608,26 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = puppet;
+
 
 /***/ }),
-/* 225 */
+/* 229 */
 /***/ (function(module, exports) {
 
-module.exports = // Base deafult colors in PB IDE: background: #FFFFDF; foreground: #000000;
+/*
+Language: PureBASIC
+Author: Tristano Ajmone <tajmone@gmail.com>
+Description: Syntax highlighting for PureBASIC (v.5.00-5.60). No inline ASM highlighting. (v.1.2, May 2017)
+Credits: I've taken inspiration from the PureBasic language file for GeSHi, created by Gustavo Julio Fiorenza (GuShH).
+Website: https://www.purebasic.com
+*/
 
-function(hljs) {
+// Base deafult colors in PB IDE: background: #FFFFDF; foreground: #000000;
+
+function purebasic(hljs) {
   var STRINGS = { // PB IDE color: #0080FF (Azure Radiance)
     className: 'string',
     begin: '(~)?"', end: '"',
@@ -30342,6 +32640,7 @@ function(hljs) {
   };
 
   return {
+    name: 'PureBASIC',
     aliases: ['pb', 'pbi'],
     keywords: // PB IDE color: #006666 (Blue Stone) + Bold
       // Keywords from all version of PureBASIC 5.00 upward ...
@@ -30410,13 +32709,23 @@ function(hljs) {
         -- Keywords list taken and adapted from GuShH's (Gustavo Julio Fiorenza)
            PureBasic language file for GeSHi:
            -- https://github.com/easybook/geshi/blob/master/geshi/purebasic.php
-*/;
+*/
+
+module.exports = purebasic;
+
 
 /***/ }),
-/* 226 */
+/* 230 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Python
+Description: Python is an interpreted, object-oriented, high-level programming language with dynamic semantics.
+Website: https://www.python.org
+Category: common
+*/
+
+function python(hljs) {
   var KEYWORDS = {
     keyword:
       'and elif is global as in if from raise for except finally print import pass return ' +
@@ -30497,11 +32806,18 @@ module.exports = function(hljs) {
   };
   var PARAMS = {
     className: 'params',
-    begin: /\(/, end: /\)/,
-    contains: ['self', PROMPT, NUMBER, STRING, hljs.HASH_COMMENT_MODE]
+    variants: [
+      // Exclude params at functions without params
+      {begin: /\(\s*\)/, skip: true, className: null },
+      {
+        begin: /\(/, end: /\)/, excludeBegin: true, excludeEnd: true,
+        contains: ['self', PROMPT, NUMBER, STRING, hljs.HASH_COMMENT_MODE],
+      },
+    ],
   };
   SUBST.contains = [STRING, NUMBER, PROMPT];
   return {
+    name: 'Python',
     aliases: ['py', 'gyp', 'ipython'],
     keywords: KEYWORDS,
     illegal: /(<\/|->|\?)|=>/,
@@ -30538,13 +32854,60 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = python;
+
 
 /***/ }),
-/* 227 */
+/* 231 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Python REPL
+Requires: python.js
+Author: Josh Goebel <hello@joshgoebel.com>
+Category: common
+*/
+
+function pythonRepl(hljs) {
+  return {
+    aliases: ['pycon'],
+    contains: [
+      {
+        className: 'meta',
+        starts: {
+          // a space separates the REPL prefix from the actual code
+          // this is purely for cleaner HTML output
+          end: / |$/,
+          starts: {
+            end: '$', subLanguage: 'python'
+          }
+        },
+        variants: [
+          { begin: /^>>>(?=[ ]|$)/ },
+          { begin: /^\.\.\.(?=[ ]|$)/ }
+        ]
+      },
+    ]
+  }
+}
+
+module.exports = pythonRepl;
+
+
+/***/ }),
+/* 232 */
+/***/ (function(module, exports) {
+
+/*
+Language: Q
+Description: Q is a vector-based functional paradigm programming language built into the kdb+ database.
+             (K/Q/Kdb+ from Kx Systems)
+Author: Sergey Vidyuk <svidyuk@gmail.com>
+Website: https://kx.com/connect-with-us/developers/
+*/
+function q(hljs) {
   var Q_KEYWORDS = {
   keyword:
     'do while select delete by update from',
@@ -30556,6 +32919,7 @@ module.exports = function(hljs) {
     '`float `double int `timestamp `timespan `datetime `time `boolean `symbol `char `byte `short `long `real `month `date `minute `second `guid'
   };
   return {
+  name: 'Q',
   aliases:['k', 'kdb'],
   keywords: Q_KEYWORDS,
   lexemes: /(`?)[A-Za-z0-9_]+\b/,
@@ -30565,13 +32929,26 @@ module.exports = function(hljs) {
     hljs.C_NUMBER_MODE
      ]
   };
-};
+}
+
+module.exports = q;
+
 
 /***/ }),
-/* 228 */
+/* 233 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: QML
+Requires: javascript.js, xml.js
+Author: John Foster <jfoster@esri.com>
+Description: Syntax highlighting for the Qt Quick QML scripting language, based mostly off
+             the JavaScript parser.
+Website: https://doc.qt.io/qt-5/qmlapplications.html
+Category: scripting
+*/
+
+function qml(hljs) {
   var KEYWORDS = {
       keyword:
         'in of on if for while finally var new function do return void else break catch ' +
@@ -30589,7 +32966,7 @@ module.exports = function(hljs) {
         'module console window document Symbol Set Map WeakSet WeakMap Proxy Reflect ' +
         'Behavior bool color coordinate date double enumeration font geocircle georectangle ' +
         'geoshape int list matrix4x4 parent point quaternion real rect ' +
-        'size string url variant vector2d vector3d vector4d' +
+        'size string url variant vector2d vector3d vector4d ' +
         'Promise'
     };
 
@@ -30662,6 +33039,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'QML',
     aliases: ['qt'],
     case_insensitive: false,
     keywords: KEYWORDS,
@@ -30738,16 +33116,28 @@ module.exports = function(hljs) {
     ],
     illegal: /#/
   };
-};
+}
+
+module.exports = qml;
+
 
 /***/ }),
-/* 229 */
+/* 234 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: R
+Description: R is a free software environment for statistical computing and graphics.
+Author: Joe Cheng <joe@rstudio.org>
+Website: https://www.r-project.org
+Category: scientific
+*/
+
+function r(hljs) {
   var IDENT_RE = '([a-zA-Z]|\\.[a-zA-Z.])[a-zA-Z0-9._]*';
 
   return {
+    name: 'R',
     contains: [
       hljs.HASH_COMMENT_MODE,
       {
@@ -30812,13 +33202,23 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = r;
+
 
 /***/ }),
-/* 230 */
+/* 235 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: ReasonML
+Description: Reason lets you write simple, fast and quality type safe code while leveraging both the JavaScript & OCaml ecosystems.
+Website: https://reasonml.github.io
+Author: Gidi Meir Morris <oss@gidi.io>
+Category: functional
+*/
+function reasonml(hljs) {
   function orReValues(ops){
     return ops
     .map(function(op) {
@@ -30843,9 +33243,9 @@ module.exports = function(hljs) {
 
   var KEYWORDS = {
     keyword:
-      'and as asr assert begin class constraint do done downto else end exception external' +
-      'for fun function functor if in include inherit initializer' +
-      'land lazy let lor lsl lsr lxor match method mod module mutable new nonrec' +
+      'and as asr assert begin class constraint do done downto else end exception external ' +
+      'for fun function functor if in include inherit initializer ' +
+      'land lazy let lor lsl lsr lxor match method mod module mutable new nonrec ' +
       'object of open or private rec sig struct then to try type val virtual when while with',
     built_in:
       'array bool bytes char exn|5 float int int32 int64 list lazy_t|5 nativeint|5 ref string unit ',
@@ -31051,6 +33451,7 @@ module.exports = function(hljs) {
   PARAMS_CONTENTS.push(MODULE_ACCESS_MODE);
 
   return {
+    name: 'ReasonML',
     aliases: ['re'],
     keywords: KEYWORDS,
     illegal: '(:\\-|:=|\\${|\\+=)',
@@ -31116,14 +33517,26 @@ module.exports = function(hljs) {
       MODULE_ACCESS_MODE
     ]
   };
-};
+}
+
+module.exports = reasonml;
+
 
 /***/ }),
-/* 231 */
+/* 236 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: RenderMan RIB
+Author: Konstantin Evdokimenko <qewerty@gmail.com>
+Contributors: Shuen-Huei Guan <drake.guan@gmail.com>
+Website: https://renderman.pixar.com/resources/RenderMan_20/ribBinding.html
+Category: graphics
+*/
+
+function rib(hljs) {
   return {
+    name: 'RenderMan RIB',
     keywords:
       'ArchiveRecord AreaLightSource Atmosphere Attribute AttributeBegin AttributeEnd Basis ' +
       'Begin Blobby Bound Clipping ClippingPlane Color ColorSamples ConcatTransform Cone ' +
@@ -31147,13 +33560,24 @@ module.exports = function(hljs) {
       hljs.QUOTE_STRING_MODE
     ]
   };
-};
+}
+
+module.exports = rib;
+
 
 /***/ }),
-/* 232 */
+/* 237 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Roboconf
+Author: Vincent Zurczak <vzurczak@linagora.com>
+Description: Syntax highlighting for Roboconf's DSL
+Website: http://roboconf.net
+Category: config
+*/
+
+function roboconf(hljs) {
   var IDENTIFIER = '[a-zA-Z-_][^\\n{]+\\{';
 
   var PROPERTY = {
@@ -31176,6 +33600,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Roboconf',
     aliases: ['graph', 'instances'],
     case_insensitive: true,
     keywords: 'import',
@@ -31218,19 +33643,29 @@ module.exports = function(hljs) {
       hljs.HASH_COMMENT_MODE
     ]
   };
-};
+}
+
+module.exports = roboconf;
+
 
 /***/ }),
-/* 233 */
+/* 238 */
 /***/ (function(module, exports) {
 
-module.exports = // Colors from RouterOS terminal:
+/*
+Language: Microtik RouterOS script
+Author: Ivan Dementev <ivan_div@mail.ru>
+Description: Scripting host provides a way to automate some router maintenance tasks by means of executing user-defined scripts bounded to some event occurrence
+Website: https://wiki.mikrotik.com/wiki/Manual:Scripting
+*/
+
+// Colors from RouterOS terminal:
 //   green        - #0E9A00
 //   teal         - #0C9A9A
 //   purple       - #99069A
 //   light-brown  - #9A9900
 
-function(hljs) {
+function routeros(hljs) {
 
   var STATEMENTS = 'foreach do while for if from to step else on-error and or not in';
 
@@ -31243,15 +33678,6 @@ function(hljs) {
   var LITERALS = 'true false yes no nothing nil null';
 
   var OBJECTS = 'traffic-flow traffic-generator firewall scheduler aaa accounting address-list address align area bandwidth-server bfd bgp bridge client clock community config connection console customer default dhcp-client dhcp-server discovery dns e-mail ethernet filter firewall firmware gps graphing group hardware health hotspot identity igmp-proxy incoming instance interface ip ipsec ipv6 irq l2tp-server lcd ldp logging mac-server mac-winbox mangle manual mirror mme mpls nat nd neighbor network note ntp ospf ospf-v3 ovpn-server page peer pim ping policy pool port ppp pppoe-client pptp-server prefix profile proposal proxy queue radius resource rip ripng route routing screen script security-profiles server service service-port settings shares smb sms sniffer snmp snooper socks sstp-server system tool tracking type upgrade upnp user-manager users user vlan secret vrrp watchdog web-access wireless pptp pppoe lan wan layer7-protocol lease simple raw';
-
-  // print parameters
-  // Several parameters are available for print command:
-  // ToDo: var PARAMETERS_PRINT = 'append as-value brief detail count-only file follow follow-only from interval terse value-list without-paging where info';
-  // ToDo: var OPERATORS = '&& and ! not || or in ~ ^ & << >> + - * /';
-  // ToDo: var TYPES = 'num number bool boolean str string ip ip6-prefix id time array';
-  // ToDo: The following tokens serve as delimiters in the grammar: ()  []  {}  :   ;   $   /
-
-  var VAR_PREFIX = 'global local set for foreach';
 
   var VAR = {
     className: 'variable',
@@ -31279,11 +33705,9 @@ function(hljs) {
     className: 'string',
     begin: /'/, end: /'/
   };
-
-  var IPADDR = '((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\b';
-  var IPADDR_wBITMASK =  IPADDR+'/(3[0-2]|[1-2][0-9]|\\d)';
   //////////////////////////////////////////////////////////////////////
   return {
+    name: 'Microtik RouterOS script',
     aliases: ['routeros', 'mikrotik'],
     case_insensitive: true,
     lexemes: /:?[\w-]+/,
@@ -31381,14 +33805,26 @@ function(hljs) {
       },//*/
     ]
   };
-};
+}
+
+module.exports = routeros;
+
 
 /***/ }),
-/* 234 */
+/* 239 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: RenderMan RSL
+Author: Konstantin Evdokimenko <qewerty@gmail.com>
+Contributors: Shuen-Huei Guan <drake.guan@gmail.com>
+Website: https://renderman.pixar.com/resources/RenderMan_20/shadingLanguage.html
+Category: graphics
+*/
+
+function rsl(hljs) {
   return {
+    name: 'RenderMan RSL',
     keywords: {
       keyword:
         'float color point normal vector matrix while for if do return else break extern continue',
@@ -31421,14 +33857,26 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = rsl;
+
 
 /***/ }),
-/* 235 */
+/* 240 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Oracle Rules Language
+Author: Jason Jacobson <jason.a.jacobson@gmail.com>
+Description: The Oracle Utilities Rules Language is used to program the Oracle Utilities Applications acquired from LODESTAR Corporation.  The products include Billing Component, LPSS, Pricing Component etc. through version 1.6.1.
+Website: https://docs.oracle.com/cd/E17904_01/dev.1111/e10227/rlref.htm
+Category: enterprise
+*/
+
+function ruleslanguage(hljs) {
   return {
+    name: 'Oracle Rules Language',
     keywords: {
        keyword: 'BILL_PERIOD BILL_START BILL_STOP RS_EFFECTIVE_START RS_EFFECTIVE_STOP RS_JURIS_CODE RS_OPCO_CODE ' +
          'INTDADDATTRIBUTE|5 INTDADDVMSG|5 INTDBLOCKOP|5 INTDBLOCKOPNA|5 INTDCLOSE|5 INTDCOUNT|5 ' +
@@ -31486,13 +33934,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = ruleslanguage;
+
 
 /***/ }),
-/* 236 */
+/* 241 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Rust
+Author: Andrey Vlasovskikh <andrey.vlasovskikh@gmail.com>
+Contributors: Roman Shmatov <romanshmatov@gmail.com>, Kasper Andersen <kma_untrusted@protonmail.com>
+Website: https://www.rust-lang.org
+Category: common, system
+*/
+
+function rust(hljs) {
   var NUM_SUFFIX = '([ui](8|16|32|64|128|size)|f(32|64))\?';
   var KEYWORDS =
     'abstract as async await become box break const continue crate do dyn ' +
@@ -31520,6 +33979,7 @@ module.exports = function(hljs) {
     'option_env! print! println! select! stringify! try! unimplemented! ' +
     'unreachable! vec! write! writeln! macro_rules! assert_ne! debug_assert_ne!';
   return {
+    name: 'Rust',
     aliases: ['rs'],
     keywords: {
       keyword:
@@ -31598,13 +34058,22 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = rust;
+
 
 /***/ }),
-/* 237 */
+/* 242 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: SAS
+Author: Mauricio Caceres <mauricio.caceres.bravo@gmail.com>
+Description: Syntax Highlighting for SAS
+*/
+
+function sas(hljs) {
 
     // Data step and PROC SQL statements
     var SAS_KEYWORDS = ''+
@@ -31678,6 +34147,7 @@ module.exports = function(hljs) {
         'trim|unquote|until|upcase|verify|while|window';
 
     return {
+        name: 'SAS',
         aliases: ['sas', 'SAS'],
         case_insensitive: true, // SAS is case-insensitive
         keywords: {
@@ -31728,13 +34198,24 @@ module.exports = function(hljs) {
             hljs.C_BLOCK_COMMENT_MODE
         ]
     };
-};
+}
+
+module.exports = sas;
+
 
 /***/ }),
-/* 238 */
+/* 243 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Scala
+Category: functional
+Author: Jan Berkel <jan.berkel@gmail.com>
+Contributors: Erik Osheim <d_m@plastic-idolatry.com>
+Website: https://www.scala-lang.org
+*/
+
+function scala(hljs) {
 
   var ANNOTATION = { className: 'meta', begin: '@[A-Za-z]+' };
 
@@ -31831,6 +34312,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Scala',
     keywords: {
       literal: 'true false null',
       keyword: 'type yield lazy override def with val var sealed abstract private trait object if forSome for while throw finally protected extends import final return else break new catch super class case package default try this match continue throws implicit'
@@ -31847,13 +34329,27 @@ module.exports = function(hljs) {
       ANNOTATION
     ]
   };
-};
+}
+
+module.exports = scala;
+
 
 /***/ }),
-/* 239 */
+/* 244 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Scheme
+Description: Scheme is a programming language in the Lisp family.
+             (keywords based on http://community.schemewiki.org/?scheme-keywords)
+Author: JP Verkamp <me@jverkamp.com>
+Contributors: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Origin: clojure.js
+Website: http://community.schemewiki.org/?what-is-scheme
+Category: lisp
+*/
+
+function scheme(hljs) {
   var SCHEME_IDENT_RE = '[^\\(\\)\\[\\]\\{\\}",\'`;#|\\\\\\s]+';
   var SCHEME_SIMPLE_NUMBER_RE = '(\\-|\\+)?\\d+([./]\\d+)?';
   var SCHEME_COMPLEX_NUMBER_RE = SCHEME_SIMPLE_NUMBER_RE + '[+\\-]' + SCHEME_SIMPLE_NUMBER_RE + 'i';
@@ -31917,12 +34413,6 @@ module.exports = function(hljs) {
   };
 
   var STRING = hljs.QUOTE_STRING_MODE;
-
-  var REGULAR_EXPRESSION = {
-    className: 'regexp',
-    begin: '#[pr]x"',
-    end: '[^\\\\]"'
-  };
 
   var COMMENT_MODES = [
     hljs.COMMENT(
@@ -31992,16 +34482,29 @@ module.exports = function(hljs) {
   BODY.contains = [LITERAL, NUMBER, STRING, IDENT, QUOTED_IDENT, QUOTED_LIST, LIST].concat(COMMENT_MODES);
 
   return {
+    name: 'Scheme',
     illegal: /\S/,
     contains: [SHEBANG, NUMBER, STRING, QUOTED_IDENT, QUOTED_LIST, LIST].concat(COMMENT_MODES)
   };
-};
+}
+
+module.exports = scheme;
+
 
 /***/ }),
-/* 240 */
+/* 245 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Scilab
+Author: Sylvestre Ledru <sylvestre.ledru@scilab-enterprises.com>
+Origin: matlab.js
+Description: Scilab is a port from Matlab
+Website: https://www.scilab.org
+Category: scientific
+*/
+
+function scilab(hljs) {
 
   var COMMON_CONTAINS = [
     hljs.C_NUMBER_MODE,
@@ -32013,6 +34516,7 @@ module.exports = function(hljs) {
   ];
 
   return {
+    name: 'Scilab',
     aliases: ['sci'],
     lexemes: /%?\w+/,
     keywords: {
@@ -32053,15 +34557,25 @@ module.exports = function(hljs) {
       hljs.COMMENT('//', '$')
     ].concat(COMMON_CONTAINS)
   };
-};
+}
+
+module.exports = scilab;
+
 
 /***/ }),
-/* 241 */
+/* 246 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
-  var AT_IDENTIFIER = '@[a-z-]+' // @font-face
-  var AT_MODIFIERS = "and or not only"
+/*
+Language: SCSS
+Description: Scss is an extension of the syntax of CSS.
+Author: Kurt Emch <kurt@kurtemch.com>
+Website: https://sass-lang.com
+Category: common, css
+*/
+function scss(hljs) {
+  var AT_IDENTIFIER = '@[a-z-]+'; // @font-face
+  var AT_MODIFIERS = "and or not only";
   var IDENT_RE = '[a-zA-Z-][a-zA-Z0-9_-]*';
   var VARIABLE = {
     className: 'variable',
@@ -32090,6 +34604,7 @@ module.exports = function(hljs) {
     }
   };
   return {
+    name: 'SCSS',
     case_insensitive: true,
     illegal: '[=/|\']',
     contains: [
@@ -32172,14 +34687,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = scss;
+
 
 /***/ }),
-/* 242 */
+/* 247 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Shell Session
+Requires: bash.js
+Author: TSUYUSATO Kitsune <make.just.on@gmail.com>
+Category: common
+*/
+
+function shell(hljs) {
   return {
+    name: 'Shell Session',
     aliases: ['console'],
     contains: [
       {
@@ -32191,17 +34717,28 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = shell;
+
 
 /***/ }),
-/* 243 */
+/* 248 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Smali
+Author: Dennis Titze <dennis.titze@gmail.com>
+Description: Basic Smali highlighting
+Website: https://github.com/JesusFreke/smali
+*/
+
+function smali(hljs) {
   var smali_instr_low_prio = ['add', 'and', 'cmp', 'cmpg', 'cmpl', 'const', 'div', 'double', 'float', 'goto', 'if', 'int', 'long', 'move', 'mul', 'neg', 'new', 'nop', 'not', 'or', 'rem', 'return', 'shl', 'shr', 'sput', 'sub', 'throw', 'ushr', 'xor'];
   var smali_instr_high_prio = ['aget', 'aput', 'array', 'check', 'execute', 'fill', 'filled', 'goto/16', 'goto/32', 'iget', 'instance', 'invoke', 'iput', 'monitor', 'packed', 'sget', 'sparse'];
   var smali_keywords = ['transient', 'constructor', 'abstract', 'final', 'synthetic', 'public', 'private', 'protected', 'static', 'bridge', 'system'];
   return {
+    name: 'Smali',
     aliases: ['smali'],
     contains: [
       {
@@ -32251,13 +34788,23 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = smali;
+
 
 /***/ }),
-/* 244 */
+/* 249 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Smalltalk
+Description: Smalltalk is an object-oriented, dynamically typed reflective programming language.
+Author: Vladimir Gubarkov <xonixx@gmail.com>
+Website: https://en.wikipedia.org/wiki/Smalltalk
+*/
+
+function smalltalk(hljs) {
   var VAR_IDENT_RE = '[a-z][a-zA-Z0-9_]*';
   var CHAR = {
     className: 'string',
@@ -32268,6 +34815,7 @@ module.exports = function(hljs) {
     begin: '#' + hljs.UNDERSCORE_IDENT_RE
   };
   return {
+    name: 'Smalltalk',
     aliases: ['st'],
     keywords: 'self super nil true false thisContext', // only 6
     contains: [
@@ -32305,14 +34853,26 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = smalltalk;
+
 
 /***/ }),
-/* 245 */
+/* 250 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: SML (Standard ML)
+Author: Edwin Dalorzo <edwin@dalorzo.org>
+Description: SML language definition.
+Website: https://www.smlnj.org
+Origin: ocaml.js
+Category: functional
+*/
+function sml(hljs) {
   return {
+    name: 'SML (Standard ML)',
     aliases: ['ml'],
     keywords: {
       keyword:
@@ -32375,13 +34935,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = sml;
+
 
 /***/ }),
-/* 246 */
+/* 251 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: SQF
+Author: Søren Enevoldsen <senevoldsen90@gmail.com>
+Contributors: Marvin Saignat <contact@zgmrvn.com>, Dedmen Miller <dedmen@dedmen.de>
+Description: Scripting language for the Arma game series
+Website: https://community.bistudio.com/wiki/SQF_syntax
+Category: scripting
+*/
+
+function sqf(hljs) {
   // In SQF, a variable start with _
   var VARIABLE = {
     className: 'variable',
@@ -32438,6 +35010,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'SQF',
     aliases: ['sqf'],
     case_insensitive: true,
     keywords: {
@@ -32806,15 +35379,26 @@ module.exports = function(hljs) {
     ],
     illegal: /#|^\$ /
   };
-};
+}
+
+module.exports = sqf;
+
 
 /***/ }),
-/* 247 */
+/* 252 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: SQL
+ Contributors: Nikolay Lisienko <info@neor.ru>, Heiko August <post@auge8472.de>, Travis Odom <travis.a.odom@gmail.com>, Vadimtro <vadimtro@yahoo.com>, Benjamin Auder <benjamin.auder@gmail.com>
+ Website: https://en.wikipedia.org/wiki/SQL
+ Category: common
+ */
+
+function sql(hljs) {
   var COMMENT_MODE = hljs.COMMENT('--', '$');
   return {
+    name: 'SQL',
     case_insensitive: true,
     illegal: /[<>{}*]/,
     contains: [
@@ -32971,13 +35555,24 @@ module.exports = function(hljs) {
       hljs.HASH_COMMENT_MODE
     ]
   };
-};
+}
+
+module.exports = sql;
+
 
 /***/ }),
-/* 248 */
+/* 253 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Stan
+Description: The Stan probabilistic programming language
+Author: Jeffrey B. Arnold <jeffrey.arnold@gmail.com>
+Website: http://mc-stan.org/
+Category: scientific
+*/
+
+function stan(hljs) {
   // variable names cannot conflict with block identifiers
   var BLOCKS = [
     'functions',
@@ -33122,6 +35717,7 @@ module.exports = function(hljs) {
   ];
 
   return {
+    name: 'Stan',
     aliases: ['stanfuncs'],
     keywords: {
       'title': BLOCKS.join(' '),
@@ -33163,7 +35759,7 @@ module.exports = function(hljs) {
       {
         // hack: in range constraints, upper must follow either , or <
         // <lower = ..., upper = ...> or <upper = ...>
-        begin: /[<,]*upper\s*=/,
+        begin: /[<,]\s*upper\s*=/,
         keywords: 'upper'
       },
       {
@@ -33195,18 +35791,31 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = stan;
+
 
 /***/ }),
-/* 249 */
+/* 254 */
 /***/ (function(module, exports) {
 
-module.exports = /*
+/*
+Language: Stata
+Author: Brian Quistorff <bquistorff@gmail.com>
+Contributors: Drew McDonald <drewmcdo@gmail.com>
+Description: Stata is a general-purpose statistical software package created in 1985 by StataCorp.
+Website: https://en.wikipedia.org/wiki/Stata
+Category: scientific
+*/
+
+/*
   This is a fork and modification of Drew McDonald's file (https://github.com/drewmcdonald/stata-highlighting). I have also included a list of builtin commands from https://bugs.kde.org/show_bug.cgi?id=135646.
 */
 
-function(hljs) {
+function stata(hljs) {
   return {
+    name: 'Stata',
     aliases: ['do', 'ado'],
     case_insensitive: true,
     keywords: 'if else in foreach for forv forva forval forvalu forvalue forvalues by bys bysort xi quietly qui capture about ac ac_7 acprplot acprplot_7 adjust ado adopath adoupdate alpha ameans an ano anov anova anova_estat anova_terms anovadef aorder ap app appe appen append arch arch_dr arch_estat arch_p archlm areg areg_p args arima arima_dr arima_estat arima_p as asmprobit asmprobit_estat asmprobit_lf asmprobit_mfx__dlg asmprobit_p ass asse asser assert avplot avplot_7 avplots avplots_7 bcskew0 bgodfrey bias binreg bip0_lf biplot bipp_lf bipr_lf bipr_p biprobit bitest bitesti bitowt blogit bmemsize boot bootsamp bootstrap bootstrap_8 boxco_l boxco_p boxcox boxcox_6 boxcox_p bprobit br break brier bro brow brows browse brr brrstat bs bs_7 bsampl_w bsample bsample_7 bsqreg bstat bstat_7 bstat_8 bstrap bstrap_7 bubble bubbleplot ca ca_estat ca_p cabiplot camat canon canon_8 canon_8_p canon_estat canon_p cap caprojection capt captu captur capture cat cc cchart cchart_7 cci cd censobs_table centile cf char chdir checkdlgfiles checkestimationsample checkhlpfiles checksum chelp ci cii cl class classutil clear cli clis clist clo clog clog_lf clog_p clogi clogi_sw clogit clogit_lf clogit_p clogitp clogl_sw cloglog clonevar clslistarray cluster cluster_measures cluster_stop cluster_tree cluster_tree_8 clustermat cmdlog cnr cnre cnreg cnreg_p cnreg_sw cnsreg codebook collaps4 collapse colormult_nb colormult_nw compare compress conf confi confir confirm conren cons const constr constra constrai constrain constraint continue contract copy copyright copysource cor corc corr corr2data corr_anti corr_kmo corr_smc corre correl correla correlat correlate corrgram cou coun count cox cox_p cox_sw coxbase coxhaz coxvar cprplot cprplot_7 crc cret cretu cretur creturn cross cs cscript cscript_log csi ct ct_is ctset ctst_5 ctst_st cttost cumsp cumsp_7 cumul cusum cusum_7 cutil d|0 datasig datasign datasigna datasignat datasignatu datasignatur datasignature datetof db dbeta de dec deco decod decode deff des desc descr descri describ describe destring dfbeta dfgls dfuller di di_g dir dirstats dis discard disp disp_res disp_s displ displa display distinct do doe doed doedi doedit dotplot dotplot_7 dprobit drawnorm drop ds ds_util dstdize duplicates durbina dwstat dydx e|0 ed edi edit egen eivreg emdef en enc enco encod encode eq erase ereg ereg_lf ereg_p ereg_sw ereghet ereghet_glf ereghet_glf_sh ereghet_gp ereghet_ilf ereghet_ilf_sh ereghet_ip eret eretu eretur ereturn err erro error esize est est_cfexist est_cfname est_clickable est_expand est_hold est_table est_unhold est_unholdok estat estat_default estat_summ estat_vce_only esti estimates etodow etof etomdy ex exi exit expand expandcl fac fact facto factor factor_estat factor_p factor_pca_rotated factor_rotate factormat fcast fcast_compute fcast_graph fdades fdadesc fdadescr fdadescri fdadescrib fdadescribe fdasav fdasave fdause fh_st file open file read file close file filefilter fillin find_hlp_file findfile findit findit_7 fit fl fli flis flist for5_0 forest forestplot form forma format fpredict frac_154 frac_adj frac_chk frac_cox frac_ddp frac_dis frac_dv frac_in frac_mun frac_pp frac_pq frac_pv frac_wgt frac_xo fracgen fracplot fracplot_7 fracpoly fracpred fron_ex fron_hn fron_p fron_tn fron_tn2 frontier ftodate ftoe ftomdy ftowdate funnel funnelplot g|0 gamhet_glf gamhet_gp gamhet_ilf gamhet_ip gamma gamma_d2 gamma_p gamma_sw gammahet gdi_hexagon gdi_spokes ge gen gene gener genera generat generate genrank genstd genvmean gettoken gl gladder gladder_7 glim_l01 glim_l02 glim_l03 glim_l04 glim_l05 glim_l06 glim_l07 glim_l08 glim_l09 glim_l10 glim_l11 glim_l12 glim_lf glim_mu glim_nw1 glim_nw2 glim_nw3 glim_p glim_v1 glim_v2 glim_v3 glim_v4 glim_v5 glim_v6 glim_v7 glm glm_6 glm_p glm_sw glmpred glo glob globa global glogit glogit_8 glogit_p gmeans gnbre_lf gnbreg gnbreg_5 gnbreg_p gomp_lf gompe_sw gomper_p gompertz gompertzhet gomphet_glf gomphet_glf_sh gomphet_gp gomphet_ilf gomphet_ilf_sh gomphet_ip gphdot gphpen gphprint gprefs gprobi_p gprobit gprobit_8 gr gr7 gr_copy gr_current gr_db gr_describe gr_dir gr_draw gr_draw_replay gr_drop gr_edit gr_editviewopts gr_example gr_example2 gr_export gr_print gr_qscheme gr_query gr_read gr_rename gr_replay gr_save gr_set gr_setscheme gr_table gr_undo gr_use graph graph7 grebar greigen greigen_7 greigen_8 grmeanby grmeanby_7 gs_fileinfo gs_filetype gs_graphinfo gs_stat gsort gwood h|0 hadimvo hareg hausman haver he heck_d2 heckma_p heckman heckp_lf heckpr_p heckprob hel help hereg hetpr_lf hetpr_p hetprob hettest hexdump hilite hist hist_7 histogram hlogit hlu hmeans hotel hotelling hprobit hreg hsearch icd9 icd9_ff icd9p iis impute imtest inbase include inf infi infil infile infix inp inpu input ins insheet insp inspe inspec inspect integ inten intreg intreg_7 intreg_p intrg2_ll intrg_ll intrg_ll2 ipolate iqreg ir irf irf_create irfm iri is_svy is_svysum isid istdize ivprob_1_lf ivprob_lf ivprobit ivprobit_p ivreg ivreg_footnote ivtob_1_lf ivtob_lf ivtobit ivtobit_p jackknife jacknife jknife jknife_6 jknife_8 jkstat joinby kalarma1 kap kap_3 kapmeier kappa kapwgt kdensity kdensity_7 keep ksm ksmirnov ktau kwallis l|0 la lab labbe labbeplot labe label labelbook ladder levels levelsof leverage lfit lfit_p li lincom line linktest lis list lloghet_glf lloghet_glf_sh lloghet_gp lloghet_ilf lloghet_ilf_sh lloghet_ip llogi_sw llogis_p llogist llogistic llogistichet lnorm_lf lnorm_sw lnorma_p lnormal lnormalhet lnormhet_glf lnormhet_glf_sh lnormhet_gp lnormhet_ilf lnormhet_ilf_sh lnormhet_ip lnskew0 loadingplot loc loca local log logi logis_lf logistic logistic_p logit logit_estat logit_p loglogs logrank loneway lookfor lookup lowess lowess_7 lpredict lrecomp lroc lroc_7 lrtest ls lsens lsens_7 lsens_x lstat ltable ltable_7 ltriang lv lvr2plot lvr2plot_7 m|0 ma mac macr macro makecns man manova manova_estat manova_p manovatest mantel mark markin markout marksample mat mat_capp mat_order mat_put_rr mat_rapp mata mata_clear mata_describe mata_drop mata_matdescribe mata_matsave mata_matuse mata_memory mata_mlib mata_mosave mata_rename mata_which matalabel matcproc matlist matname matr matri matrix matrix_input__dlg matstrik mcc mcci md0_ md1_ md1debug_ md2_ md2debug_ mds mds_estat mds_p mdsconfig mdslong mdsmat mdsshepard mdytoe mdytof me_derd mean means median memory memsize menl meqparse mer merg merge meta mfp mfx mhelp mhodds minbound mixed_ll mixed_ll_reparm mkassert mkdir mkmat mkspline ml ml_5 ml_adjs ml_bhhhs ml_c_d ml_check ml_clear ml_cnt ml_debug ml_defd ml_e0 ml_e0_bfgs ml_e0_cycle ml_e0_dfp ml_e0i ml_e1 ml_e1_bfgs ml_e1_bhhh ml_e1_cycle ml_e1_dfp ml_e2 ml_e2_cycle ml_ebfg0 ml_ebfr0 ml_ebfr1 ml_ebh0q ml_ebhh0 ml_ebhr0 ml_ebr0i ml_ecr0i ml_edfp0 ml_edfr0 ml_edfr1 ml_edr0i ml_eds ml_eer0i ml_egr0i ml_elf ml_elf_bfgs ml_elf_bhhh ml_elf_cycle ml_elf_dfp ml_elfi ml_elfs ml_enr0i ml_enrr0 ml_erdu0 ml_erdu0_bfgs ml_erdu0_bhhh ml_erdu0_bhhhq ml_erdu0_cycle ml_erdu0_dfp ml_erdu0_nrbfgs ml_exde ml_footnote ml_geqnr ml_grad0 ml_graph ml_hbhhh ml_hd0 ml_hold ml_init ml_inv ml_log ml_max ml_mlout ml_mlout_8 ml_model ml_nb0 ml_opt ml_p ml_plot ml_query ml_rdgrd ml_repor ml_s_e ml_score ml_searc ml_technique ml_unhold mleval mlf_ mlmatbysum mlmatsum mlog mlogi mlogit mlogit_footnote mlogit_p mlopts mlsum mlvecsum mnl0_ mor more mov move mprobit mprobit_lf mprobit_p mrdu0_ mrdu1_ mvdecode mvencode mvreg mvreg_estat n|0 nbreg nbreg_al nbreg_lf nbreg_p nbreg_sw nestreg net newey newey_7 newey_p news nl nl_7 nl_9 nl_9_p nl_p nl_p_7 nlcom nlcom_p nlexp2 nlexp2_7 nlexp2a nlexp2a_7 nlexp3 nlexp3_7 nlgom3 nlgom3_7 nlgom4 nlgom4_7 nlinit nllog3 nllog3_7 nllog4 nllog4_7 nlog_rd nlogit nlogit_p nlogitgen nlogittree nlpred no nobreak noi nois noisi noisil noisily note notes notes_dlg nptrend numlabel numlist odbc old_ver olo olog ologi ologi_sw ologit ologit_p ologitp on one onew onewa oneway op_colnm op_comp op_diff op_inv op_str opr opro oprob oprob_sw oprobi oprobi_p oprobit oprobitp opts_exclusive order orthog orthpoly ou out outf outfi outfil outfile outs outsh outshe outshee outsheet ovtest pac pac_7 palette parse parse_dissim pause pca pca_8 pca_display pca_estat pca_p pca_rotate pcamat pchart pchart_7 pchi pchi_7 pcorr pctile pentium pergram pergram_7 permute permute_8 personal peto_st pkcollapse pkcross pkequiv pkexamine pkexamine_7 pkshape pksumm pksumm_7 pl plo plot plugin pnorm pnorm_7 poisgof poiss_lf poiss_sw poisso_p poisson poisson_estat post postclose postfile postutil pperron pr prais prais_e prais_e2 prais_p predict predictnl preserve print pro prob probi probit probit_estat probit_p proc_time procoverlay procrustes procrustes_estat procrustes_p profiler prog progr progra program prop proportion prtest prtesti pwcorr pwd q\\s qby qbys qchi qchi_7 qladder qladder_7 qnorm qnorm_7 qqplot qqplot_7 qreg qreg_c qreg_p qreg_sw qu quadchk quantile quantile_7 que quer query range ranksum ratio rchart rchart_7 rcof recast reclink recode reg reg3 reg3_p regdw regr regre regre_p2 regres regres_p regress regress_estat regriv_p remap ren rena renam rename renpfix repeat replace report reshape restore ret retu retur return rm rmdir robvar roccomp roccomp_7 roccomp_8 rocf_lf rocfit rocfit_8 rocgold rocplot rocplot_7 roctab roctab_7 rolling rologit rologit_p rot rota rotat rotate rotatemat rreg rreg_p ru run runtest rvfplot rvfplot_7 rvpplot rvpplot_7 sa safesum sample sampsi sav save savedresults saveold sc sca scal scala scalar scatter scm_mine sco scob_lf scob_p scobi_sw scobit scor score scoreplot scoreplot_help scree screeplot screeplot_help sdtest sdtesti se search separate seperate serrbar serrbar_7 serset set set_defaults sfrancia sh she shel shell shewhart shewhart_7 signestimationsample signrank signtest simul simul_7 simulate simulate_8 sktest sleep slogit slogit_d2 slogit_p smooth snapspan so sor sort spearman spikeplot spikeplot_7 spikeplt spline_x split sqreg sqreg_p sret sretu sretur sreturn ssc st st_ct st_hc st_hcd st_hcd_sh st_is st_issys st_note st_promo st_set st_show st_smpl st_subid stack statsby statsby_8 stbase stci stci_7 stcox stcox_estat stcox_fr stcox_fr_ll stcox_p stcox_sw stcoxkm stcoxkm_7 stcstat stcurv stcurve stcurve_7 stdes stem stepwise stereg stfill stgen stir stjoin stmc stmh stphplot stphplot_7 stphtest stphtest_7 stptime strate strate_7 streg streg_sw streset sts sts_7 stset stsplit stsum sttocc sttoct stvary stweib su suest suest_8 sum summ summa summar summari summariz summarize sunflower sureg survcurv survsum svar svar_p svmat svy svy_disp svy_dreg svy_est svy_est_7 svy_estat svy_get svy_gnbreg_p svy_head svy_header svy_heckman_p svy_heckprob_p svy_intreg_p svy_ivreg_p svy_logistic_p svy_logit_p svy_mlogit_p svy_nbreg_p svy_ologit_p svy_oprobit_p svy_poisson_p svy_probit_p svy_regress_p svy_sub svy_sub_7 svy_x svy_x_7 svy_x_p svydes svydes_8 svygen svygnbreg svyheckman svyheckprob svyintreg svyintreg_7 svyintrg svyivreg svylc svylog_p svylogit svymarkout svymarkout_8 svymean svymlog svymlogit svynbreg svyolog svyologit svyoprob svyoprobit svyopts svypois svypois_7 svypoisson svyprobit svyprobt svyprop svyprop_7 svyratio svyreg svyreg_p svyregress svyset svyset_7 svyset_8 svytab svytab_7 svytest svytotal sw sw_8 swcnreg swcox swereg swilk swlogis swlogit swologit swoprbt swpois swprobit swqreg swtobit swweib symmetry symmi symplot symplot_7 syntax sysdescribe sysdir sysuse szroeter ta tab tab1 tab2 tab_or tabd tabdi tabdis tabdisp tabi table tabodds tabodds_7 tabstat tabu tabul tabula tabulat tabulate te tempfile tempname tempvar tes test testnl testparm teststd tetrachoric time_it timer tis tob tobi tobit tobit_p tobit_sw token tokeni tokeniz tokenize tostring total translate translator transmap treat_ll treatr_p treatreg trim trimfill trnb_cons trnb_mean trpoiss_d2 trunc_ll truncr_p truncreg tsappend tset tsfill tsline tsline_ex tsreport tsrevar tsrline tsset tssmooth tsunab ttest ttesti tut_chk tut_wait tutorial tw tware_st two twoway twoway__fpfit_serset twoway__function_gen twoway__histogram_gen twoway__ipoint_serset twoway__ipoints_serset twoway__kdensity_gen twoway__lfit_serset twoway__normgen_gen twoway__pci_serset twoway__qfit_serset twoway__scatteri_serset twoway__sunflower_gen twoway_ksm_serset ty typ type typeof u|0 unab unabbrev unabcmd update us use uselabel var var_mkcompanion var_p varbasic varfcast vargranger varirf varirf_add varirf_cgraph varirf_create varirf_ctable varirf_describe varirf_dir varirf_drop varirf_erase varirf_graph varirf_ograph varirf_rename varirf_set varirf_table varlist varlmar varnorm varsoc varstable varstable_w varstable_w2 varwle vce vec vec_fevd vec_mkphi vec_p vec_p_w vecirf_create veclmar veclmar_w vecnorm vecnorm_w vecrank vecstable verinst vers versi versio version view viewsource vif vwls wdatetof webdescribe webseek webuse weib1_lf weib2_lf weib_lf weib_lf0 weibhet_glf weibhet_glf_sh weibhet_glfa weibhet_glfa_sh weibhet_gp weibhet_ilf weibhet_ilf_sh weibhet_ilfa weibhet_ilfa_sh weibhet_ip weibu_sw weibul_p weibull weibull_c weibull_s weibullhet wh whelp whi which whil while wilc_st wilcoxon win wind windo window winexec wntestb wntestb_7 wntestq xchart xchart_7 xcorr xcorr_7 xi xi_6 xmlsav xmlsave xmluse xpose xsh xshe xshel xshell xt_iis xt_tis xtab_p xtabond xtbin_p xtclog xtcloglog xtcloglog_8 xtcloglog_d2 xtcloglog_pa_p xtcloglog_re_p xtcnt_p xtcorr xtdata xtdes xtfront_p xtfrontier xtgee xtgee_elink xtgee_estat xtgee_makeivar xtgee_p xtgee_plink xtgls xtgls_p xthaus xthausman xtht_p xthtaylor xtile xtint_p xtintreg xtintreg_8 xtintreg_d2 xtintreg_p xtivp_1 xtivp_2 xtivreg xtline xtline_ex xtlogit xtlogit_8 xtlogit_d2 xtlogit_fe_p xtlogit_pa_p xtlogit_re_p xtmixed xtmixed_estat xtmixed_p xtnb_fe xtnb_lf xtnbreg xtnbreg_pa_p xtnbreg_refe_p xtpcse xtpcse_p xtpois xtpoisson xtpoisson_d2 xtpoisson_pa_p xtpoisson_refe_p xtpred xtprobit xtprobit_8 xtprobit_d2 xtprobit_re_p xtps_fe xtps_lf xtps_ren xtps_ren_8 xtrar_p xtrc xtrc_p xtrchh xtrefe_p xtreg xtreg_be xtreg_fe xtreg_ml xtreg_pa_p xtreg_re xtregar xtrere_p xtset xtsf_ll xtsf_llti xtsum xttab xttest0 xttobit xttobit_8 xttobit_p xttrans yx yxview__barlike_draw yxview_area_draw yxview_bar_draw yxview_dot_draw yxview_dropline_draw yxview_function_draw yxview_iarrow_draw yxview_ilabels_draw yxview_normal_draw yxview_pcarrow_draw yxview_pcbarrow_draw yxview_pccapsym_draw yxview_pcscatter_draw yxview_pcspike_draw yxview_rarea_draw yxview_rbar_draw yxview_rbarm_draw yxview_rcap_draw yxview_rcapsym_draw yxview_rconnected_draw yxview_rline_draw yxview_rscatter_draw yxview_rspike_draw yxview_spike_draw yxview_sunflower_draw zap_s zinb zinb_llf zinb_plf zip zip_llf zip_p zip_plf zt_ct_5 zt_hc_5 zt_hcd_5 zt_is_5 zt_iss_5 zt_sho_5 zt_smp_5 ztbase_5 ztcox_5 ztdes_5 ztereg_5 ztfill_5 ztgen_5 ztir_5 ztjoin_5 ztnb ztnb_p ztp ztp_p zts_5 ztset_5 ztspli_5 ztsum_5 zttoct_5 ztvary_5 ztweib_5',
@@ -33241,13 +35850,23 @@ function(hljs) {
       hljs.C_BLOCK_COMMENT_MODE
     ]
   };
-};
+}
+
+module.exports = stata;
+
 
 /***/ }),
-/* 250 */
+/* 255 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: STEP Part 21
+Contributors: Adam Joseph Cook <adam.joseph.cook@gmail.com>
+Description: Syntax highlighter for STEP Part 21 files (ISO 10303-21).
+Website: https://en.wikipedia.org/wiki/ISO_10303-21
+*/
+
+function step21(hljs) {
   var STEP21_IDENT_RE = '[A-Z_][A-Z0-9_.]*';
   var STEP21_KEYWORDS = {
     keyword: 'HEADER ENDSEC DATA'
@@ -33264,6 +35883,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'STEP Part 21',
     aliases: ['p21', 'step', 'stp'],
     case_insensitive: true, // STEP 21 is case insensitive in theory, in practice all non-comments are capitalized.
     lexemes: STEP21_IDENT_RE,
@@ -33292,13 +35912,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = step21;
+
 
 /***/ }),
-/* 251 */
+/* 256 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Stylus
+Author: Bryant Williams <b.n.williams@gmail.com>
+Description: Stylus is an expressive, robust, feature-rich CSS language built for nodejs.
+Website: https://github.com/stylus/stylus
+Category: css
+*/
+
+function stylus(hljs) {
 
   var VARIABLE = {
     className: 'variable',
@@ -33638,6 +36269,7 @@ module.exports = function(hljs) {
   ];
 
   return {
+    name: 'Stylus',
     aliases: ['styl'],
     case_insensitive: false,
     keywords: 'if else for in',
@@ -33741,13 +36373,22 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = stylus;
+
 
 /***/ }),
-/* 252 */
+/* 257 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: SubUnit
+Author: Sergey Bronnikov <sergeyb@bronevichok.ru>
+Website: https://pypi.org/project/python-subunit/
+*/
+
+function subunit(hljs) {
   var DETAILS = {
     className: 'string',
     begin: '\\[\n(multipart)?', end: '\\]\n'
@@ -33771,6 +36412,7 @@ module.exports = function(hljs) {
     ],
   };
   return {
+    name: 'SubUnit',
     case_insensitive: true,
     contains: [
       DETAILS,
@@ -33779,13 +36421,26 @@ module.exports = function(hljs) {
       KEYWORDS
     ]
   };
-};
+}
+
+module.exports = subunit;
+
 
 /***/ }),
-/* 253 */
+/* 258 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Swift
+Description: Swift is a general-purpose programming language built using a modern approach to safety, performance, and software design patterns.
+Author: Chris Eidhof <chris@eidhof.nl>
+Contributors: Nate Cook <natecook@gmail.com>, Alexander Lichter <manniL@gmx.net>
+Website: https://swift.org
+Category: common, system
+*/
+
+
+function swift(hljs) {
   var SWIFT_KEYWORDS = {
       keyword: '#available #colorLiteral #column #else #elseif #endif #file ' +
         '#fileLiteral #function #if #imageLiteral #line #selector #sourceLocation ' +
@@ -33800,7 +36455,7 @@ module.exports = function(hljs) {
       literal: 'true false nil',
       built_in: 'abs advance alignof alignofValue anyGenerator assert assertionFailure ' +
         'bridgeFromObjectiveC bridgeFromObjectiveCUnconditional bridgeToObjectiveC ' +
-        'bridgeToObjectiveCUnconditional c contains count countElements countLeadingZeros ' +
+        'bridgeToObjectiveCUnconditional c compactMap contains count countElements countLeadingZeros ' +
         'debugPrint debugPrintln distance dropFirst dropLast dump encodeBitsAsWords ' +
         'enumerate equal fatalError filter find getBridgedObjectiveCType getVaList ' +
         'indices insertionSort isBridgedToObjectiveC isBridgedVerbatimToObjectiveC ' +
@@ -33824,7 +36479,7 @@ module.exports = function(hljs) {
   var OPTIONAL_USING_TYPE = {
     className: 'type',
     begin: '\\b[A-Z][\\w\u00C0-\u02B8\']*[!?]'
-  }
+  };
   var BLOCK_COMMENT = hljs.COMMENT(
     '/\\*',
     '\\*/',
@@ -33854,6 +36509,7 @@ module.exports = function(hljs) {
   SUBST.contains = [NUMBERS];
 
   return {
+    name: 'Swift',
     keywords: SWIFT_KEYWORDS,
     contains: [
       STRING,
@@ -33914,13 +36570,22 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = swift;
+
 
 /***/ }),
-/* 254 */
+/* 259 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Tagger Script
+Author: Philipp Wolfer <ph.wolfer@gmail.com>
+Description: Syntax Highlighting for the Tagger Script as used by MusicBrainz Picard.
+Website: https://picard.musicbrainz.org
+ */
+function taggerscript(hljs) {
 
   var COMMENT = {
     className: 'comment',
@@ -33955,6 +36620,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'Tagger Script',
     contains: [
       COMMENT,
       FUNCTION,
@@ -33962,13 +36628,25 @@ module.exports = function(hljs) {
       ESCAPE_SEQUENCE
     ]
   };
-};
+}
+
+module.exports = taggerscript;
+
 
 /***/ }),
-/* 255 */
+/* 260 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: YAML
+Description: Yet Another Markdown Language
+Author: Stefan Wienert <stwienert@gmail.com>
+Contributors: Carl Baxter <carl@cbax.tech>
+Requires: ruby.js
+Website: https://yaml.org
+Category: common, config
+*/
+function yaml(hljs) {
   var LITERALS = 'true false yes no null';
 
   // Define keys as starting with a word character
@@ -34005,9 +36683,19 @@ module.exports = function(hljs) {
     ]
   };
 
+  var DATE_RE = '[0-9]{4}(-[0-9][0-9]){0,2}';
+  var TIME_RE = '([Tt \\t][0-9][0-9]?(:[0-9][0-9]){2})?';
+  var FRACTION_RE = '(\\.[0-9]*)?';
+  var ZONE_RE = '([ \\t])*(Z|[-+][0-9][0-9]?(:[0-9][0-9])?)?';
+  var TIMESTAMP = {
+    className: 'number',
+    begin: '\\b' + DATE_RE + TIME_RE + FRACTION_RE + ZONE_RE + '\\b',
+  };
+
   return {
+    name: 'YAML',
     case_insensitive: true,
-    aliases: ['yml', 'YAML', 'yaml'],
+    aliases: ['yml', 'YAML'],
     contains: [
       KEY,
       {
@@ -34057,6 +36745,7 @@ module.exports = function(hljs) {
         beginKeywords: LITERALS,
         keywords: {literal: LITERALS}
       },
+      TIMESTAMP,
       // numbers are any valid C-style number that
       // sit isolated from other words
       {
@@ -34066,14 +36755,26 @@ module.exports = function(hljs) {
       STRING
     ]
   };
-};
+}
+
+module.exports = yaml;
+
 
 /***/ }),
-/* 256 */
+/* 261 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Test Anything Protocol
+Description: TAP, the Test Anything Protocol, is a simple text-based interface between testing modules in a test harness.
+Requires: yaml.js
+Author: Sergey Bronnikov <sergeyb@bronevichok.ru>
+Website: https://testanything.org
+*/
+
+function tap(hljs) {
   return {
+    name: 'Test Anything Protocol',
     case_insensitive: true,
     contains: [
       hljs.HASH_COMMENT_MODE,
@@ -34106,14 +36807,25 @@ module.exports = function(hljs) {
       },
     ]
   };
-};
+}
+
+module.exports = tap;
+
 
 /***/ }),
-/* 257 */
+/* 262 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Tcl
+Description: Tcl is a very simple programming language.
+Author: Radek Liska <radekliska@gmail.com>
+Website: https://www.tcl.tk/about/language.html
+*/
+
+function tcl(hljs) {
   return {
+    name: 'Tcl',
     aliases: ['tk'],
     keywords: 'after append apply array auto_execok auto_import auto_load auto_mkindex ' +
       'auto_mkindex_old auto_qualify auto_reset bgerror binary break catch cd chan clock ' +
@@ -34170,81 +36882,27 @@ module.exports = function(hljs) {
       }
     ]
   }
-};
+}
+
+module.exports = tcl;
+
 
 /***/ }),
-/* 258 */
+/* 263 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
-  var COMMAND = {
-    className: 'tag',
-    begin: /\\/,
-    relevance: 0,
-    contains: [
-      {
-        className: 'name',
-        variants: [
-          {begin: /[a-zA-Z\u0430-\u044f\u0410-\u042f]+[*]?/},
-          {begin: /[^a-zA-Z\u0430-\u044f\u0410-\u042f0-9]/}
-        ],
-        starts: {
-          endsWithParent: true,
-          relevance: 0,
-          contains: [
-            {
-              className: 'string', // because it looks like attributes in HTML tags
-              variants: [
-                {begin: /\[/, end: /\]/},
-                {begin: /\{/, end: /\}/}
-              ]
-            },
-            {
-              begin: /\s*=\s*/, endsWithParent: true,
-              relevance: 0,
-              contains: [
-                {
-                  className: 'number',
-                  begin: /-?\d*\.?\d+(pt|pc|mm|cm|in|dd|cc|ex|em)?/
-                }
-              ]
-            }
-          ]
-        }
-      }
-    ]
-  };
+/*
+Language: Thrift
+Author: Oleg Efimov <efimovov@gmail.com>
+Description: Thrift message definition format
+Website: https://thrift.apache.org
+Category: protocols
+*/
 
-  return {
-    contains: [
-      COMMAND,
-      {
-        className: 'formula',
-        contains: [COMMAND],
-        relevance: 0,
-        variants: [
-          {begin: /\$\$/, end: /\$\$/},
-          {begin: /\$/, end: /\$/}
-        ]
-      },
-      hljs.COMMENT(
-        '%',
-        '$',
-        {
-          relevance: 0
-        }
-      )
-    ]
-  };
-};
-
-/***/ }),
-/* 259 */
-/***/ (function(module, exports) {
-
-module.exports = function(hljs) {
+function thrift(hljs) {
   var BUILT_IN_TYPES = 'bool byte i16 i32 i64 double string binary';
   return {
+    name: 'Thrift',
     keywords: {
       keyword:
         'namespace const typedef struct enum service exception void oneway set list map required optional',
@@ -34275,13 +36933,23 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = thrift;
+
 
 /***/ }),
-/* 260 */
+/* 264 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: TP
+Author: Jay Strybis <jay.strybis@gmail.com>
+Description: FANUC TP programming language (TPP).
+*/
+
+
+function tp(hljs) {
   var TPID = {
     className: 'number',
     begin: '[1-9][0-9]*', /* no leading zeros */
@@ -34313,6 +36981,7 @@ module.exports = function(hljs) {
   };
 
   return {
+    name: 'TP',
     keywords: {
       keyword:
         'ABORT ACC ADJUST AND AP_LD BREAK CALL CNT COL CONDITION CONFIG DA DB ' +
@@ -34363,13 +37032,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = tp;
+
 
 /***/ }),
-/* 261 */
+/* 265 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Twig
+Requires: xml.js
+Author: Luke Holder <lukemh@gmail.com>
+Description: Twig is a templating language for PHP
+Website: https://twig.symfony.com
+Category: template
+*/
+
+function twig(hljs) {
   var PARAMS = {
     className: 'params',
     begin: '\\(', end: '\\)'
@@ -34405,6 +37086,7 @@ module.exports = function(hljs) {
   TAGS = TAGS + ' ' + TAGS.split(' ').map(function(t){return 'end' + t}).join(' ');
 
   return {
+    name: 'Twig',
     aliases: ['craftcms'],
     case_insensitive: true,
     subLanguage: 'xml',
@@ -34433,13 +37115,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = twig;
+
 
 /***/ }),
-/* 262 */
+/* 266 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: TypeScript
+Author: Panu Horsmalahti <panu.horsmalahti@iki.fi>
+Contributors: Ike Ku <dempfi@yahoo.com>
+Description: TypeScript is a strict superset of JavaScript
+Website: https://www.typescriptlang.org
+Category: common, scripting
+*/
+
+function typescript(hljs) {
   var JS_IDENT_RE = '[A-Za-z$_][0-9A-Za-z$_]*';
   var KEYWORDS = {
     keyword:
@@ -34549,6 +37243,7 @@ module.exports = function(hljs) {
 
 
   return {
+    name: 'TypeScript',
     aliases: ['ts'],
     keywords: KEYWORDS,
     contains: [
@@ -34643,14 +37338,25 @@ module.exports = function(hljs) {
       ARGS
     ]
   };
-};
+}
+
+module.exports = typescript;
+
 
 /***/ }),
-/* 263 */
+/* 267 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Vala
+Author: Antono Vasiljev <antono.vasiljev@gmail.com>
+Description: Vala is a new programming language that aims to bring modern programming language features to GNOME developers without imposing any additional runtime requirements and without using a different ABI compared to applications and libraries written in C.
+Website: https://wiki.gnome.org/Projects/Vala
+*/
+
+function vala(hljs) {
   return {
+    name: 'Vala',
     keywords: {
       keyword:
         // Value types
@@ -34697,14 +37403,25 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = vala;
+
 
 /***/ }),
-/* 264 */
+/* 268 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Visual Basic .NET
+Description: Visual Basic .NET (VB.NET) is a multi-paradigm, object-oriented programming language, implemented on the .NET Framework.
+Author: Poren Chiang <ren.chiang@gmail.com>
+Website: https://docs.microsoft.com/en-us/dotnet/visual-basic/getting-started/
+*/
+
+function vbnet(hljs) {
   return {
+    name: 'Visual Basic .NET',
     aliases: ['vb'],
     case_insensitive: true,
     keywords: {
@@ -34757,14 +37474,27 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = vbnet;
+
 
 /***/ }),
-/* 265 */
+/* 269 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: VBScript
+Description: VBScript ("Microsoft Visual Basic Scripting Edition") is an Active Scripting language developed by Microsoft that is modeled on Visual Basic.
+Author: Nikita Ledyaev <lenikita@yandex.ru>
+Contributors: Michal Gabrukiewicz <mgabru@gmail.com>
+Website: https://en.wikipedia.org/wiki/VBScript
+Category: scripting
+*/
+
+function vbscript(hljs) {
   return {
+    name: 'VBScript',
     aliases: ['vbs'],
     case_insensitive: true,
     keywords: {
@@ -34800,14 +37530,27 @@ module.exports = function(hljs) {
       hljs.C_NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = vbscript;
+
 
 /***/ }),
-/* 266 */
+/* 270 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: VBScript in HTML
+Requires: xml.js, vbscript.js
+Author: Ivan Sagalaev <maniac@softwaremaniacs.org>
+Description: "Bridge" language defining fragments of VBScript in HTML within <% .. %>
+Website: https://en.wikipedia.org/wiki/VBScript
+Category: scripting
+*/
+
+function vbscriptHtml(hljs) {
   return {
+    name: 'VBScript in HTML',
     subLanguage: 'xml',
     contains: [
       {
@@ -34816,13 +37559,24 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = vbscriptHtml;
+
 
 /***/ }),
-/* 267 */
+/* 271 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Verilog
+Author: Jon Evans <jon@craftyjon.com>
+Contributors: Boone Severson <boone.severson@gmail.com>
+Description: Verilog is a hardware description language used in electronic design automation to describe digital and mixed-signal systems. This highlighter supports Verilog and SystemVerilog through IEEE 1800-2012.
+Website: http://www.verilog.com
+*/
+
+function verilog(hljs) {
   var SV_KEYWORDS = {
     keyword:
       'accept_on alias always always_comb always_ff always_latch and assert assign ' +
@@ -34883,6 +37637,7 @@ module.exports = function(hljs) {
       '$sformatf $fgetc $ungetc $fgets $sscanf $rewind $ftell $ferror'
     };
   return {
+    name: 'Verilog',
     aliases: ['v', 'sv', 'svh'],
     case_insensitive: false,
     keywords: SV_KEYWORDS, lexemes: /[\w\$]+/,
@@ -34919,13 +37674,24 @@ module.exports = function(hljs) {
       }
     ]
   }; // return
-};
+}
+
+module.exports = verilog;
+
 
 /***/ }),
-/* 268 */
+/* 272 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: VHDL
+Author: Igor Kalnitsky <igor@kalnitsky.org>
+Contributors: Daniel C.K. Kho <daniel.kho@tauhop.com>, Guillaume Savaton <guillaume.savaton@eseo.fr>
+Description: VHDL is a hardware description language used in electronic design automation to describe digital and mixed-signal systems.
+Website: https://en.wikipedia.org/wiki/VHDL
+*/
+
+function vhdl(hljs) {
   // Regular expression for VHDL numeric literals.
 
   // Decimal literal:
@@ -34939,6 +37705,7 @@ module.exports = function(hljs) {
   var NUMBER_RE = '\\b(' + BASED_LITERAL_RE + '|' + DECIMAL_LITERAL_RE + ')';
 
   return {
+    name: 'VHDL',
     case_insensitive: true,
     keywords: {
       keyword:
@@ -34984,14 +37751,26 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = vhdl;
+
 
 /***/ }),
-/* 269 */
+/* 273 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Vim Script
+Author: Jun Yang <yangjvn@126.com>
+Description: full keyword and built-in from http://vimdoc.sourceforge.net/htmldoc/
+Website: https://www.vim.org
+Category: scripting
+*/
+
+function vim(hljs) {
   return {
+    name: 'Vim Script',
     lexemes: /[!#@\w]+/,
     keywords: {
       keyword:
@@ -35098,14 +37877,26 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = vim;
+
 
 /***/ }),
-/* 270 */
+/* 274 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: Intel x86 Assembly
+Author: innocenat <innocenat@gmail.com>
+Description: x86 assembly language using Intel's mnemonic and NASM syntax
+Website: https://en.wikipedia.org/wiki/X86_assembly_language
+Category: assembler
+*/
+
+function x86asm(hljs) {
   return {
+    name: 'Intel x86 Assembly',
     case_insensitive: true,
     lexemes: '[.%]?' + hljs.IDENT_RE,
     keywords: {
@@ -35238,13 +38029,23 @@ module.exports = function(hljs) {
       }
     ]
   };
-};
+}
+
+module.exports = x86asm;
+
 
 /***/ }),
-/* 271 */
+/* 275 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: XL
+Author: Christophe de Dinechin <christophe@taodyne.com>
+Description: An extensible programming language, based on parse tree rewriting
+Website: http://xlr.sf.net
+*/
+
+function xl(hljs) {
   var BUILTIN_MODULES =
     'ObjectLoader Animate MovieCredits Slides Filters Shading Materials LensFlare Mapping VLCAudioVideo ' +
     'StereoDecoder PointCloud NetworkAccess RemoteControl RegExp ChromaKey Snowfall NodeJS Speech Charts';
@@ -35300,6 +38101,7 @@ module.exports = function(hljs) {
     ]
   };
   return {
+    name: 'XL',
     aliases: ['tao'],
     lexemes: /[a-zA-Z][a-zA-Z0-9_?]*/,
     keywords: XL_KEYWORDS,
@@ -35315,13 +38117,26 @@ module.exports = function(hljs) {
     hljs.NUMBER_MODE
     ]
   };
-};
+}
+
+module.exports = xl;
+
 
 /***/ }),
-/* 272 */
+/* 276 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+Language: XQuery
+Author: Dirk Kirsten <dk@basex.org>
+Contributor: Duncan Paterson
+Description: Supports XQuery 3.1 including XQuery Update 3, so also XPath (as it is a superset)
+Refactored to process xml constructor syntax and function-bodies. Added missing data-types, xpath operands, inbuilt functions, and query prologs
+Website: https://www.w3.org/XML/Query/
+Category: functional
+*/
+
+function xquery(hljs) {
   // see https://www.w3.org/TR/xquery/#id-terminal-delimitation
   var KEYWORDS = 'module schema namespace boundary-space preserve no-preserve strip default collation base-uri ordering context decimal-format decimal-separator copy-namespaces empty-sequence except exponent-separator external grouping-separator inherit no-inherit lax minus-sign per-mille percent schema-attribute schema-element strict unordered zero-digit ' +
   'declare import option function validate variable ' +
@@ -35469,15 +38284,8 @@ module.exports = function(hljs) {
 
 
 
-    var METHOD = {
-      begin: '{',
-      end: '}',
-      contains: CONTAINS
-    };
-
-
-
   return {
+    name: 'XQuery',
     aliases: ['xpath', 'xq'],
     case_insensitive: false,
     lexemes: /[a-zA-Z\$][a-zA-Z0-9_:\-]*/,
@@ -35489,44 +38297,66 @@ module.exports = function(hljs) {
     },
     contains: CONTAINS
   };
-};
+}
+
+module.exports = xquery;
+
 
 /***/ }),
-/* 273 */
+/* 277 */
 /***/ (function(module, exports) {
 
-module.exports = function(hljs) {
+/*
+ Language: Zephir
+ Description: Zephir, an open source, high-level language designed to ease the creation and maintainability of extensions for PHP with a focus on type and memory safety.
+ Author: Oleg Efimov <efimovov@gmail.com>
+ Website: https://zephir-lang.com/en
+ */
+
+function zephir(hljs) {
   var STRING = {
     className: 'string',
     contains: [hljs.BACKSLASH_ESCAPE],
     variants: [
-      {
-        begin: 'b"', end: '"'
-      },
-      {
-        begin: 'b\'', end: '\''
-      },
       hljs.inherit(hljs.APOS_STRING_MODE, {illegal: null}),
       hljs.inherit(hljs.QUOTE_STRING_MODE, {illegal: null})
     ]
   };
+  var TITLE_MODE = hljs.UNDERSCORE_TITLE_MODE;
   var NUMBER = {variants: [hljs.BINARY_NUMBER_MODE, hljs.C_NUMBER_MODE]};
+  var KEYWORDS =
+    // classes and objects
+    'namespace class interface use extends ' +
+    'function return ' +
+    'abstract final public protected private static deprecated ' +
+    // error handling
+    'throw try catch Exception ' +
+    // keyword-ish things their website does NOT seem to highlight (in their own snippets)
+    // 'typeof fetch in ' +
+    // operators/helpers
+    'echo empty isset instanceof unset ' +
+    // assignment/variables
+    'let var new const self ' +
+    // control
+    'require ' +
+    'if else elseif switch case default ' +
+    'do while loop for continue break ' +
+    'likely unlikely ' +
+    // magic constants
+    // https://github.com/phalcon/zephir/blob/master/Library/Expression/Constants.php
+    '__LINE__ __FILE__ __DIR__ __FUNCTION__ __CLASS__ __TRAIT__ __METHOD__ __NAMESPACE__ ' +
+    // types - https://docs.zephir-lang.com/0.12/en/types
+    'array boolean float double integer object resource string ' +
+    'char long unsigned bool int uint ulong uchar ' +
+    // built-ins
+    'true false null undefined';
+
   return {
+    name: 'Zephir',
     aliases: ['zep'],
-    case_insensitive: true,
-    keywords:
-      'and include_once list abstract global private echo interface as static endswitch ' +
-      'array null if endwhile or const for endforeach self var let while isset public ' +
-      'protected exit foreach throw elseif include __FILE__ empty require_once do xor ' +
-      'return parent clone use __CLASS__ __LINE__ else break print eval new ' +
-      'catch __METHOD__ case exception default die require __FUNCTION__ ' +
-      'enddeclare final try switch continue endfor endif declare unset true false ' +
-      'trait goto instanceof insteadof __DIR__ __NAMESPACE__ ' +
-      'yield finally int uint long ulong char uchar double float bool boolean string' +
-      'likely unlikely',
+    keywords: KEYWORDS,
     contains: [
       hljs.C_LINE_COMMENT_MODE,
-      hljs.HASH_COMMENT_MODE,
       hljs.COMMENT(
         '/\\*',
         '\\*/',
@@ -35537,15 +38367,6 @@ module.exports = function(hljs) {
               begin: '@[A-Za-z]+'
             }
           ]
-        }
-      ),
-      hljs.COMMENT(
-        '__halt_compiler.+?;',
-        false,
-        {
-          endsWithParent: true,
-          keywords: '__halt_compiler',
-          lexemes: hljs.UNDERSCORE_IDENT_RE
         }
       ),
       {
@@ -35559,13 +38380,14 @@ module.exports = function(hljs) {
       },
       {
         className: 'function',
-        beginKeywords: 'function', end: /[;{]/, excludeEnd: true,
+        beginKeywords: 'function fn', end: /[;{]/, excludeEnd: true,
         illegal: '\\$|\\[|%',
         contains: [
-          hljs.UNDERSCORE_TITLE_MODE,
+          TITLE_MODE,
           {
             className: 'params',
             begin: '\\(', end: '\\)',
+            keywords: KEYWORDS,
             contains: [
               'self',
               hljs.C_BLOCK_COMMENT_MODE,
@@ -35581,17 +38403,17 @@ module.exports = function(hljs) {
         illegal: /[:\(\$"]/,
         contains: [
           {beginKeywords: 'extends implements'},
-          hljs.UNDERSCORE_TITLE_MODE
+          TITLE_MODE
         ]
       },
       {
         beginKeywords: 'namespace', end: ';',
         illegal: /[\.']/,
-        contains: [hljs.UNDERSCORE_TITLE_MODE]
+        contains: [TITLE_MODE]
       },
       {
         beginKeywords: 'use', end: ';',
-        contains: [hljs.UNDERSCORE_TITLE_MODE]
+        contains: [TITLE_MODE]
       },
       {
         begin: '=>' // No markup, just a relevance booster
@@ -35600,10 +38422,13 @@ module.exports = function(hljs) {
       NUMBER
     ]
   };
-};
+}
+
+module.exports = zephir;
+
 
 /***/ }),
-/* 274 */
+/* 278 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
@@ -35659,7 +38484,7 @@ exports._unrefActive = exports.active = function(item) {
 };
 
 // setimmediate attaches itself to the global object
-__webpack_require__(275);
+__webpack_require__(279);
 // On some exotic environments, it's not clear which object `setimmediate` was
 // able to install onto.  Search each possibility in the same order as the
 // `setimmediate` library.
@@ -35673,7 +38498,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(18)))
 
 /***/ }),
-/* 275 */
+/* 279 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -35863,10 +38688,10 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
     attachTo.clearImmediate = clearImmediate;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(18), __webpack_require__(276)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(18), __webpack_require__(280)))
 
 /***/ }),
-/* 276 */
+/* 280 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -36056,28 +38881,28 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 277 */
+/* 281 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
 	"./DragSort/index.md": [
-		353,
+		356,
 		3
 	],
 	"./Filters/index.md": [
-		354,
+		357,
 		4
 	],
 	"./Loading/index.md": [
-		355,
+		358,
 		5
 	],
 	"./Tabs/index.md": [
-		356,
+		359,
 		6
 	],
 	"./WaterFall/index.md": [
-		357,
+		360,
 		7
 	]
 };
@@ -36098,25 +38923,25 @@ function webpackAsyncContext(req) {
 webpackAsyncContext.keys = function webpackAsyncContextKeys() {
 	return Object.keys(map);
 };
-webpackAsyncContext.id = 277;
+webpackAsyncContext.id = 281;
 module.exports = webpackAsyncContext;
 
 /***/ }),
-/* 278 */
+/* 282 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_node_modules_sass_loader_dist_cjs_js_node_modules_style_resources_loader_lib_index_js_ref_0_4_node_modules_vue_loader_lib_index_js_vue_loader_options_demo_block_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(30);
-/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_node_modules_sass_loader_dist_cjs_js_node_modules_style_resources_loader_lib_index_js_ref_0_4_node_modules_vue_loader_lib_index_js_vue_loader_options_demo_block_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_node_modules_sass_loader_dist_cjs_js_node_modules_style_resources_loader_lib_index_js_ref_0_4_node_modules_vue_loader_lib_index_js_vue_loader_options_demo_block_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_node_modules_sass_loader_dist_cjs_js_node_modules_style_resources_loader_lib_index_js_ref_0_4_node_modules_vue_loader_lib_index_js_vue_loader_options_demo_block_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(30);
+/* harmony import */ var _node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_node_modules_sass_loader_dist_cjs_js_node_modules_style_resources_loader_lib_index_js_ref_0_4_node_modules_vue_loader_lib_index_js_vue_loader_options_demo_block_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_node_modules_sass_loader_dist_cjs_js_node_modules_style_resources_loader_lib_index_js_ref_0_4_node_modules_vue_loader_lib_index_js_vue_loader_options_demo_block_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0__);
 /* unused harmony reexport * */
- /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_node_modules_sass_loader_dist_cjs_js_node_modules_style_resources_loader_lib_index_js_ref_0_4_node_modules_vue_loader_lib_index_js_vue_loader_options_demo_block_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0___default.a); 
+ /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_postcss_loader_src_index_js_node_modules_sass_loader_dist_cjs_js_node_modules_style_resources_loader_lib_index_js_ref_0_4_node_modules_vue_loader_lib_index_js_vue_loader_options_demo_block_vue_vue_type_style_index_0_lang_scss___WEBPACK_IMPORTED_MODULE_0___default.a); 
 
 /***/ }),
-/* 279 */
+/* 283 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(12);
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(13);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
 exports.push([module.i, ".demo-block{border:1px solid #ebebeb;border-radius:3px;-webkit-transition:.2s;transition:.2s}.demo-block.hover{-webkit-box-shadow:0 0 8px 0 rgba(232,237,250,.6),0 2px 4px 0 rgba(232,237,250,.5);box-shadow:0 0 8px 0 rgba(232,237,250,.6),0 2px 4px 0 rgba(232,237,250,.5)}.demo-block code{font-family:Menlo,Monaco,Consolas,Courier,monospace}.demo-block .source{padding:24px}.demo-block .meta{background-color:#fafafa;border-top:1px solid #eaeefb;overflow:hidden;height:0;-webkit-transition:height .2s;transition:height .2s}.demo-block .description{padding:20px;-webkit-box-sizing:border-box;box-sizing:border-box;border:1px solid #ebebeb;border-radius:3px;font-size:14px;line-height:22px;color:#666;word-break:break-word;margin:10px;background-color:#fff}.demo-block .description p{margin:0;line-height:26px}.demo-block .description code{color:#5e6d82;background-color:#e6effb;margin:0 4px;display:inline-block;padding:1px 5px;font-size:12px;border-radius:3px;height:18px;line-height:18px}.demo-block .highlight pre{margin:0}.demo-block .highlight code.hljs{margin:0;border:none;max-height:none;border-radius:0}.demo-block .highlight code.hljs:before{content:none}.demo-block .demo-block-control{border-top:1px solid #eaeefb;height:44px;-webkit-box-sizing:border-box;box-sizing:border-box;background-color:#fff;border-bottom-left-radius:4px;border-bottom-right-radius:4px;text-align:center;margin-top:-1px;color:#d3dce6;cursor:pointer;position:relative}.demo-block .demo-block-control.is-fixed{position:fixed;bottom:0;width:868px}.demo-block .demo-block-control .svg-icon{margin-top:14px;-webkit-transition:.3s;transition:.3s}.demo-block .demo-block-control .svg-icon.hovering{-webkit-transform:translateX(-40px);transform:translateX(-40px)}.demo-block .demo-block-control>span{position:absolute;-webkit-transform:translateX(-30px);transform:translateX(-30px);font-size:14px;line-height:44px;-webkit-transition:.3s;transition:.3s;display:inline-block}.demo-block .demo-block-control:hover{color:#409eff;background-color:#f9fafc}.demo-block .demo-block-control .text-slide-enter,.demo-block .demo-block-control .text-slide-leave-active{opacity:0;-webkit-transform:translateX(10px);transform:translateX(10px)}", ""]);
@@ -36125,110 +38950,15 @@ module.exports = exports;
 
 
 /***/ }),
-/* 280 */
-/***/ (function(module, exports) {
-
-
-/**
- * When source maps are enabled, `style-loader` uses a link element with a data-uri to
- * embed the css on the page. This breaks all relative urls because now they are relative to a
- * bundle instead of the current page.
- *
- * One solution is to only use full urls, but that may be impossible.
- *
- * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
- *
- * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
- *
- */
-
-module.exports = function (css) {
-  // get current location
-  var location = typeof window !== "undefined" && window.location;
-
-  if (!location) {
-    throw new Error("fixUrls requires window.location");
-  }
-
-	// blank or null?
-	if (!css || typeof css !== "string") {
-	  return css;
-  }
-
-  var baseUrl = location.protocol + "//" + location.host;
-  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
-
-	// convert each url(...)
-	/*
-	This regular expression is just a way to recursively match brackets within
-	a string.
-
-	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
-	   (  = Start a capturing group
-	     (?:  = Start a non-capturing group
-	         [^)(]  = Match anything that isn't a parentheses
-	         |  = OR
-	         \(  = Match a start parentheses
-	             (?:  = Start another non-capturing groups
-	                 [^)(]+  = Match anything that isn't a parentheses
-	                 |  = OR
-	                 \(  = Match a start parentheses
-	                     [^)(]*  = Match anything that isn't a parentheses
-	                 \)  = Match a end parentheses
-	             )  = End Group
-              *\) = Match anything and then a close parens
-          )  = Close non-capturing group
-          *  = Match anything
-       )  = Close capturing group
-	 \)  = Match a close parens
-
-	 /gi  = Get all matches, not the first.  Be case insensitive.
-	 */
-	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
-		// strip quotes (if they exist)
-		var unquotedOrigUrl = origUrl
-			.trim()
-			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
-			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
-
-		// already a full url? no change
-		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/|\s*$)/i.test(unquotedOrigUrl)) {
-		  return fullMatch;
-		}
-
-		// convert the url to a full url
-		var newUrl;
-
-		if (unquotedOrigUrl.indexOf("//") === 0) {
-		  	//TODO: should we add protocol?
-			newUrl = unquotedOrigUrl;
-		} else if (unquotedOrigUrl.indexOf("/") === 0) {
-			// path should be relative to the base url
-			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
-		} else {
-			// path should be relative to current directory
-			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
-		}
-
-		// send back the fixed url(...)
-		return "url(" + JSON.stringify(newUrl) + ")";
-	});
-
-	// send back the fixed css
-	return fixedCss;
-};
-
-
-/***/ }),
-/* 281 */
+/* 284 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(282);
+__webpack_require__(285);
 module.exports = __webpack_require__(2).Object.values;
 
 
 /***/ }),
-/* 282 */
+/* 285 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // https://github.com/tc39/proposal-object-values-entries
@@ -36243,7 +38973,7 @@ $export($export.S, 'Object', {
 
 
 /***/ }),
-/* 283 */
+/* 286 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = !__webpack_require__(9) && !__webpack_require__(19)(function () {
@@ -36252,7 +38982,7 @@ module.exports = !__webpack_require__(9) && !__webpack_require__(19)(function ()
 
 
 /***/ }),
-/* 284 */
+/* 287 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.1 ToPrimitive(input [, PreferredType])
@@ -36270,12 +39000,12 @@ module.exports = function (it, S) {
 
 
 /***/ }),
-/* 285 */
+/* 288 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var has = __webpack_require__(23);
 var toIObject = __webpack_require__(39);
-var arrayIndexOf = __webpack_require__(286)(false);
+var arrayIndexOf = __webpack_require__(289)(false);
 var IE_PROTO = __webpack_require__(42)('IE_PROTO');
 
 module.exports = function (object, names) {
@@ -36293,14 +39023,14 @@ module.exports = function (object, names) {
 
 
 /***/ }),
-/* 286 */
+/* 289 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // false -> Array#indexOf
 // true  -> Array#includes
 var toIObject = __webpack_require__(39);
 var toLength = __webpack_require__(55);
-var toAbsoluteIndex = __webpack_require__(287);
+var toAbsoluteIndex = __webpack_require__(290);
 module.exports = function (IS_INCLUDES) {
   return function ($this, el, fromIndex) {
     var O = toIObject($this);
@@ -36322,7 +39052,7 @@ module.exports = function (IS_INCLUDES) {
 
 
 /***/ }),
-/* 287 */
+/* 290 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var toInteger = __webpack_require__(41);
@@ -36335,22 +39065,22 @@ module.exports = function (index, length) {
 
 
 /***/ }),
-/* 288 */
+/* 291 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(289);
+__webpack_require__(292);
 module.exports = __webpack_require__(2).Object.keys;
 
 
 /***/ }),
-/* 289 */
+/* 292 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.14 Object.keys(O)
 var toObject = __webpack_require__(26);
 var $keys = __webpack_require__(24);
 
-__webpack_require__(290)('keys', function () {
+__webpack_require__(293)('keys', function () {
   return function keys(it) {
     return $keys(toObject(it));
   };
@@ -36358,7 +39088,7 @@ __webpack_require__(290)('keys', function () {
 
 
 /***/ }),
-/* 290 */
+/* 293 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // most Object methods by ES6 should accept primitives
@@ -36374,29 +39104,29 @@ module.exports = function (KEY, exec) {
 
 
 /***/ }),
-/* 291 */
+/* 294 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(292);
+__webpack_require__(295);
 module.exports = __webpack_require__(2).parseInt;
 
 
 /***/ }),
-/* 292 */
+/* 295 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(5);
-var $parseInt = __webpack_require__(293);
+var $parseInt = __webpack_require__(296);
 // 18.2.5 parseInt(string, radix)
 $export($export.G + $export.F * (parseInt != $parseInt), { parseInt: $parseInt });
 
 
 /***/ }),
-/* 293 */
+/* 296 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $parseInt = __webpack_require__(11).parseInt;
-var $trim = __webpack_require__(294).trim;
+var $trim = __webpack_require__(297).trim;
 var ws = __webpack_require__(63);
 var hex = /^[-+]?0[xX]/;
 
@@ -36407,7 +39137,7 @@ module.exports = $parseInt(ws + '08') !== 8 || $parseInt(ws + '0x16') !== 22 ? f
 
 
 /***/ }),
-/* 294 */
+/* 297 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(5);
@@ -36443,25 +39173,25 @@ module.exports = exporter;
 
 
 /***/ }),
-/* 295 */
+/* 298 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(296);
+__webpack_require__(299);
 module.exports = __webpack_require__(2).Array.isArray;
 
 
 /***/ }),
-/* 296 */
+/* 299 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.2.2 / 15.4.3.2 Array.isArray(arg)
 var $export = __webpack_require__(5);
 
-$export($export.S, 'Array', { isArray: __webpack_require__(297) });
+$export($export.S, 'Array', { isArray: __webpack_require__(300) });
 
 
 /***/ }),
-/* 297 */
+/* 300 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.2.2 IsArray(argument)
@@ -36472,25 +39202,25 @@ module.exports = Array.isArray || function isArray(arg) {
 
 
 /***/ }),
-/* 298 */
+/* 301 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(299);
+__webpack_require__(302);
 module.exports = __webpack_require__(2).Object.assign;
 
 
 /***/ }),
-/* 299 */
+/* 302 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.3.1 Object.assign(target, source)
 var $export = __webpack_require__(5);
 
-$export($export.S + $export.F, 'Object', { assign: __webpack_require__(300) });
+$export($export.S + $export.F, 'Object', { assign: __webpack_require__(303) });
 
 
 /***/ }),
-/* 300 */
+/* 303 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36498,7 +39228,7 @@ $export($export.S + $export.F, 'Object', { assign: __webpack_require__(300) });
 // 19.1.2.1 Object.assign(target, source, ...)
 var DESCRIPTORS = __webpack_require__(9);
 var getKeys = __webpack_require__(24);
-var gOPS = __webpack_require__(301);
+var gOPS = __webpack_require__(304);
 var pIE = __webpack_require__(62);
 var toObject = __webpack_require__(26);
 var IObject = __webpack_require__(58);
@@ -36535,17 +39265,17 @@ module.exports = !$assign || __webpack_require__(19)(function () {
 
 
 /***/ }),
-/* 301 */
+/* 304 */
 /***/ (function(module, exports) {
 
 exports.f = Object.getOwnPropertySymbols;
 
 
 /***/ }),
-/* 302 */
+/* 305 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(303);
+__webpack_require__(306);
 var $Object = __webpack_require__(2).Object;
 module.exports = function defineProperty(it, key, desc) {
   return $Object.defineProperty(it, key, desc);
@@ -36553,7 +39283,7 @@ module.exports = function defineProperty(it, key, desc) {
 
 
 /***/ }),
-/* 303 */
+/* 306 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var $export = __webpack_require__(5);
@@ -36562,7 +39292,7 @@ $export($export.S + $export.F * !__webpack_require__(9), 'Object', { definePrope
 
 
 /***/ }),
-/* 304 */
+/* 307 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var core = __webpack_require__(2);
@@ -36573,16 +39303,16 @@ module.exports = function stringify(it) { // eslint-disable-line no-unused-vars
 
 
 /***/ }),
-/* 305 */
+/* 308 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(79);
-__webpack_require__(312);
+__webpack_require__(315);
 module.exports = __webpack_require__(2).Array.from;
 
 
 /***/ }),
-/* 306 */
+/* 309 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var toInteger = __webpack_require__(41);
@@ -36605,19 +39335,19 @@ module.exports = function (TO_STRING) {
 
 
 /***/ }),
-/* 307 */
+/* 310 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(22);
 
 
 /***/ }),
-/* 308 */
+/* 311 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var create = __webpack_require__(309);
+var create = __webpack_require__(312);
 var descriptor = __webpack_require__(40);
 var setToStringTag = __webpack_require__(57);
 var IteratorPrototype = {};
@@ -36632,12 +39362,12 @@ module.exports = function (Constructor, NAME, next) {
 
 
 /***/ }),
-/* 309 */
+/* 312 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = __webpack_require__(21);
-var dPs = __webpack_require__(310);
+var dPs = __webpack_require__(313);
 var enumBugKeys = __webpack_require__(61);
 var IE_PROTO = __webpack_require__(42)('IE_PROTO');
 var Empty = function () { /* empty */ };
@@ -36679,7 +39409,7 @@ module.exports = Object.create || function create(O, Properties) {
 
 
 /***/ }),
-/* 310 */
+/* 313 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(17);
@@ -36698,7 +39428,7 @@ module.exports = __webpack_require__(9) ? Object.defineProperties : function def
 
 
 /***/ }),
-/* 311 */
+/* 314 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
@@ -36717,7 +39447,7 @@ module.exports = Object.getPrototypeOf || function (O) {
 
 
 /***/ }),
-/* 312 */
+/* 315 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36728,7 +39458,7 @@ var toObject = __webpack_require__(26);
 var call = __webpack_require__(82);
 var isArrayIter = __webpack_require__(83);
 var toLength = __webpack_require__(55);
-var createProperty = __webpack_require__(313);
+var createProperty = __webpack_require__(316);
 var getIterFn = __webpack_require__(84);
 
 $export($export.S + $export.F * !__webpack_require__(86)(function (iter) { Array.from(iter); }), 'Array', {
@@ -36761,7 +39491,7 @@ $export($export.S + $export.F * !__webpack_require__(86)(function (iter) { Array
 
 
 /***/ }),
-/* 313 */
+/* 316 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -36776,36 +39506,35 @@ module.exports = function (object, index, value) {
 
 
 /***/ }),
-/* 314 */
+/* 317 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var api = __webpack_require__(12);
+            var content = __webpack_require__(318);
 
-var content = __webpack_require__(315);
+            content = content.__esModule ? content.default : content;
 
-if(typeof content === 'string') content = [[module.i, content, '']];
+            if (typeof content === 'string') {
+              content = [[module.i, content, '']];
+            }
 
-var transform;
-var insertInto;
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = api(content, options);
 
 
 
-var options = {"hmr":true}
-
-options.transform = transform
-options.insertInto = undefined;
-
-var update = __webpack_require__(13)(content, options);
-
-if(content.locals) module.exports = content.locals;
-
-if(false) {}
+module.exports = content.locals || {};
 
 /***/ }),
-/* 315 */
+/* 318 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(12);
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(13);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
 exports.push([module.i, ".hi-loading-fade-enter,.hi-loading-fade-leave-active{opacity:0}@-webkit-keyframes bouncedelay{0%,80%,to{-webkit-transform:scale(0);transform:scale(0)}40%{-webkit-transform:scale(1);transform:scale(1)}}@keyframes bouncedelay{0%,80%,to{-webkit-transform:scale(0);transform:scale(0)}40%{-webkit-transform:scale(1);transform:scale(1)}}.hi-loading-parent--relative,.hi-popup-parent--relative{position:relative}.hi-loading-parent--hidden,.hi-popup-parent--hidden{overflow:hidden}.hi-loading{position:absolute;top:0;right:0;bottom:0;left:0;background-color:hsla(0,0%,100%,.8);display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;text-align:center;-webkit-transition:opacity .3s;transition:opacity .3s}.hi-loading.is-fullscreen{position:fixed}.hi-loading__circle-box{font-size:0}.hi-loading__circle{border-radius:50%;display:inline-block;-webkit-animation:bouncedelay 1.4s ease-in-out infinite;animation:bouncedelay 1.4s ease-in-out infinite;-webkit-animation-fill-mode:both;animation-fill-mode:both;background-color:#2254f4}.hi-loading__circle:first-child{-webkit-animation-delay:-.32s;animation-delay:-.32s}.hi-loading__circle:nth-child(2){-webkit-animation-delay:-.16s;animation-delay:-.16s}.hi-loading__text{color:#409eff;margin:6px 0;font-size:14px}.hi-drag-sort,.hi-drag-sort__group{display:-webkit-box;display:-ms-flexbox;display:flex}.hi-drag-sort__group{-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;padding:30px 32px 34px}.hi-drag-sort__group.empty .hi-drag-sort__group-body{border:1px dashed #eee}.hi-drag-sort__group.empty .hi-drag-sort__group-body .empty-tip{display:block}.hi-drag-sort__group-header{-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;-webkit-box-align:center;-ms-flex-align:center;align-items:center}.hi-drag-sort__group-body,.hi-drag-sort__group-header{width:100%;pointer-events:none;display:-webkit-box;display:-ms-flexbox;display:flex}.hi-drag-sort__group-body{-webkit-box-flex:1;-ms-flex:1;flex:1;min-height:88px;-ms-flex-wrap:wrap;flex-wrap:wrap;-ms-flex-line-pack:start;align-content:flex-start;-webkit-box-align:start;-ms-flex-align:start;align-items:flex-start}.hi-drag-sort__group-body .empty-tip{padding:34px 24px;font-size:14px;color:#909399;display:none}.hi-drag-sort__group-body .group-item{pointer-events:auto;margin:6px 12px 6px 0}.hi-drag-sort__group-footer{pointer-events:none;width:100%}.hi-waterfall__groups{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between}.hi-waterfall__no-data,.hi-waterfall__no-more{text-align:center}.hi-waterfall__loading{width:100px;height:100px;margin:0 auto}.hi-filters{display:-webkit-box;display:-ms-flexbox;display:flex;margin-bottom:15px;font-size:14px}.hi-filters__title{height:28px;line-height:28px;color:#999}.hi-filters__list{-webkit-box-flex:1;-ms-flex:1;flex:1;display:-webkit-box;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;padding:0 20px;overflow:hidden;-webkit-transition:height .4s ease;transition:height .4s ease}.hi-filters__list--close .will-hidden{pointer-events:none}.hi-filters__item{margin-right:8px;margin-bottom:8px;font-size:inherit;padding:0 10px;border-radius:4px;height:28px;line-height:28px;color:#666;cursor:pointer}.hi-filters__item--active{color:#2254f4;background:#f5f7fa}.hi-filters__item:hover{color:#2254f4}.hi-filters__expansion{color:#666;height:28px;line-height:28px;cursor:pointer;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.hi-tabs.is-top .hi-tabs__bar{display:-webkit-box;display:-ms-flexbox;display:flex;border-bottom:1px solid #dadde1}.hi-tabs.is-top .hi-tabs__line{height:4px;width:0;left:0;bottom:-1px}.hi-tabs.is-left{display:-webkit-box;display:-ms-flexbox;display:flex}.hi-tabs.is-left .hi-tabs__bar{border-right:1px solid #dadde1}.hi-tabs.is-left .hi-tabs__line{top:0;right:-1px}.hi-tabs.is-left .hi-tabs__content{-webkit-box-flex:1;-ms-flex:1;flex:1}.hi-tabs__bar{position:relative}.hi-tabs__line{position:absolute;width:4px;height:40px;border-radius:1px;background-color:#2254f4;z-index:1;-webkit-transform-origin:0 0;transform-origin:0 0;-webkit-transition:width .3s cubic-bezier(.645,.045,.355,1),top .3s cubic-bezier(.645,.045,.355,1),left .3s cubic-bezier(.645,.045,.355,1),-webkit-transform .3s cubic-bezier(.645,.045,.355,1);transition:width .3s cubic-bezier(.645,.045,.355,1),top .3s cubic-bezier(.645,.045,.355,1),left .3s cubic-bezier(.645,.045,.355,1),-webkit-transform .3s cubic-bezier(.645,.045,.355,1);transition:transform .3s cubic-bezier(.645,.045,.355,1),width .3s cubic-bezier(.645,.045,.355,1),top .3s cubic-bezier(.645,.045,.355,1),left .3s cubic-bezier(.645,.045,.355,1);transition:transform .3s cubic-bezier(.645,.045,.355,1),width .3s cubic-bezier(.645,.045,.355,1),top .3s cubic-bezier(.645,.045,.355,1),left .3s cubic-bezier(.645,.045,.355,1),-webkit-transform .3s cubic-bezier(.645,.045,.355,1)}.hi-tabs__tab{color:#444950;font-size:14px;cursor:pointer;margin-right:24px;padding:12px 0}.hi-tabs__tab.active{color:#000;font-weight:700}.fade-enter-active{-webkit-transition:opacity .5s;transition:opacity .5s}.fade-enter,.fade-leave-to{opacity:0}.contextmenu .contextmenu-header{font-weight:400;color:#909399;line-height:30px;padding:0 10px;border-bottom:1px solid #f5f7fa}.contextmenu .contextmenu-list{font-size:14px}.contextmenu .contextmenu-list li{padding:0 10px;line-height:34px;color:#303133;cursor:pointer}.contextmenu .contextmenu-list li:hover{background:#f5f7fa;color:#2254f4}", ""]);
@@ -36814,10 +39543,10 @@ module.exports = exports;
 
 
 /***/ }),
-/* 316 */
+/* 319 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var $iterators = __webpack_require__(317);
+var $iterators = __webpack_require__(320);
 var getKeys = __webpack_require__(69);
 var redefine = __webpack_require__(51);
 var global = __webpack_require__(10);
@@ -36878,13 +39607,13 @@ for (var collections = getKeys(DOMIterables), i = 0; i < collections.length; i++
 
 
 /***/ }),
-/* 317 */
+/* 320 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var addToUnscopables = __webpack_require__(318);
-var step = __webpack_require__(321);
+var addToUnscopables = __webpack_require__(321);
+var step = __webpack_require__(324);
 var Iterators = __webpack_require__(49);
 var toIObject = __webpack_require__(50);
 
@@ -36892,7 +39621,7 @@ var toIObject = __webpack_require__(50);
 // 22.1.3.13 Array.prototype.keys()
 // 22.1.3.29 Array.prototype.values()
 // 22.1.3.30 Array.prototype[@@iterator]()
-module.exports = __webpack_require__(324)(Array, 'Array', function (iterated, kind) {
+module.exports = __webpack_require__(327)(Array, 'Array', function (iterated, kind) {
   this._t = toIObject(iterated); // target
   this._i = 0;                   // next index
   this._k = kind;                // kind
@@ -36919,7 +39648,7 @@ addToUnscopables('entries');
 
 
 /***/ }),
-/* 318 */
+/* 321 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 22.1.3.31 Array.prototype[@@unscopables]
@@ -36932,7 +39661,7 @@ module.exports = function (key) {
 
 
 /***/ }),
-/* 319 */
+/* 322 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = !__webpack_require__(28) && !__webpack_require__(65)(function () {
@@ -36941,7 +39670,7 @@ module.exports = !__webpack_require__(28) && !__webpack_require__(65)(function (
 
 
 /***/ }),
-/* 320 */
+/* 323 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.1 ToPrimitive(input [, PreferredType])
@@ -36959,7 +39688,7 @@ module.exports = function (it, S) {
 
 
 /***/ }),
-/* 321 */
+/* 324 */
 /***/ (function(module, exports) {
 
 module.exports = function (done, value) {
@@ -36968,11 +39697,11 @@ module.exports = function (done, value) {
 
 
 /***/ }),
-/* 322 */
+/* 325 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // fallback for non-array-like ES3 and non-enumerable old V8 strings
-var cof = __webpack_require__(323);
+var cof = __webpack_require__(326);
 // eslint-disable-next-line no-prototype-builtins
 module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
   return cof(it) == 'String' ? it.split('') : Object(it);
@@ -36980,7 +39709,7 @@ module.exports = Object('z').propertyIsEnumerable(0) ? Object : function (it) {
 
 
 /***/ }),
-/* 323 */
+/* 326 */
 /***/ (function(module, exports) {
 
 var toString = {}.toString;
@@ -36991,19 +39720,19 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 324 */
+/* 327 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 var LIBRARY = __webpack_require__(64);
-var $export = __webpack_require__(325);
+var $export = __webpack_require__(328);
 var redefine = __webpack_require__(51);
 var hide = __webpack_require__(14);
 var Iterators = __webpack_require__(49);
-var $iterCreate = __webpack_require__(329);
+var $iterCreate = __webpack_require__(332);
 var setToStringTag = __webpack_require__(72);
-var getPrototypeOf = __webpack_require__(337);
+var getPrototypeOf = __webpack_require__(340);
 var ITERATOR = __webpack_require__(20)('iterator');
 var BUGGY = !([].keys && 'next' in [].keys()); // Safari has buggy iterators w/o `next`
 var FF_ITERATOR = '@@iterator';
@@ -37067,14 +39796,14 @@ module.exports = function (Base, NAME, Constructor, next, DEFAULT, IS_SET, FORCE
 
 
 /***/ }),
-/* 325 */
+/* 328 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var global = __webpack_require__(10);
 var core = __webpack_require__(44);
 var hide = __webpack_require__(14);
 var redefine = __webpack_require__(51);
-var ctx = __webpack_require__(327);
+var ctx = __webpack_require__(330);
 var PROTOTYPE = 'prototype';
 
 var $export = function (type, name, source) {
@@ -37116,18 +39845,18 @@ module.exports = $export;
 
 
 /***/ }),
-/* 326 */
+/* 329 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(43)('native-function-to-string', Function.toString);
 
 
 /***/ }),
-/* 327 */
+/* 330 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // optional / simple context binding
-var aFunction = __webpack_require__(328);
+var aFunction = __webpack_require__(331);
 module.exports = function (fn, that, length) {
   aFunction(fn);
   if (that === undefined) return fn;
@@ -37149,7 +39878,7 @@ module.exports = function (fn, that, length) {
 
 
 /***/ }),
-/* 328 */
+/* 331 */
 /***/ (function(module, exports) {
 
 module.exports = function (it) {
@@ -37159,12 +39888,12 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 329 */
+/* 332 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-var create = __webpack_require__(330);
+var create = __webpack_require__(333);
 var descriptor = __webpack_require__(67);
 var setToStringTag = __webpack_require__(72);
 var IteratorPrototype = {};
@@ -37179,12 +39908,12 @@ module.exports = function (Constructor, NAME, next) {
 
 
 /***/ }),
-/* 330 */
+/* 333 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = __webpack_require__(47);
-var dPs = __webpack_require__(331);
+var dPs = __webpack_require__(334);
 var enumBugKeys = __webpack_require__(71);
 var IE_PROTO = __webpack_require__(52)('IE_PROTO');
 var Empty = function () { /* empty */ };
@@ -37199,7 +39928,7 @@ var createDict = function () {
   var gt = '>';
   var iframeDocument;
   iframe.style.display = 'none';
-  __webpack_require__(336).appendChild(iframe);
+  __webpack_require__(339).appendChild(iframe);
   iframe.src = 'javascript:'; // eslint-disable-line no-script-url
   // createDict = iframe.contentWindow.Object;
   // html.removeChild(iframe);
@@ -37226,7 +39955,7 @@ module.exports = Object.create || function create(O, Properties) {
 
 
 /***/ }),
-/* 331 */
+/* 334 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var dP = __webpack_require__(46);
@@ -37245,12 +39974,12 @@ module.exports = __webpack_require__(28) ? Object.defineProperties : function de
 
 
 /***/ }),
-/* 332 */
+/* 335 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var has = __webpack_require__(29);
 var toIObject = __webpack_require__(50);
-var arrayIndexOf = __webpack_require__(333)(false);
+var arrayIndexOf = __webpack_require__(336)(false);
 var IE_PROTO = __webpack_require__(52)('IE_PROTO');
 
 module.exports = function (object, names) {
@@ -37268,14 +39997,14 @@ module.exports = function (object, names) {
 
 
 /***/ }),
-/* 333 */
+/* 336 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // false -> Array#indexOf
 // true  -> Array#includes
 var toIObject = __webpack_require__(50);
-var toLength = __webpack_require__(334);
-var toAbsoluteIndex = __webpack_require__(335);
+var toLength = __webpack_require__(337);
+var toAbsoluteIndex = __webpack_require__(338);
 module.exports = function (IS_INCLUDES) {
   return function ($this, el, fromIndex) {
     var O = toIObject($this);
@@ -37297,7 +40026,7 @@ module.exports = function (IS_INCLUDES) {
 
 
 /***/ }),
-/* 334 */
+/* 337 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.15 ToLength
@@ -37309,7 +40038,7 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 335 */
+/* 338 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var toInteger = __webpack_require__(70);
@@ -37322,7 +40051,7 @@ module.exports = function (index, length) {
 
 
 /***/ }),
-/* 336 */
+/* 339 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var document = __webpack_require__(10).document;
@@ -37330,12 +40059,12 @@ module.exports = document && document.documentElement;
 
 
 /***/ }),
-/* 337 */
+/* 340 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 19.1.2.9 / 15.2.3.2 Object.getPrototypeOf(O)
 var has = __webpack_require__(29);
-var toObject = __webpack_require__(338);
+var toObject = __webpack_require__(341);
 var IE_PROTO = __webpack_require__(52)('IE_PROTO');
 var ObjectProto = Object.prototype;
 
@@ -37349,7 +40078,7 @@ module.exports = Object.getPrototypeOf || function (O) {
 
 
 /***/ }),
-/* 338 */
+/* 341 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // 7.1.13 ToObject(argument)
@@ -37360,21 +40089,21 @@ module.exports = function (it) {
 
 
 /***/ }),
-/* 339 */
+/* 342 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(33);
-/* harmony import */ var _node_modules_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(33);
+/* harmony import */ var _node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0__);
 /* unused harmony reexport * */
- /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_style_loader_index_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
+ /* unused harmony default export */ var _unused_webpack_default_export = (_node_modules_style_loader_dist_cjs_js_node_modules_css_loader_dist_cjs_js_node_modules_vue_loader_lib_loaders_stylePostLoader_js_node_modules_vue_loader_lib_index_js_vue_loader_options_index_vue_vue_type_style_index_0_lang_css___WEBPACK_IMPORTED_MODULE_0___default.a); 
 
 /***/ }),
-/* 340 */
+/* 343 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(12);
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(13);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
 exports.push([module.i, "\n.svg-icon {\n  width: 1em;\n  height: 1em;\n  vertical-align: -0.15em;\n  fill: currentColor;\n  overflow: hidden;\n}\n", ""]);
@@ -37383,14 +40112,14 @@ module.exports = exports;
 
 
 /***/ }),
-/* 341 */
+/* 344 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./down.svg": 342,
-	"./line-down.svg": 343,
-	"./line-up.svg": 344,
-	"./up.svg": 345
+	"./down.svg": 345,
+	"./line-down.svg": 346,
+	"./line-up.svg": 347,
+	"./up.svg": 348
 };
 
 
@@ -37411,10 +40140,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 341;
+webpackContext.id = 344;
 
 /***/ }),
-/* 342 */
+/* 345 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -37435,7 +40164,7 @@ var result = _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WE
 /* harmony default export */ __webpack_exports__["default"] = (symbol);
 
 /***/ }),
-/* 343 */
+/* 346 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -37456,7 +40185,7 @@ var result = _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WE
 /* harmony default export */ __webpack_exports__["default"] = (symbol);
 
 /***/ }),
-/* 344 */
+/* 347 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -37477,7 +40206,7 @@ var result = _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WE
 /* harmony default export */ __webpack_exports__["default"] = (symbol);
 
 /***/ }),
-/* 345 */
+/* 348 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -37498,36 +40227,35 @@ var result = _node_modules_svg_sprite_loader_runtime_browser_sprite_build_js__WE
 /* harmony default export */ __webpack_exports__["default"] = (symbol);
 
 /***/ }),
-/* 346 */
+/* 349 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var api = __webpack_require__(12);
+            var content = __webpack_require__(350);
 
-var content = __webpack_require__(347);
+            content = content.__esModule ? content.default : content;
 
-if(typeof content === 'string') content = [[module.i, content, '']];
+            if (typeof content === 'string') {
+              content = [[module.i, content, '']];
+            }
 
-var transform;
-var insertInto;
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = api(content, options);
 
 
 
-var options = {"hmr":true}
-
-options.transform = transform
-options.insertInto = undefined;
-
-var update = __webpack_require__(13)(content, options);
-
-if(content.locals) module.exports = content.locals;
-
-if(false) {}
+module.exports = content.locals || {};
 
 /***/ }),
-/* 347 */
+/* 350 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(12);
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(13);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
 exports.push([module.i, "/*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */\n\n/* Document\n   ========================================================================== */\n\n/**\n * 1. Correct the line height in all browsers.\n * 2. Prevent adjustments of font size after orientation changes in iOS.\n */\n\nhtml {\n  line-height: 1.15; /* 1 */\n  -webkit-text-size-adjust: 100%; /* 2 */\n}\n\n/* Sections\n   ========================================================================== */\n\n/**\n * Remove the margin in all browsers.\n */\n\nbody {\n  margin: 0;\n}\n\n/**\n * Render the `main` element consistently in IE.\n */\n\nmain {\n  display: block;\n}\n\n/**\n * Correct the font size and margin on `h1` elements within `section` and\n * `article` contexts in Chrome, Firefox, and Safari.\n */\n\nh1 {\n  font-size: 2em;\n  margin: 0.67em 0;\n}\n\n/* Grouping content\n   ========================================================================== */\n\n/**\n * 1. Add the correct box sizing in Firefox.\n * 2. Show the overflow in Edge and IE.\n */\n\nhr {\n  box-sizing: content-box; /* 1 */\n  height: 0; /* 1 */\n  overflow: visible; /* 2 */\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\npre {\n  font-family: monospace, monospace; /* 1 */\n  font-size: 1em; /* 2 */\n}\n\n/* Text-level semantics\n   ========================================================================== */\n\n/**\n * Remove the gray background on active links in IE 10.\n */\n\na {\n  background-color: transparent;\n}\n\n/**\n * 1. Remove the bottom border in Chrome 57-\n * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.\n */\n\nabbr[title] {\n  border-bottom: none; /* 1 */\n  text-decoration: underline; /* 2 */\n  text-decoration: underline dotted; /* 2 */\n}\n\n/**\n * Add the correct font weight in Chrome, Edge, and Safari.\n */\n\nb,\nstrong {\n  font-weight: bolder;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\ncode,\nkbd,\nsamp {\n  font-family: monospace, monospace; /* 1 */\n  font-size: 1em; /* 2 */\n}\n\n/**\n * Add the correct font size in all browsers.\n */\n\nsmall {\n  font-size: 80%;\n}\n\n/**\n * Prevent `sub` and `sup` elements from affecting the line height in\n * all browsers.\n */\n\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline;\n}\n\nsub {\n  bottom: -0.25em;\n}\n\nsup {\n  top: -0.5em;\n}\n\n/* Embedded content\n   ========================================================================== */\n\n/**\n * Remove the border on images inside links in IE 10.\n */\n\nimg {\n  border-style: none;\n}\n\n/* Forms\n   ========================================================================== */\n\n/**\n * 1. Change the font styles in all browsers.\n * 2. Remove the margin in Firefox and Safari.\n */\n\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  font-family: inherit; /* 1 */\n  font-size: 100%; /* 1 */\n  line-height: 1.15; /* 1 */\n  margin: 0; /* 2 */\n}\n\n/**\n * Show the overflow in IE.\n * 1. Show the overflow in Edge.\n */\n\nbutton,\ninput { /* 1 */\n  overflow: visible;\n}\n\n/**\n * Remove the inheritance of text transform in Edge, Firefox, and IE.\n * 1. Remove the inheritance of text transform in Firefox.\n */\n\nbutton,\nselect { /* 1 */\n  text-transform: none;\n}\n\n/**\n * Correct the inability to style clickable types in iOS and Safari.\n */\n\nbutton,\n[type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button;\n}\n\n/**\n * Remove the inner border and padding in Firefox.\n */\n\nbutton::-moz-focus-inner,\n[type=\"button\"]::-moz-focus-inner,\n[type=\"reset\"]::-moz-focus-inner,\n[type=\"submit\"]::-moz-focus-inner {\n  border-style: none;\n  padding: 0;\n}\n\n/**\n * Restore the focus styles unset by the previous rule.\n */\n\nbutton:-moz-focusring,\n[type=\"button\"]:-moz-focusring,\n[type=\"reset\"]:-moz-focusring,\n[type=\"submit\"]:-moz-focusring {\n  outline: 1px dotted ButtonText;\n}\n\n/**\n * Correct the padding in Firefox.\n */\n\nfieldset {\n  padding: 0.35em 0.75em 0.625em;\n}\n\n/**\n * 1. Correct the text wrapping in Edge and IE.\n * 2. Correct the color inheritance from `fieldset` elements in IE.\n * 3. Remove the padding so developers are not caught out when they zero out\n *    `fieldset` elements in all browsers.\n */\n\nlegend {\n  box-sizing: border-box; /* 1 */\n  color: inherit; /* 2 */\n  display: table; /* 1 */\n  max-width: 100%; /* 1 */\n  padding: 0; /* 3 */\n  white-space: normal; /* 1 */\n}\n\n/**\n * Add the correct vertical alignment in Chrome, Firefox, and Opera.\n */\n\nprogress {\n  vertical-align: baseline;\n}\n\n/**\n * Remove the default vertical scrollbar in IE 10+.\n */\n\ntextarea {\n  overflow: auto;\n}\n\n/**\n * 1. Add the correct box sizing in IE 10.\n * 2. Remove the padding in IE 10.\n */\n\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  box-sizing: border-box; /* 1 */\n  padding: 0; /* 2 */\n}\n\n/**\n * Correct the cursor style of increment and decrement buttons in Chrome.\n */\n\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\n\n/**\n * 1. Correct the odd appearance in Chrome and Safari.\n * 2. Correct the outline style in Safari.\n */\n\n[type=\"search\"] {\n  -webkit-appearance: textfield; /* 1 */\n  outline-offset: -2px; /* 2 */\n}\n\n/**\n * Remove the inner padding in Chrome and Safari on macOS.\n */\n\n[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\n\n/**\n * 1. Correct the inability to style clickable types in iOS and Safari.\n * 2. Change font properties to `inherit` in Safari.\n */\n\n::-webkit-file-upload-button {\n  -webkit-appearance: button; /* 1 */\n  font: inherit; /* 2 */\n}\n\n/* Interactive\n   ========================================================================== */\n\n/*\n * Add the correct display in Edge, IE 10+, and Firefox.\n */\n\ndetails {\n  display: block;\n}\n\n/*\n * Add the correct display in all browsers.\n */\n\nsummary {\n  display: list-item;\n}\n\n/* Misc\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 10+.\n */\n\ntemplate {\n  display: none;\n}\n\n/**\n * Add the correct display in IE 10.\n */\n\n[hidden] {\n  display: none;\n}\n", ""]);
@@ -37536,36 +40264,35 @@ module.exports = exports;
 
 
 /***/ }),
-/* 348 */
+/* 351 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var api = __webpack_require__(12);
+            var content = __webpack_require__(352);
 
-var content = __webpack_require__(349);
+            content = content.__esModule ? content.default : content;
 
-if(typeof content === 'string') content = [[module.i, content, '']];
+            if (typeof content === 'string') {
+              content = [[module.i, content, '']];
+            }
 
-var transform;
-var insertInto;
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = api(content, options);
 
 
 
-var options = {"hmr":true}
-
-options.transform = transform
-options.insertInto = undefined;
-
-var update = __webpack_require__(13)(content, options);
-
-if(content.locals) module.exports = content.locals;
-
-if(false) {}
+module.exports = content.locals || {};
 
 /***/ }),
-/* 349 */
+/* 352 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(12);
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(13);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
 exports.push([module.i, ".hljs{display:block;overflow-x:auto;padding:.5em;background:#fff}.hljs,.hljs-subst{color:#000}.hljs-addition,.hljs-meta,.hljs-string,.hljs-symbol,.hljs-template-tag,.hljs-template-variable{color:#756bb1}.hljs-comment,.hljs-quote{color:#636363}.hljs-bullet,.hljs-link,.hljs-literal,.hljs-number,.hljs-regexp{color:#31a354}.hljs-deletion,.hljs-variable{color:#88f}.hljs-built_in,.hljs-doctag,.hljs-keyword,.hljs-name,.hljs-section,.hljs-selector-class,.hljs-selector-id,.hljs-selector-tag,.hljs-strong,.hljs-tag,.hljs-title,.hljs-type{color:#3182bd}.hljs-emphasis{font-style:italic}.hljs-attribute{color:#e6550d}body,html{margin:0;padding:0;height:100%;font-family:Helvetica Neue,Helvetica,PingFang SC,Hiragino Sans GB,Microsoft YaHei,SimSun,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}dd,div,dl,dt,header,li,nav,ul{-webkit-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0}a{color:inherit;text-decoration:none}code{background-color:#f9fafc;padding:0 4px;border:1px solid #eaeefb;border-radius:4px}button,input,select,textarea{font-family:inherit;font-size:inherit;line-height:inherit;color:inherit}li{list-style:none}.wrap{width:1140px;margin:0 auto}.alan-header{position:-webkit-sticky;position:sticky;top:0;background-color:#fff}.alan-header .wrap{height:80px;border-bottom:1px solid #dcdfe6;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;-webkit-box-align:center;-ms-flex-align:center;align-items:center}.alan-body{height:calc(100vh - 80px);overflow-y:scroll}.alan-body .alan-nav{position:fixed;top:81px;bottom:0;width:240px;height:calc(100vh - 80px);padding:30px 15px 30px 24px;overflow-y:auto;color:#333;background-color:#fff}.alan-body .alan-nav a.router-link-exact-active,.alan-body .alan-nav a:hover{color:#00f}.alan-body .alan-nav dl{margin-bottom:5px}.alan-body .alan-nav dt{font-size:16px;color:#333;line-height:40px;height:40px;font-weight:700}.alan-body .alan-nav dd{height:40px;color:#444;line-height:40px;font-size:14px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:400}.alan-body .alan-contain{margin-left:270px;padding-top:30px;height:100%}.hljs{line-height:1.8;font-family:Menlo,Monaco,Consolas,Courier,monospace;font-size:12px;padding:18px 24px;background-color:#fafafa;border:1px solid #eaeefb;margin-bottom:25px;border-radius:4px;-webkit-font-smoothing:auto}.hello-doc>h2{font-size:28px;color:#1f2d3d;margin:0}.hello-doc>h3{font-size:22px;margin:55px 0 20px}.hello-doc>h2,.hello-doc>h3,.hello-doc>h4,.hello-doc>h5{font-weight:400;color:#1f2f3d}.hello-doc>h2:hover a,.hello-doc>h3:hover a,.hello-doc>h4:hover a,.hello-doc>h5:hover a{opacity:.4}.hello-doc>h2 a,.hello-doc>h3 a,.hello-doc>h4 a,.hello-doc>h5 a{float:left;margin-left:-20px;opacity:0;cursor:pointer}.hello-doc>h2 a:hover,.hello-doc>h3 a:hover,.hello-doc>h4 a:hover,.hello-doc>h5 a:hover{opacity:.4}.hello-doc>p{font-size:14px;color:#5e6d82;line-height:1.5em}.hello-doc button{border-radius:3px;font-size:12px;height:22px;line-height:22px;padding:0 6px;cursor:pointer;outline:none}.hello-doc button:active,.hello-doc button:focus{outline:none}.hello-doc .tip{padding:8px 16px;background-color:#ecf8ff;border-radius:4px;border-left:5px solid #50bfff;margin:20px 0;font-size:14px;color:#5e6d82;line-height:1.5em}.hello-doc .tip code{background-color:hsla(0,0%,100%,.7);color:#445368}.hello-doc .warning{padding:8px 16px;background-color:#fff6f7;border-radius:4px;border-left:5px solid #fe6c6f;margin:20px 0}.hello-doc .warning code{background-color:hsla(0,0%,100%,.7);color:#445368}.hello-doc>table{border-collapse:collapse;width:100%;background-color:#fff;font-size:14px;margin-bottom:45px;line-height:1.5em}.hello-doc>table strong{font-weight:400}.hello-doc>table td,.hello-doc>table th{border-bottom:1px solid #dcdfe6;padding:15px;max-width:250px}.hello-doc>table th{text-align:left;white-space:nowrap;color:#909399;font-weight:400}.hello-doc>table td{color:#606266}.hello-doc>table td:first-child,.hello-doc>table th:first-child{padding-left:10px}.hello-doc>ul:not(.timeline){margin:10px 0;padding:0 0 0 20px;font-size:14px;color:#5e6d82;line-height:2em}", ""]);
@@ -37574,36 +40301,35 @@ module.exports = exports;
 
 
 /***/ }),
-/* 350 */
+/* 353 */
 /***/ (function(module, exports, __webpack_require__) {
 
+var api = __webpack_require__(12);
+            var content = __webpack_require__(354);
 
-var content = __webpack_require__(351);
+            content = content.__esModule ? content.default : content;
 
-if(typeof content === 'string') content = [[module.i, content, '']];
+            if (typeof content === 'string') {
+              content = [[module.i, content, '']];
+            }
 
-var transform;
-var insertInto;
+var options = {};
+
+options.insert = "head";
+options.singleton = false;
+
+var update = api(content, options);
 
 
 
-var options = {"hmr":true}
-
-options.transform = transform
-options.insertInto = undefined;
-
-var update = __webpack_require__(13)(content, options);
-
-if(content.locals) module.exports = content.locals;
-
-if(false) {}
+module.exports = content.locals || {};
 
 /***/ }),
-/* 351 */
+/* 354 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // Imports
-var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(12);
+var ___CSS_LOADER_API_IMPORT___ = __webpack_require__(13);
 exports = ___CSS_LOADER_API_IMPORT___(false);
 // Module
 exports.push([module.i, ".demo-dragsort .card{width:70px;height:70px;line-height:70px;text-align:center;background-color:green;color:#fff;position:relative}.demo-dragsort .card span{display:block;position:absolute;right:0;bottom:0;width:24px;height:20px;line-height:20px;font-size:12px;background-color:#faebd7;color:#333}.demo-dragsort .card.selected{background-color:#00f}.demo-loading .demo-box{height:200px}.waterfall-wrap{height:400px;overflow-y:auto}.waterfall-wrap .card{background-color:#eee;text-align:center;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:center;-ms-flex-pack:center;justify-content:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center}.filters-demo{width:500px}.tabs-demo{height:100px}", ""]);
@@ -37612,7 +40338,7 @@ module.exports = exports;
 
 
 /***/ }),
-/* 352 */
+/* 355 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -37680,7 +40406,7 @@ component.options.__file = "src/App.vue"
 /* harmony default export */ var App = (component.exports);
 // CONCATENATED MODULE: /home/travis/build/dogodo-cc/90s/node_modules/vue-router/dist/vue-router.esm.js
 /*!
-  * vue-router v3.1.5
+  * vue-router v3.3.2
   * (c) 2020 Evan You
   * @license MIT
   */
@@ -37700,12 +40426,8 @@ function isError (err) {
   return Object.prototype.toString.call(err).indexOf('Error') > -1
 }
 
-function isExtendedError (constructor, err) {
-  return (
-    err instanceof constructor ||
-    // _name is to support IE9 too
-    (err && (err.name === constructor.name || err._name === constructor._name))
-  )
+function isRouterError (err, errorType) {
+  return isError(err) && err._isRouter && (errorType == null || err.type === errorType)
 }
 
 function extend (a, b) {
@@ -38277,7 +40999,7 @@ function parse (str, options) {
  * @return {!function(Object=, Object=)}
  */
 function compile (str, options) {
-  return tokensToFunction(parse(str, options))
+  return tokensToFunction(parse(str, options), options)
 }
 
 /**
@@ -38307,14 +41029,14 @@ function encodeAsterisk (str) {
 /**
  * Expose a method for transforming tokens into the path function.
  */
-function tokensToFunction (tokens) {
+function tokensToFunction (tokens, options) {
   // Compile all the tokens into regexps.
   var matches = new Array(tokens.length);
 
   // Compile all the patterns before compilation.
   for (var i = 0; i < tokens.length; i++) {
     if (typeof tokens[i] === 'object') {
-      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$');
+      matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$', flags(options));
     }
   }
 
@@ -38427,7 +41149,7 @@ function attachKeys (re, keys) {
  * @return {string}
  */
 function flags (options) {
-  return options.sensitive ? '' : 'i'
+  return options && options.sensitive ? '' : 'i'
 }
 
 /**
@@ -38615,7 +41337,8 @@ function fillParams (
       (regexpCompileCache[path] = pathToRegexp_1.compile(path));
 
     // Fix #2505 resolving asterisk routes { name: 'not-found', params: { pathMatch: '/not-found' }}
-    if (params.pathMatch) { params[0] = params.pathMatch; }
+    // and fix #3106 so that you can work with location descriptor object having params.pathMatch equal to empty string
+    if (typeof params.pathMatch === 'string') { params[0] = params.pathMatch; }
 
     return filler(params, { pretty: true })
   } catch (e) {
@@ -38712,6 +41435,10 @@ var Link = {
     replace: Boolean,
     activeClass: String,
     exactActiveClass: String,
+    ariaCurrentValue: {
+      type: String,
+      default: 'page'
+    },
     event: {
       type: eventTypes,
       default: 'click'
@@ -38757,6 +41484,8 @@ var Link = {
       ? classes[exactActiveClass]
       : isIncludedRoute(current, compareTarget);
 
+    var ariaCurrentValue = classes[exactActiveClass] ? this.ariaCurrentValue : null;
+
     var handler = function (e) {
       if (guardEvent(e)) {
         if (this$1.replace) {
@@ -38800,7 +41529,7 @@ var Link = {
 
     if (this.tag === 'a') {
       data.on = on;
-      data.attrs = { href: href };
+      data.attrs = { href: href, 'aria-current': ariaCurrentValue };
     } else {
       // find the first <a> child and apply listener and href
       var a = findAnchor(this.$slots.default);
@@ -38828,6 +41557,7 @@ var Link = {
 
         var aAttrs = (a.data.attrs = extend({}, a.data.attrs));
         aAttrs.href = href;
+        aAttrs['aria-current'] = ariaCurrentValue;
       } else {
         // doesn't have <a> child, apply listener to self
         data.on = on;
@@ -39281,6 +42011,10 @@ function setStateKey (key) {
 var positionStore = Object.create(null);
 
 function setupScroll () {
+  // Prevent browser scroll behavior on History popstate
+  if ('scrollRestoration' in window.history) {
+    window.history.scrollRestoration = 'manual';
+  }
   // Fix for #1585 for Firefox
   // Fix for #2195 Add optional third attribute to workaround a bug in safari https://bugs.webkit.org/show_bug.cgi?id=182678
   // Fix for #2774 Support for apps loaded from Windows file shares not mapped to network drives: replaced location.origin with
@@ -39288,13 +42022,14 @@ function setupScroll () {
   // location.host contains the port and location.hostname doesn't
   var protocolAndPath = window.location.protocol + '//' + window.location.host;
   var absolutePath = window.location.href.replace(protocolAndPath, '');
-  window.history.replaceState({ key: getStateKey() }, '', absolutePath);
-  window.addEventListener('popstate', function (e) {
-    saveScrollPosition();
-    if (e.state && e.state.key) {
-      setStateKey(e.state.key);
-    }
-  });
+  // preserve existing history state as it could be overriden by the user
+  var stateCopy = extend({}, window.history.state);
+  stateCopy.key = getStateKey();
+  window.history.replaceState(stateCopy, '', absolutePath);
+  window.addEventListener('popstate', handlePopState);
+  return function () {
+    window.removeEventListener('popstate', handlePopState);
+  }
 }
 
 function handleScroll (
@@ -39349,6 +42084,13 @@ function saveScrollPosition () {
       x: window.pageXOffset,
       y: window.pageYOffset
     };
+  }
+}
+
+function handlePopState (e) {
+  saveScrollPosition();
+  if (e.state && e.state.key) {
+    setStateKey(e.state.key);
   }
 }
 
@@ -39437,7 +42179,7 @@ var supportsPushState =
       return false
     }
 
-    return window.history && 'pushState' in window.history
+    return window.history && typeof window.history.pushState === 'function'
   })();
 
 function pushState (url, replace) {
@@ -39591,32 +42333,70 @@ function once (fn) {
   }
 }
 
-var NavigationDuplicated = /*@__PURE__*/(function (Error) {
-  function NavigationDuplicated (normalizedLocation) {
-    Error.call(this);
-    this.name = this._name = 'NavigationDuplicated';
-    // passing the message to super() doesn't seem to work in the transpiled version
-    this.message = "Navigating to current location (\"" + (normalizedLocation.fullPath) + "\") is not allowed";
-    // add a stack property so services like Sentry can correctly display it
-    Object.defineProperty(this, 'stack', {
-      value: new Error().stack,
-      writable: true,
-      configurable: true
-    });
-    // we could also have used
-    // Error.captureStackTrace(this, this.constructor)
-    // but it only exists on node and chrome
-  }
+var NavigationFailureType = {
+  redirected: 1,
+  aborted: 2,
+  cancelled: 3,
+  duplicated: 4
+};
 
-  if ( Error ) NavigationDuplicated.__proto__ = Error;
-  NavigationDuplicated.prototype = Object.create( Error && Error.prototype );
-  NavigationDuplicated.prototype.constructor = NavigationDuplicated;
+function createNavigationRedirectedError (from, to) {
+  return createRouterError(
+    from,
+    to,
+    NavigationFailureType.redirected,
+    ("Redirected from \"" + (from.fullPath) + "\" to \"" + (stringifyRoute(to)) + "\" via a navigation guard.")
+  )
+}
 
-  return NavigationDuplicated;
-}(Error));
+function createNavigationDuplicatedError (from, to) {
+  return createRouterError(
+    from,
+    to,
+    NavigationFailureType.duplicated,
+    ("Avoided redundant navigation to current location: \"" + (from.fullPath) + "\".")
+  )
+}
 
-// support IE9
-NavigationDuplicated._name = 'NavigationDuplicated';
+function createNavigationCancelledError (from, to) {
+  return createRouterError(
+    from,
+    to,
+    NavigationFailureType.cancelled,
+    ("Navigation cancelled from \"" + (from.fullPath) + "\" to \"" + (to.fullPath) + "\" with a new navigation.")
+  )
+}
+
+function createNavigationAbortedError (from, to) {
+  return createRouterError(
+    from,
+    to,
+    NavigationFailureType.aborted,
+    ("Navigation aborted from \"" + (from.fullPath) + "\" to \"" + (to.fullPath) + "\" via a navigation guard.")
+  )
+}
+
+function createRouterError (from, to, type, message) {
+  var error = new Error(message);
+  error._isRouter = true;
+  error.from = from;
+  error.to = to;
+  error.type = type;
+
+  return error
+}
+
+var propertiesToLog = ['params', 'query', 'hash'];
+
+function stringifyRoute (to) {
+  if (typeof to === 'string') { return to }
+  if ('path' in to) { return to.path }
+  var location = {};
+  propertiesToLog.forEach(function (key) {
+    if (key in to) { location[key] = to[key]; }
+  });
+  return JSON.stringify(location, null, 2)
+}
 
 /*  */
 
@@ -39630,6 +42410,7 @@ var History = function History (router, base) {
   this.readyCbs = [];
   this.readyErrorCbs = [];
   this.errorCbs = [];
+  this.listeners = [];
 };
 
 History.prototype.listen = function listen (cb) {
@@ -39662,9 +42443,13 @@ History.prototype.transitionTo = function transitionTo (
   this.confirmTransition(
     route,
     function () {
+      var prev = this$1.current;
       this$1.updateRoute(route);
       onComplete && onComplete(route);
       this$1.ensureURL();
+      this$1.router.afterHooks.forEach(function (hook) {
+        hook && hook(route, prev);
+      });
 
       // fire ready cbs once
       if (!this$1.ready) {
@@ -39693,11 +42478,10 @@ History.prototype.confirmTransition = function confirmTransition (route, onCompl
 
   var current = this.current;
   var abort = function (err) {
-    // after merging https://github.com/vuejs/vue-router/pull/2771 we
-    // When the user navigates through history through back/forward buttons
-    // we do not want to throw the error. We only throw it if directly calling
-    // push/replace. That's why it's not included in isError
-    if (!isExtendedError(NavigationDuplicated, err) && isError(err)) {
+    // changed after adding errors with
+    // https://github.com/vuejs/vue-router/pull/3047 before that change,
+    // redirect and aborted navigation would produce an err == null
+    if (!isRouterError(err) && isError(err)) {
       if (this$1.errorCbs.length) {
         this$1.errorCbs.forEach(function (cb) {
           cb(err);
@@ -39715,7 +42499,7 @@ History.prototype.confirmTransition = function confirmTransition (route, onCompl
     route.matched.length === current.matched.length
   ) {
     this.ensureURL();
-    return abort(new NavigationDuplicated(route))
+    return abort(createNavigationDuplicatedError(current, route))
   }
 
   var ref = resolveQueue(
@@ -39742,12 +42526,15 @@ History.prototype.confirmTransition = function confirmTransition (route, onCompl
   this.pending = route;
   var iterator = function (hook, next) {
     if (this$1.pending !== route) {
-      return abort()
+      return abort(createNavigationCancelledError(current, route))
     }
     try {
       hook(route, current, function (to) {
-        if (to === false || isError(to)) {
+        if (to === false) {
           // next(false) -> abort navigation, ensure current URL
+          this$1.ensureURL(true);
+          abort(createNavigationAbortedError(current, route));
+        } else if (isError(to)) {
           this$1.ensureURL(true);
           abort(to);
         } else if (
@@ -39756,7 +42543,7 @@ History.prototype.confirmTransition = function confirmTransition (route, onCompl
             (typeof to.path === 'string' || typeof to.name === 'string'))
         ) {
           // next('/') or next({ path: '/' }) -> redirect
-          abort();
+          abort(createNavigationRedirectedError(current, route));
           if (typeof to === 'object' && to.replace) {
             this$1.replace(to);
           } else {
@@ -39781,7 +42568,7 @@ History.prototype.confirmTransition = function confirmTransition (route, onCompl
     var queue = enterGuards.concat(this$1.router.resolveHooks);
     runQueue(queue, iterator, function () {
       if (this$1.pending !== route) {
-        return abort()
+        return abort(createNavigationCancelledError(current, route))
       }
       this$1.pending = null;
       onComplete(route);
@@ -39797,12 +42584,19 @@ History.prototype.confirmTransition = function confirmTransition (route, onCompl
 };
 
 History.prototype.updateRoute = function updateRoute (route) {
-  var prev = this.current;
   this.current = route;
   this.cb && this.cb(route);
-  this.router.afterHooks.forEach(function (hook) {
-    hook && hook(route, prev);
+};
+
+History.prototype.setupListeners = function setupListeners () {
+  // Default implementation is empty
+};
+
+History.prototype.teardownListeners = function teardownListeners () {
+  this.listeners.forEach(function (cleanupListener) {
+    cleanupListener();
   });
+  this.listeners = [];
 };
 
 function normalizeBase (base) {
@@ -39947,25 +42741,37 @@ function poll (
 
 var HTML5History = /*@__PURE__*/(function (History) {
   function HTML5History (router, base) {
-    var this$1 = this;
-
     History.call(this, router, base);
 
+    this._startLocation = getLocation(this.base);
+  }
+
+  if ( History ) HTML5History.__proto__ = History;
+  HTML5History.prototype = Object.create( History && History.prototype );
+  HTML5History.prototype.constructor = HTML5History;
+
+  HTML5History.prototype.setupListeners = function setupListeners () {
+    var this$1 = this;
+
+    if (this.listeners.length > 0) {
+      return
+    }
+
+    var router = this.router;
     var expectScroll = router.options.scrollBehavior;
     var supportsScroll = supportsPushState && expectScroll;
 
     if (supportsScroll) {
-      setupScroll();
+      this.listeners.push(setupScroll());
     }
 
-    var initLocation = getLocation(this.base);
-    window.addEventListener('popstate', function (e) {
+    var handleRoutingEvent = function () {
       var current = this$1.current;
 
       // Avoiding first `popstate` event dispatched in some browsers but first
       // history route not updated since async guard at the same time.
       var location = getLocation(this$1.base);
-      if (this$1.current === START && location === initLocation) {
+      if (this$1.current === START && location === this$1._startLocation) {
         return
       }
 
@@ -39974,12 +42780,12 @@ var HTML5History = /*@__PURE__*/(function (History) {
           handleScroll(router, route, current, true);
         }
       });
+    };
+    window.addEventListener('popstate', handleRoutingEvent);
+    this.listeners.push(function () {
+      window.removeEventListener('popstate', handleRoutingEvent);
     });
-  }
-
-  if ( History ) HTML5History.__proto__ = History;
-  HTML5History.prototype = Object.create( History && History.prototype );
-  HTML5History.prototype.constructor = HTML5History;
+  };
 
   HTML5History.prototype.go = function go (n) {
     window.history.go(n);
@@ -40025,7 +42831,7 @@ var HTML5History = /*@__PURE__*/(function (History) {
 
 function getLocation (base) {
   var path = decodeURI(window.location.pathname);
-  if (base && path.indexOf(base) === 0) {
+  if (base && path.toLowerCase().indexOf(base.toLowerCase()) === 0) {
     path = path.slice(base.length);
   }
   return (path || '/') + window.location.search + window.location.hash
@@ -40052,31 +42858,40 @@ var HashHistory = /*@__PURE__*/(function (History) {
   HashHistory.prototype.setupListeners = function setupListeners () {
     var this$1 = this;
 
+    if (this.listeners.length > 0) {
+      return
+    }
+
     var router = this.router;
     var expectScroll = router.options.scrollBehavior;
     var supportsScroll = supportsPushState && expectScroll;
 
     if (supportsScroll) {
-      setupScroll();
+      this.listeners.push(setupScroll());
     }
 
-    window.addEventListener(
-      supportsPushState ? 'popstate' : 'hashchange',
-      function () {
-        var current = this$1.current;
-        if (!ensureSlash()) {
-          return
-        }
-        this$1.transitionTo(getHash(), function (route) {
-          if (supportsScroll) {
-            handleScroll(this$1.router, route, current, true);
-          }
-          if (!supportsPushState) {
-            replaceHash(route.fullPath);
-          }
-        });
+    var handleRoutingEvent = function () {
+      var current = this$1.current;
+      if (!ensureSlash()) {
+        return
       }
+      this$1.transitionTo(getHash(), function (route) {
+        if (supportsScroll) {
+          handleScroll(this$1.router, route, current, true);
+        }
+        if (!supportsPushState) {
+          replaceHash(route.fullPath);
+        }
+      });
+    };
+    var eventType = supportsPushState ? 'popstate' : 'hashchange';
+    window.addEventListener(
+      eventType,
+      handleRoutingEvent
     );
+    this.listeners.push(function () {
+      window.removeEventListener(eventType, handleRoutingEvent);
+    });
   };
 
   HashHistory.prototype.push = function push (location, onComplete, onAbort) {
@@ -40249,7 +43064,7 @@ var AbstractHistory = /*@__PURE__*/(function (History) {
         this$1.updateRoute(route);
       },
       function (err) {
-        if (isExtendedError(NavigationDuplicated, err)) {
+        if (isRouterError(err, NavigationFailureType.duplicated)) {
           this$1.index = targetIndex;
         }
       }
@@ -40338,6 +43153,12 @@ VueRouter.prototype.init = function init (app /* Vue component instance */) {
     // ensure we still have a main app or null if no apps
     // we do not release the router so it can be reused
     if (this$1.app === app) { this$1.app = this$1.apps[0] || null; }
+
+    if (!this$1.app) {
+      // clean up event listeners
+      // https://github.com/vuejs/vue-router/issues/2341
+      this$1.history.teardownListeners();
+    }
   });
 
   // main app previously initialized
@@ -40350,17 +43171,11 @@ VueRouter.prototype.init = function init (app /* Vue component instance */) {
 
   var history = this.history;
 
-  if (history instanceof HTML5History) {
-    history.transitionTo(history.getCurrentLocation());
-  } else if (history instanceof HashHistory) {
-    var setupHashListener = function () {
+  if (history instanceof HTML5History || history instanceof HashHistory) {
+    var setupListeners = function () {
       history.setupListeners();
     };
-    history.transitionTo(
-      history.getCurrentLocation(),
-      setupHashListener,
-      setupHashListener
-    );
+    history.transitionTo(history.getCurrentLocation(), setupListeners, setupListeners);
   }
 
   history.listen(function (route) {
@@ -40493,7 +43308,7 @@ function createHref (base, fullPath, mode) {
 }
 
 VueRouter.install = install;
-VueRouter.version = '3.1.5';
+VueRouter.version = '3.3.2';
 
 if (inBrowser && window.Vue) {
   window.Vue.use(VueRouter);
@@ -40674,7 +43489,7 @@ const router = new vue_router_esm({
     children: [{
       path: '/',
       name: 'home',
-      component: () => __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(null, 389))
+      component: () => __webpack_require__.e(/* import() */ 1).then(__webpack_require__.bind(null, 392))
     }]
   }, {
     path: '/doc',
@@ -40686,7 +43501,7 @@ const router = new vue_router_esm({
     children: [{
       path: '/doc/search-mixin',
       name: 'searchMixin',
-      component: () => __webpack_require__.e(/* import() */ 8).then(__webpack_require__.bind(null, 391)),
+      component: () => __webpack_require__.e(/* import() */ 8).then(__webpack_require__.bind(null, 394)),
       meta: {
         title: 'search-mixin'
       }
@@ -40703,12 +43518,12 @@ const router = new vue_router_esm({
       meta: {
         title: '快速开始'
       },
-      component: () => __webpack_require__.e(/* import() */ 9).then(__webpack_require__.bind(null, 392))
+      component: () => __webpack_require__.e(/* import() */ 9).then(__webpack_require__.bind(null, 395))
     }, ...components.map(c => {
       return {
         path: '/component/' + c.name.toLocaleLowerCase(),
         name: c.name,
-        component: () => __webpack_require__(277)(`./${c.name}/index.md`),
+        component: () => __webpack_require__(281)(`./${c.name}/index.md`),
         meta: {
           title: c.title
         }
@@ -40717,7 +43532,7 @@ const router = new vue_router_esm({
   }, {
     path: '*',
     name: '404',
-    component: () => __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(null, 390))
+    component: () => __webpack_require__.e(/* import() */ 2).then(__webpack_require__.bind(null, 393))
   }]
 });
 router.afterEach(to => {
@@ -41061,7 +43876,7 @@ demo_blockvue_type_template_id_905cecc2_render._withStripped = true
 // CONCATENATED MODULE: ./src/layout/demo-block.vue?vue&type=script&lang=js&
  /* harmony default export */ var layout_demo_blockvue_type_script_lang_js_ = (demo_blockvue_type_script_lang_js_); 
 // EXTERNAL MODULE: ./src/layout/demo-block.vue?vue&type=style&index=0&lang=scss&
-var demo_blockvue_type_style_index_0_lang_scss_ = __webpack_require__(278);
+var demo_blockvue_type_style_index_0_lang_scss_ = __webpack_require__(282);
 
 // CONCATENATED MODULE: ./src/layout/demo-block.vue
 
@@ -43786,10 +46601,10 @@ if (typeof window !== 'undefined' && window.Vue) {
   ...directives
 });
 // EXTERNAL MODULE: ./src/components/stylesheet/hello-ui.scss
-var hello_ui = __webpack_require__(314);
+var hello_ui = __webpack_require__(317);
 
 // EXTERNAL MODULE: /home/travis/build/dogodo-cc/90s/node_modules/core-js/modules/web.dom.iterable.js
-var web_dom_iterable = __webpack_require__(316);
+var web_dom_iterable = __webpack_require__(319);
 
 // CONCATENATED MODULE: /home/travis/build/dogodo-cc/90s/node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!/home/travis/build/dogodo-cc/90s/node_modules/vue-loader/lib??vue-loader-options!./src/components/SvgIcon/src/index.vue?vue&type=template&id=d7c8d056&
 var srcvue_type_template_id_d7c8d056_render = function() {
@@ -43842,7 +46657,7 @@ srcvue_type_template_id_d7c8d056_render._withStripped = true
 // CONCATENATED MODULE: ./src/components/SvgIcon/src/index.vue?vue&type=script&lang=js&
  /* harmony default export */ var components_SvgIcon_srcvue_type_script_lang_js_ = (SvgIcon_srcvue_type_script_lang_js_); 
 // EXTERNAL MODULE: ./src/components/SvgIcon/src/index.vue?vue&type=style&index=0&lang=css&
-var srcvue_type_style_index_0_lang_css_ = __webpack_require__(339);
+var srcvue_type_style_index_0_lang_css_ = __webpack_require__(342);
 
 // CONCATENATED MODULE: ./src/components/SvgIcon/src/index.vue
 
@@ -43875,19 +46690,19 @@ SvgIcon_src_component.options.__file = "src/components/SvgIcon/src/index.vue"
 
 vue_runtime_esm["a" /* default */].component('svg-icon', SvgIcon_src);
 
-const req = __webpack_require__(341);
+const req = __webpack_require__(344);
 
 const requireAll = requireContext => requireContext.keys().map(requireContext);
 
 requireAll(req);
 // EXTERNAL MODULE: /home/travis/build/dogodo-cc/90s/node_modules/normalize.css/normalize.css
-var normalize = __webpack_require__(346);
+var normalize = __webpack_require__(349);
 
 // EXTERNAL MODULE: ./src/styles/layout.scss
-var styles_layout = __webpack_require__(348);
+var styles_layout = __webpack_require__(351);
 
 // EXTERNAL MODULE: ./src/styles/demo/index.scss
-var demo = __webpack_require__(350);
+var demo = __webpack_require__(353);
 
 // CONCATENATED MODULE: ./src/entry.js
 
