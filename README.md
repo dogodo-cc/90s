@@ -54,15 +54,8 @@ yarn workspace @90s/web add vue
 yarn workspace @90s/web add vue -D
 ```
 
-cache-loader 是额外加入doc的依赖的，不知道为什么，lerna 不能把vuepress的所有依赖都安装好
-
 
 ## 待办
 - [x] 加入ci-task-runner，来处理增量构建
 - [ ] 提高首屏加载速度
-- [x] 增加一个 vuepress 文档网站
-
-test rebase
-rebase 002
-rebase 003
-rebase 004
+- [x] 增加一个文档项目
