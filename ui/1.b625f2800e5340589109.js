@@ -929,17 +929,29 @@ var promise = __webpack_require__(364);
 var promise_default = /*#__PURE__*/__webpack_require__.n(promise);
 
 // CONCATENATED MODULE: ../tools/browser/download.js
-const downloadByLink = (link, filename) => {
-  fetch(link).then(res => res.blob()).then(blob => {
-    const a = document.createElement('a');
-    const url = window.URL.createObjectURL(blob);
-    a.href = url;
-    a.download = filename !== null && filename !== void 0 ? filename : link;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-  });
+const downloadByLink = async (link, filename = 'download') => {
+  const {
+    origin: downloadOrigin
+  } = new URL(link);
+  const {
+    origin: siteOrigin
+  } = location;
+  let href = link; // 如果下载的资源，不是在同一个域名下，a标签download设置无效，需要先将资源转为blob，在本地下载
+
+  if (downloadOrigin !== siteOrigin) {
+    href = await fetch(link).then(res => res.blob()).then(blob => window.URL.createObjectURL(blob));
+  }
+
+  const a = document.createElement('a');
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  if (href.includes('blob')) {
+    window.URL.revokeObjectURL(href);
+  }
 };
 
 const downloadByContent = (filename, content, type = 'application/json') => {
