@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>border</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style>
+        .box {
+            width: 176px;
+            height: 176px;
+            outline: 1px solid #ccc;
+            margin-top: 30px;
+        }
+        .hide {
+            display: none;
+        }
+        .center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gradient {
+            box-sizing: border-box;
+            position: relative;
+        }
+        .gradient .child {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            left: 50px;
+            top: 50px;
+            background-color: violet;
+        }
+        .gradient .child2 {
+            width: 40px;
+            height: 40px;
+            background-color: red;
+        }
+        .image {
+            border: 30px solid;
+        }
+
+        .slice-control {
+            width: 176px;
+            height: 176px;
+            position: relative;
+        }
+        .slice-control  .line {
+            position: absolute;
+            background-color: blue;
+        }
+        .slice-control  .line::after {
+            display: block;
+            position: absolute;
+            content: attr(name);
+        }
+        .line.top, .line.bottom {
+            left: 0;
+            width: 100%;
+            height: 1px;
+        }
+        .line.left, .line.right {
+            top: 0;
+            width: 1px;
+            height: 100%;
+        }
+        .line.top::after { left: -26px;top:-12px;}
+        .line.bottom::after { right: -55px;top:-12px;}
+        .line.right::after { left: -12px;bottom:-23px;}
+        .line.left::after { left: -12px;top:-23px;}
+        .demo {
+            display: flex;
+            justify-content: space-evenly;
+            margin-bottom: 80px;
+        }
+        .pannel {
+            width: 300px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="demo">
+            <div>
+                <div class="gradient box" :style="boxStyle">
+                    <div class="child"></div>
+                    <div class="child2"></div>
+                </div>
+                <p>边框宽度： {{borderWidth}}</p>
+                <el-slider style="width: 90%;" :min="0" :max="176" v-model="borderWidth"></el-slider>
+            </div>
+            
+            <div class="image box center" :style="style">
+                <img :src="image" alt="">
+            </div>
+            <div class="slice-control box">
+                <img :src="image" alt="">
+                <div class="line top" name="top" :style="{top: slice + 'px'}"></div>
+                <div class="line right" name="right" :style="{right: slice + 'px'}"></div>
+                <div class="line bottom" name="bottom" :style="{bottom: slice + 'px'}"></div>
+                <div class="line left" name="left" :style="{left: slice + 'px'}"></div>
+            </div>
+            <div class="box center pannel">
+                <div>
+                    <el-slider style="width: 90%;" :min="0" :max="176" v-model="slice"></el-slider>
+                    <el-radio-group v-model="repeat">
+                        <el-radio label="repeat">重复</el-radio>
+                        <el-radio label="round">平铺</el-radio>
+                        <el-radio label="stretch">拉伸</el-radio>
+                    </el-radio-group>
+                </div>
+            </div>
+        </div>
+        <ul>
+            <li v-for="n in notes" :key="n">{{n}}</li>
+        </ul>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                image: 'https://st-gdx.dancf.com/odyssey/46983851/undefined/20200901-100826-e611.jpeg?x-oss-process=image/resize,m_mfit,h_176,w_176',
+                slice: 10,
+                repeat: 'repeat',
+                borderWidth: 0,
+                notes: [
+                    '如果使用了border-image，则设置border-radius无效',
+                    'fill 保留边框图像的中间部分'
+                ]
+            },
+            computed: {
+                style() {
+                    return {
+                        borderImageSource: `url(${this.image})`,
+                        borderImageSlice: `${this.slice} fill`,
+                        borderImageRepeat: this.repeat
+                    }
+                },
+                boxStyle() {
+                    return `border: ${this.borderWidth}px solid #ccc;`
+                }
+            }
+        })
+    </script>
+</body>
+</html>

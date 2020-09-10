@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>selection</title>
+    <style>
+        .box {
+            margin-left: auto;
+            margin-right: auto;
+            width: 400px;
+            font-size: 16px;
+            line-height: 1.375;
+            position: relative;
+            overflow: hidden;
+        }
+        span {
+            color: #ccc;
+        }
+        .tip {
+            width: 80px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border: 1px solid blue;
+            border-radius: 4px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            background-color: #fff;
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div style="height: 700px;"></div>
+
+    <div class="box">
+        <h4>这是一个实验中的功能</h4>
+        <p class="p">此功能某些浏览器尚在开发中，<span class="span">请参考浏览器兼容性表格以得到在不同浏览器中适合使用的前缀。</span>由于该功能对应的标准文档可能被重新修订，所以在未来版本的浏览器中该功能的语法和行为可能随之改变。</p>
+        <div>阿弥陀佛</div>
+    </div>
+
+    <div class="tip">点我评论</div>
+
+    <div style="height: 700px;"></div>
+
+    <script>
+        let timer = 0;
+        let mousedownX = 0;
+        const $tip = document.querySelector('.tip');
+        const $tipWidth = $tip?.offsetWidth || 82;
+        const $box = document.querySelector('.box');
+
+        $tip.addEventListener('click', e => {
+            e.stopPropagation();
+        }, false);
+
+
+        document.addEventListener('mousedown', e => {
+            mousedownX = e.x;
+        })
+
+        document.addEventListener('mouseup', e => {
+            const selection = window.getSelection();
+            
+            if (selection.type === 'Range') {
+                timer = new Date().getTime();
+
+                const range = selection.getRangeAt(0);
+                let {left: tipLeft, top: tipTop, width} = getRangeRect(range);
+                const {scrollTop, scrollLeft} = document.documentElement;
+
+                // 选中宽度小于tip宽度，居中处理
+                if (width < $tipWidth) {
+                    tipLeft -= (($tipWidth - width) / 2);
+                }
+
+                tipLeft += scrollLeft;
+                tipTop = tipTop - 33 + scrollTop;
+                
+                $tip.style.cssText = `display:block; left: ${tipLeft}px; top: ${tipTop}px`;
+
+                // 元素判断 方向判断
+                // const startContainer = range.startContainer.parentNode;
+                // const endContainer = range.endContainer.parentNode;
+                // const startOffset = range.startOffset;
+                // const anchorOffset = selection.anchorOffset;
+
+                // const isSameNode = endContainer === startContainer ? '相同元素' : '不同元素';
+                // const diration = anchorOffset === startOffset ? '正向选择' : '反向选择';
+                // console.log(`${isSameNode} ${diration}`);
+
+            
+                // 计算出所选文字的宽度
+                // const anchorNode = selection.anchorNode.parentNode; // 起始节点
+                // const anchorNodeCss = window.getComputedStyle(anchorNode, null);
+                // const fontSize = anchorNodeCss.getPropertyValue('font-size');
+                // const fontWeight = anchorNodeCss.getPropertyValue('font-weight');
+                // const fontFamily = anchorNodeCss.getPropertyValue('font-family');
+                // const lineHeight = parseFloat(anchorNodeCss.getPropertyValue('line-height'));
+                // const selectText = selection.toString();
+                // const selectTextWidth = getTextWidth(selectText, `${fontWeight} ${fontSize} ${fontFamily}`);
+            }
+        }, false);
+
+        document.addEventListener('click', e => {
+            const clickTime = new Date().getTime();
+            if (clickTime - timer > 100) {
+                $tip.style.display = 'none';
+            }
+        }, false);
+
+
+        function getRangeRect(range, lineHeight = 22) {
+            const {left, top, width, height} = range.getBoundingClientRect();
+             // 如果高度超过了行高，说明选中了多行
+             if (height > lineHeight) {
+                    const {right: $boxRight, } = $box.getBoundingClientRect();
+                    const offset = Math.round(($boxRight - mousedownX) / 16);
+                    const myRange = new Range();
+                    console.log(range.startContainer.length, height, lineHeight)
+                    myRange.setStart( range.startContainer, range.startOffset);
+                    myRange.setEnd( range.startContainer, range.startOffset + offset);
+                    return getRangeRect(myRange, lineHeight);
+            }
+            return {left, top, width, height};
+        }
+
+
+
+        /**
+         * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
+         * 
+         * @param {String} text The text to be rendered.
+         * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+         * 
+         * @see https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
+         */
+        function getTextWidth(text, font) {
+            var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+            var context = canvas.getContext("2d"); 
+            context.font = font;
+            var metrics = context.measureText(text);
+            return metrics.width;
+        }
+
+    </script>
+</body>
+</html>
