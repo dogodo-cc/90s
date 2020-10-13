@@ -26,6 +26,6 @@ export default {
 .page-drag {
   padding: 20px;
   font-size: 16px;
-  color: $colorMain;
+  color: var(--color-main);
 }
 </style>

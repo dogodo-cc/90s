@@ -1,17 +1,19 @@
 <template>
-    <div id="landscape_hinter">
-        <div class="hinter_phone"></div>
-        <div class="hinter_rotate"></div>
-        <div class="hinter_text">请使用横屏模式</div>
+  <div id="landscape_hinter">
+    <div class="hinter_phone" />
+    <div class="hinter_rotate" />
+    <div class="hinter_text">
+      请使用横屏模式
     </div>
+  </div>
 </template>
 <script>
 export default {
-  name: 'orientation'
+  name: 'Orientation'
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="postcss" scoped>
 #landscape_hinter {
   position: fixed;
   top: 0;

@@ -15,7 +15,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="postcss">
 .page-404 {
   width: 100vw;
   height: 100vh;

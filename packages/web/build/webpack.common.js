@@ -22,8 +22,32 @@ module.exports = {
   },
   module: {
     rules: [
+      // {
+      //   test: /\.scss$/,
+      //   use: [
+      //     {
+      //       loader: 'style-loader', // 将 js 字符串生成 style 节点
+      //     },
+      //     {
+      //       loader: 'css-loader', // 将 css 转化成 CommonJS 模块
+      //     },
+      //     {
+      //       loader: 'postcss-loader', // 使用 css 新语法
+      //     },
+      //     {
+      //       loader: 'sass-loader' // 编译 scss
+      //     },
+      //     {
+      //       loader: 'style-resources-loader',
+      //       options: {
+      //         patterns: path.resolve(__dirname, '../src/styles/theme.scss'),
+      //         injector: 'prepend'
+      //       }
+      //     }
+      //   ]
+      // },
       {
-        test: /\.scss$/,
+        test: /(\.postcss|\.css)$/,
         use: [
           {
             loader: 'style-loader', // 将 js 字符串生成 style 节点
@@ -32,29 +56,8 @@ module.exports = {
             loader: 'css-loader', // 将 css 转化成 CommonJS 模块
           },
           {
-            loader: 'postcss-loader', // 使用 css 新语法
+            loader: 'postcss-loader',
           },
-          {
-            loader: 'sass-loader' // 编译 scss
-          },
-          {
-            loader: 'style-resources-loader',
-            options: {
-              patterns: path.resolve(__dirname, '../src/styles/theme.scss'),
-              injector: 'prepend'
-            }
-          }
-        ]
-      },
-      {
-        test: /\.css$/,
-        use: [
-          {
-            loader: 'style-loader', // 将 js 字符串生成 style 节点
-          },
-          {
-            loader: 'css-loader', // 将 css 转化成 CommonJS 模块
-          }
         ]
       },
       {
@@ -96,28 +99,5 @@ module.exports = {
     }),
     new VueLoaderPlugin()
   ],
-  optimization: {
-    splitChunks: {
-      chunks: 'async',
-      minSize: 30000,
-      maxSize: 0,
-      minChunks: 1,
-      maxAsyncRequests: 5,
-      maxInitialRequests: 3,
-      automaticNameDelimiter: '~',
-      name: true,
-      cacheGroups: {
-        vendors: {
-          test: /[\\/]node_modules[\\/]/,
-          priority: -10
-        },
-        default: {
-          minChunks: 2,
-          priority: -20,
-          reuseExistingChunk: true
-        }
-      }
-    }
-  },
   target: 'web',
 }

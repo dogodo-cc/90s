@@ -2,25 +2,41 @@
   <svg 
     class="component-custom-icon"
     :class="{ 'icon-spin': spin, name: true }"
-    aria-hidden="true" :style="boxStyle">
-      <use :xlink:href="'#' + name"></use>
+    aria-hidden="true"
+    :style="boxStyle">
+    <use :xlink:href="'#' + name" />
   </svg>
 </template>
 
 <script>
 export default {
-  name: 'icon',
+  name: 'Icon',
 
   props: {
-    name: String,
+    name: {
+      type: String,
+      required: true
+    },
 
-    width: [Number, String],
+    width: {
+      type:[Number, String],
+      required: true
+    },
 
-    height: [Number, String],
+    height: {
+      type:[Number, String],
+      required: true
+    },
 
-    color: String,
+    color: {
+      type: String,
+      default: '#000'
+    },
 
-    spin: Boolean, // 是否添加旋转动画
+    spin: {
+      type: Boolean, // 是否添加旋转动画
+      default:false
+    }
   },
 
   computed: {
@@ -42,7 +58,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="postcss">
 @keyframes animate-spin {
   0% {
     transform: rotate(0deg);

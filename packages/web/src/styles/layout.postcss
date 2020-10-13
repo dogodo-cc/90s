@@ -1,6 +1,6 @@
 
 .alan-header {
-  height: $headerHieght;
+  height: var(--header-height);
   padding:0 20px;
   font-size: 24px;
   color: #fff;
@@ -28,12 +28,12 @@
 
 .alan-body {
   display: flex;
-  min-height: calc(100vh - #{$headerHieght})
+  min-height: calc(100vh - var(--header-height))
 }
 
 .alan-nav {
-  width: $navBarWidth;
-  height: calc(100vh - #{$headerHieght});
+  width: var(--nav-bar-width);
+  height: calc(100vh - var(--header-height));
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
   padding:30px 15px 30px 24px;
   color: #333;
@@ -68,7 +68,7 @@
 
 .alan-contain {
   flex: 1;
-  height: calc(100vh - #{$headerHieght});
+  height: calc(100vh - var(--header-height));
   overflow-y: scroll;
   overflow-x: hidden;
 }

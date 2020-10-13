@@ -31,3 +31,7 @@ this.iconList = require.context('@/icons/svg/',false,/\.svg$/).keys().map(v => {
  }
  ```
  // if [ ! -d 'dist' ]; then echo '😢 dist 文件夹不存在' && mkdir dist; else echo '😄 正在往 dist 文件夹搬迁静态文件' && node scripts/deploy.js; fi
+
+```base
+npm adduser --registry  https://registry-npm.gaoding.com  --always-auth
+```

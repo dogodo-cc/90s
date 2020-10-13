@@ -59,3 +59,20 @@ yarn workspace @90s/web add vue -D
 - [x] 加入ci-task-runner，来处理增量构建
 - [ ] 提高首屏加载速度
 - [x] 增加一个文档项目
+
+
+## 原则
+* 使用最新的npm包，保持更新
+* 如果没必要，不要随意增加npm依赖，尽量保持瘦身状态
+* 禁用 sass less stylus 等拓展语言，特别是sass（node-sass经常出乱七八糟的问题）直接使用原生css，借用postcss实现嵌套书写等常见需求 (面向规范)
+```js
+// style-resources-loader 全局导入变量的直接用 :root {--color: blue;} 替代
+{
+  loader: 'style-resources-loader',
+  options: {
+    patterns: path.resolve(__dirname, '../src/styles/theme.scss'),
+    injector: 'prepend'
+  }
+}
+```
+* 绝对等公共依赖如无特殊情况，在packages/common 里维护，如babel vue webpack postcss 

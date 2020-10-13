@@ -107,6 +107,8 @@ cmd + l 	 // 跳转到源码的行
 
 3、如果还继续报错 可以执行下 `sudo xcode-select --reset s`
 
+或者 直接官网下载： https://developer.apple.com/download/more/ 
+
 
 ## brew
 [教程](https://blog.csdn.net/WizardtoH/article/details/104744008)

@@ -18,46 +18,48 @@ const makeArrayLine = (arr = [], lines = 2) => {
   return result;
 }
 
-// 一维数组转为树形结构数组
-const array2tree = (arr = [], config = {ID:'id',PID:'pid'}) => {
-  const {ID, PID} = config;
-  let roots = []
-  let wait = {};
+/**
+ * 将一纬数组转为树形结构的数组
+ * @param {array} arr 需要转换的一维数组
+ * @param {string} idKey ID字段
+ * @param {string} parentIdKey 父ID字段
+ */
+const array2tree = (arr = [], idKey = 'id', parentIdKey = 'pid', childrenKey = 'children') => {
+
+  const roots = []
+  const wait = {};
 
   arr.forEach(item => {
-    item[ID] = String(item[ID]);// 把id都转为字符串，方便后面进行对比
-     
-    const pid = item[PID];
-    if ( pid === undefined) {
+    const parentId = item[parentIdKey];
+
+    // 找不到父id，视为根级元素
+    if (parentId === undefined) {
       roots.push(item)
     } else {
-      item[PID] = String(item[PID]); // 把pid都转为字符串，方便后面进行对比
-
-      if (Array.isArray(wait[pid])) {
-        wait[pid].push(item);
+      if (Array.isArray(wait[parentId])) {
+        wait[parentId].push(item);
       } else {
-        wait[pid] = [item];
+        wait[parentId] = [item];
       }
     }
   })
 
-  function findParent(pid, children = [], roots = []) {
+  function findParent(parentId, children = [], roots = []) {
     roots.forEach(parent => {
-      if(parent[ID] === pid) {
-        parent.children = children;
-        delete wait[pid]
+      if (String(parent[idKey]) === parentId) {
+        parent[childrenKey] = children;
+        delete wait[parentId]
       } else {
-        if (Array.isArray(parent.children)) {
-          findParent(pid, children, parent.children);
+        if (Array.isArray(parent[childrenKey])) {
+          findParent(parentId, children, parent[childrenKey]);
         }
       }
     });
   }
   
   while(Object.keys(wait).length) {
-    Object.entries(wait).forEach(v => {
-      const [pid, children] = v;
-      findParent(pid, children, roots);
+    Object.entries(wait).forEach(([parentId, children]) => {
+      findParent(parentId, children, roots);
     })
   }
   return roots;

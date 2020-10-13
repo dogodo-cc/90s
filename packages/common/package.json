@@ -1,0 +1,43 @@
+{
+  "name": "@90s/common",
+  "version": "0.0.1",
+  "description": "纯粹为了统一管理公共依赖的npm包，避免多个项目依赖不同版本，借用lerna的能力，让多个项目共用依赖。",
+  "private": true,
+  "dependencies": {
+    "@90s/tools": "^0.0.1",
+    "@babel/plugin-syntax-dynamic-import": "^7.8.3",
+    "@babel/polyfill": "^7.11.5",
+    "@babel/runtime-corejs2": "^7.11.2",
+    "core-js": "^3.6.5",
+    "normalize.css": "^8.0.1",
+    "vue": "^2.6.11",
+    "vue-router": "^3.4.6",
+    "vuex": "^3.5.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.10.1",
+    "@babel/plugin-transform-runtime": "^7.10.1",
+    "@babel/preset-env": "^7.10.1",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.1.0",
+    "babel-plugin-component": "^1.1.1",
+    "clean-webpack-plugin": "^3.0.0",
+    "css-loader": "^3.5.3",
+    "cssnano": "^4.1.10",
+    "html-webpack-plugin": "^4.3.0",
+    "postcss": "^7.0.31",
+    "postcss-import": "^12.0.1",
+    "postcss-inline-svg": "^4.1.0",
+    "postcss-loader": "^3.0.0",
+    "postcss-preset-env": "^6.7.0",
+    "postcss-scss": "^2.1.1",
+    "style-loader": "^2.0.0",
+    "vue-loader": "^15.9.2",
+    "vue-template-compiler": "^2.6.11",
+    "webpack": "^4.44.2",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0",
+    "webpack-manifest-plugin": "^2.2.0",
+    "webpack-merge": "^4.2.2"
+  }
+}

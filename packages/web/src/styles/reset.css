@@ -18,3 +18,9 @@ body {
 * {
   box-sizing: border-box;
 }
+
+:root {
+  --main-color: blue;
+  --header-height: 60px;
+  --nav-bar-width: 200px;
+}
