@@ -143,3 +143,23 @@ git remote set-url origin https://mirrors.cloud.tencent.com/homebrew/homebrew-co
 
 echo 'export HOMEBREW_BOTTLE_DOMAIN=https://mirrors.cloud.tencent.com/homebrew-bottles' >> ~/.zshrc
 source ~/.zshrc
+
+
+MacBook 装机
+
+1、工具类：
+* chrome
+* vscode
+* ihost
+* iterm2
+* oh my zsh
+* git
+* node
+* xcode
+* brew
+* nginx
+
+系统小工具：
+* moom
+
+
