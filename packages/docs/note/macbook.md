@@ -53,7 +53,7 @@ defaults write -g com.apple.mouse.scaling 12
 这是mac上一款管理窗口的付费软件，我最常用的就是左右分屏功能，由于在公司用的是27寸4K显示器，我可以轻松的将Chrome 和 vscode 左右分屏，一边负责代码，一边负责页面呈现和调试，无需窗口切换，非常高效。
 
 ### iHost
-管理本地 host 的免费软件，可以轻松的对host文件进行编辑和分类，自由的切换分组。[github](ttps:/ /github.com/toolinbox/iHosts)
+管理本地 host 的免费软件，可以轻松的对host文件进行编辑和分类，自由的切换分组。[Github](ttps://github.com/toolinbox/iHosts)
 
 ### 欧陆词典 （即将废弃）
 在Catalina 10.15.7 之前苹果都没有推出好用的词典，所以我一直使用的是欧陆词典，它只是在屏幕状态栏有一个搜索图标，方便随时查询单词。不过有消息说下一代macOS将携带词典APP，在2020年这样的时间点，苹果出品，而且是词典这样的小APP，我相信苹果的实力，所以在新系统到来的时候，我将第一时间放弃欧陆，改用系统自带词典。
@@ -67,6 +67,7 @@ defaults write -g com.apple.mouse.scaling 12
 由于屏(bi)蔽(guan)糟(shuo)粕(guo)的政策，我们和外界的沟通渠道被切断，导致在安装一些国外的源的时候，会无休止的卡在loading状态，或者类似报错 Failed to connect to raw.githubusercontent.com port 443: Connection refused 
 
 1、 在 [这里](https://www.ipaddress.com) 查询raw.githubusercontent.com的真实IP
+
 2、 在host文件里配置 199.232.28.133  raw.githubusercontent.com
 
 ```
@@ -78,7 +79,8 @@ defaults write -g com.apple.mouse.scaling 12
 ### xcode-select
 
 熟悉的报错：  gyp: No Xcode or CLT version detected!
-这是等软件需要依赖的模块，安装方面感觉也经常遇到问题
+在mac上做开发的依赖模块，安装方面感觉也经常遇到问题
+
 方法1:
 ```
 xcode-select --install
@@ -135,8 +137,7 @@ source ~/.zshrc
 
 ```
 
-如果折腾失败，可以使用这个终极[方案](https://zhuanlan.zhihu.com/p/111014448 
-https://gitee.com/cunkai/HomebrewCN)。[仓库地址](https://gitee.com/cunkai/HomebrewCN)
+如果折腾失败，可以使用这个[终极方案](https://zhuanlan.zhihu.com/p/111014448)。[仓库地址](https://gitee.com/cunkai/HomebrewCN)
 
 ### 命令行
 
