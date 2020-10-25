@@ -30,12 +30,13 @@
 
 将Safari 和 Chrome 的首页设置为bing，搜索引擎切换为bing，因为他们默认的都是垃圾百度引擎，为什么不设置成谷歌？原因你懂，而且bing有国内版和国际版本，也基本够用了。
 
-![picture](./images/1.png)
-![picture](./images/2.png)
-![picture](./images/3.png)
-![picture](./images/4.png)
-![picture](./images/5.png)
-![picture](./images/6.png)
+<img src="./images/1.png" width="300" />
+<img src="./images/2.png" width="300" />
+<img src="./images/3.png" width="300" />
+<img src="./images/4.png" width="300" />
+<img src="./images/5.png" width="300" />
+<img src="./images/6.png" width="300" />
+
 
 ### 鼠标跟随速度
 
