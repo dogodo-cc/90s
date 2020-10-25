@@ -53,7 +53,7 @@ defaults write -g com.apple.mouse.scaling 12
 这是mac上一款管理窗口的付费软件，我最常用的就是左右分屏功能，由于在公司用的是27寸4K显示器，我可以轻松的将Chrome 和 vscode 左右分屏，一边负责代码，一边负责页面呈现和调试，无需窗口切换，非常高效。
 
 ### iHost
-管理本地 host 的免费软件，可以轻松的对host文件进行编辑和分类，自由的切换分组。[Github](ttps://github.com/toolinbox/iHosts)
+管理本地 host 的免费软件，可以轻松的对host文件进行编辑和分类，自由的切换分组。[Github](https://github.com/toolinbox/iHosts)
 
 ### 欧陆词典 （即将废弃）
 在Catalina 10.15.7 之前苹果都没有推出好用的词典，所以我一直使用的是欧陆词典，它只是在状态栏有一个搜索图标，方便随时查询单词。不过有消息说下一代macOS将携带词典APP，在2020年这样的时间点，苹果出品，而且是词典这样的小APP，我相信苹果的实力，所以在新系统到来的时候，我将第一时间放弃欧陆，改用系统自带词典。
