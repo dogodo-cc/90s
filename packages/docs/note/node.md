@@ -7,3 +7,5 @@ process.cwd() 是当前执行node命令时候的文件夹地址 
 __dirname 是被执行的js 文件的地址
 
 
+登陆公司的私有npm仓库
+npm adduser --registry=https://registry-npm.gaoding.com --always-auth
