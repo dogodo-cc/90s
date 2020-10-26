@@ -18,7 +18,7 @@
 
 ## 电脑设置
 
-得益于苹果强大的iCloud同步能力，在配置新电脑的时候只要登陆Apple ID，电脑基本就恢复了70%的样子了。只需做一些简单设置，就可以进行日常使用。
+得益于苹果强大的iCloud同步能力，在配置新电脑的时候只要登陆Apple ID，电脑基本就能恢复70%的样子。只需做一些简单设置，就可以进行日常使用。
 
 ### 改名字
 
@@ -51,6 +51,10 @@ defaults write -g com.apple.mouse.scaling 12
 
 ### MooM 
 这是mac上一款管理窗口的付费软件，我最常用的就是左右分屏功能，由于在公司用的是27寸4K显示器，我可以轻松的将Chrome 和 vscode 左右分屏，一边负责代码，一边负责页面呈现和调试，无需窗口切换，非常高效。
+
+设置 -> mouse -> zoom button controls > pop up controls when hovering over a zoom button (取消勾选)
+
+避免和系统自带的左右分屏冲突，moom只保留鼠标拖拽到屏幕边缘触发分屏.
 
 ### iHost
 管理本地 host 的免费软件，可以轻松的对host文件进行编辑和分类，自由的切换分组。[Github](https://github.com/toolinbox/iHosts)
