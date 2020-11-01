@@ -16,6 +16,8 @@
 
 由于音乐资源的问题，会额外使用网易云音乐作为辅助，为什么不是QQ音乐等其他？因为网易云的UI交互是我认为做的最好的。（当然如果可以去掉运营的部分就更好）。
 
+网易云、QQ音乐等版权文件可以通过[这个工具](http://tool.moresound.tk)进行破解。
+
 ## 电脑设置
 
 得益于苹果强大的iCloud同步能力，在配置新电脑的时候只要登陆Apple ID，所有数据都会同步过来（照片、备忘录、提醒、文档等等）。只需做一些简单设置，就可以进行日常使用。
@@ -177,3 +179,27 @@ iterm2 + oh my zsh = 双剑合璧
 - Command＋shift＋4 自定义区域
 - Command＋shift＋4 之后再按 “空格” 点击某个窗口，就截图该窗口
 - 以上所有操作 加按 “control” 可以直接在黏贴版使用
+
+
+## 其他
+
+### FFmpeg
+
+[官网](https://trac.ffmpeg.org/wiki/CompilationGuide/macOS)， [参考教程](https://zhuanlan.zhihu.com/p/90099862)。
+
+步骤
+```bash
+brew install ffmpeg
+
+brew tap homebrew-ffmpeg/ffmpeg
+
+brew install homebrew-ffmpeg/ffmpeg/ffmpeg
+
+// 看此仓库支持哪些options
+brew options homebrew-ffmpeg/ffmpeg/ffmpeg
+
+brew install homebrew-ffmpeg/ffmpeg/ffmpeg --with-chromaprint --with-decklink --with-fdk-aac --with-game-music-emu --with-libbluray --with-libbs2b --with-libcaca --with-libgsm --with-libmodplug --with-librsvg --with-libsoxr --with-libssh --with-libvidstab --with-libvmaf --with-libxml2 --with-opencore-amr --with-openh264 --with-openjpeg --with-openssl --with-openssl@1.1 --with-rav1e --with-rtmpdump --with-rubberband --with-speex --with-srt --with-tesseract --with-two-lame --with-wavpack --with-webp --with-xvid --with-zeromq --with-zimg
+
+// 测试
+ffmpeg -i /Users/alan/Desktop/1.mov /Users/alan/Desktop/1.mp4
+```
